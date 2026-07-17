@@ -1,0 +1,381 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# ServicosIN v1.1 — NOS IN Services & Customer Segment Reference
+# Reference knowledge base for subscriber profile configurations on Ericsson AXE/HLR.
+# Referenced by: Expertise-VcsProfiler V4.2
+# ═══════════════════════════════════════════════════════════════════════════════
+
+meta:
+  version: "1.1"
+  date: "2026-06-29"
+  based_on: "ServicosIN (26/04/2026)"
+  format: "Pure YAML"
+  developed_by: "NOS Tech - Operations - Services - VCS"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PURPOSE & USAGE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+purpose:
+  description: >
+    Reference knowledge base for NOS MSISDN subscriber profile configurations
+    on Ericsson AXE/HLR nodes. Maps customer segments (CSP, OICK, TICK) to
+    IN service triggers and associated Service Keys.
+  role: "LOOKUP REFERENCE — not an execution trigger"
+  when_to_consult:
+    - "When HGSDP_Perfil returns CSP/OICK/TICK values and agent needs to identify customer type"
+    - "When agent needs to determine expected IN service nodes for a given profile"
+    - "When agent needs to validate Service Key assignments (MO/MT voice and SMS)"
+    - "When troubleshooting CAMEL/IN related issues (missing triggers, wrong SK)"
+    - "When identifying customer segment from provisioning data"
+  not_for:
+    - "This skill does NOT trigger tool calls"
+    - "This skill does NOT define execution sequence (that is NumeracaoNOS)"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COLUMN GLOSSARY
+# ═══════════════════════════════════════════════════════════════════════════════
+
+glossary:
+  tipos_cliente: "Customer type / commercial segment name"
+  ambiente: "Environment — Producao (production) or test/reserved"
+  csp: "Customer Service Profile — HLR parameter identifying service bundle. Key lookup field from HGSDP_Perfil."
+  oick: "O-CSI Identification Key — identifies originating CAMEL trigger profile"
+  tick: "T-CSI Identification Key — identifies terminating CAMEL trigger profile"
+  servicos_in_node: >
+    IN platform node(s) handling the call. Values:
+    LOSDP = Local Online SDP (prepaid charging),
+    POSDP = Proxy Online SDP,
+    xSDP = External SDP,
+    MxIN = Mixed IN (multiplex),
+    NGIN1 = Next Gen IN platform 1 (VPN Alcatel/Corporate),
+    NGIN2 = Next Gen IN platform 2 (FM Pessoal),
+    SCP1–SCP7 = Service Control Point nodes,
+    IMS = IP Multimedia Subsystem trigger,
+    RBT = Ring Back Tones,
+    VPN2.4 = VPN migration platform,
+    SCF Broadsoft = Service Creation Framework via BroadSoft
+  sk_mo: "Service Key for Mobile Originated voice calls. Multiple keys separated by '+' = chained triggers."
+  sk_mt: "Service Key for Mobile Terminated voice calls. Multiple keys separated by '+' = chained triggers."
+  sk_sms_mo: "Service Key for MO-SMS"
+  sk_sms_mt: "Service Key for MT-SMS"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOOKUP INSTRUCTIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+lookup_instructions:
+  primary_key: "CSP (from HGSDP_Perfil)"
+  secondary_keys: ["OICK", "TICK"]
+  matching_rules:
+    - "CSP is the primary lookup. Multiple rows may share the same CSP but differ in OICK/TICK."
+    - "Some entries have CSP='na' or CSP='x' — these are identified by OICK/TICK only."
+    - "When CSP matches multiple rows, use OICK to disambiguate."
+    - "TICK differentiates terminating service variants (RBT, VoLTE, Kids, etc.)"
+    - "Values 'na' or null mean not applicable / not provisioned."
+    - "Values '-' mean explicitly excluded / blocked."
+  output_use:
+    - "Use tipos_cliente to report customer segment in analysis"
+    - "Use servicos_in_node to validate CAMEL triggers match expected platform"
+    - "Use SK values to validate Service Key assignments in O-CSI/T-CSI"
+    - "Flag mismatch between HGSDP provisioning and expected IN profile as MISCONFIGURATION"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SPECIAL CSP VALUES (cross-reference with Expertise)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+special_csp_notes:
+  - { csp: "73", note: "VPN Broadsoft / Mobile Centrex — SCF Broadsoft. Cross-ref with Expertise mobile_centrex rules." }
+  - { csp: "79", note: "VoLTE with CAMEL roaming — defined in Expertise, NOT in this table (IMS-only, no IN trigger)." }
+  - { csp: "80", note: "VoLTE without CAMEL roaming — defined in Expertise, NOT in this table (IMS-only, no IN trigger)." }
+  - { csp: "0", note: "Dunning state — services suspended, no IN triggers active." }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROFILE DATA — Production & Active
+# ═══════════════════════════════════════════════════════════════════════════════
+
+profiles:
+
+  # --- REGULARES ---
+  - { tipos_cliente: "Regulares", ambiente: "Producao", csp: "1", oick: "19", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- PRE-PAGO (PP) ---
+  - { tipos_cliente: "PP", ambiente: "Producao", csp: "2", oick: "1", tick: null, servicos_in_node: ["LOSDP"], sk_mo: "10", sk_mt: null, sk_sms_mo: "1401", sk_sms_mt: "1501" }
+  - { tipos_cliente: "PP", ambiente: "Producao", csp: "3", oick: "1", tick: null, servicos_in_node: ["POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "PP", ambiente: "Producao", csp: "4", oick: "1", tick: null, servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- VPN E// ---
+  - { tipos_cliente: "VPN E//", ambiente: "Producao", csp: "5", oick: "2", tick: "2", servicos_in_node: ["SCP5"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- BUL ---
+  - { tipos_cliente: "BUL", ambiente: "Producao", csp: "6", oick: "4", tick: null, servicos_in_node: ["SCP5"], sk_mo: "40", sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- CUG ---
+  - { tipos_cliente: "CUG Reg", ambiente: null, csp: "7", oick: "5", tick: null, servicos_in_node: ["MxIN"], sk_mo: "41", sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- REDE4 / POP (migração TSPs) ---
+  - { tipos_cliente: "Rede4 aka POP (migração TSPs)", ambiente: "Producao", csp: "8", oick: "6", tick: null, servicos_in_node: ["LOSDP"], sk_mo: "10", sk_mt: null, sk_sms_mo: "1401", sk_sms_mt: "1501" }
+  - { tipos_cliente: "Rede4 aka POP (migração TSPs)", ambiente: "Producao", csp: "9", oick: "6", tick: null, servicos_in_node: ["POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Rede4 aka POP (migração TSPs)", ambiente: "Producao", csp: "60", oick: "6", tick: null, servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- PROMO ---
+  - { tipos_cliente: "Promo", ambiente: null, csp: "10", oick: "7", tick: null, servicos_in_node: ["LOSDP"], sk_mo: "1607", sk_mt: null, sk_sms_mo: "1401", sk_sms_mt: "1501" }
+  - { tipos_cliente: "Promo", ambiente: null, csp: "11", oick: "7", tick: null, servicos_in_node: ["POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Promo", ambiente: null, csp: "12", oick: "7", tick: null, servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- CUG PP / SMARTs ---
+  - { tipos_cliente: "CUG PP / SMARTs", ambiente: "Producao", csp: "13", oick: "8", tick: null, servicos_in_node: ["MxIN", "LOSDP"], sk_mo: "13+10", sk_mt: null, sk_sms_mo: "1401", sk_sms_mt: "1501" }
+  - { tipos_cliente: "CUG PP / SMARTs", ambiente: "Producao", csp: "14", oick: "8", tick: null, servicos_in_node: ["MxIN", "POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "CUG PP / SMARTs", ambiente: "Producao", csp: "15", oick: "8", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- DUO ---
+  - { tipos_cliente: "DUO", ambiente: null, csp: "16", oick: "13", tick: null, servicos_in_node: ["SCP1", "SCP2", "SCP6", "SCP7"], sk_mo: "43", sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- VPN ALCATEL ---
+  - { tipos_cliente: "VPN Alcatel", ambiente: "Producao", csp: "17", oick: "16", tick: "16", servicos_in_node: ["NGIN1"], sk_mo: "60", sk_mt: "61", sk_sms_mo: "62", sk_sms_mt: "63" }
+
+  # --- WORTEN MOBILE ---
+  - { tipos_cliente: "Worten Mobile", ambiente: "Producao", csp: "18", oick: "14", tick: null, servicos_in_node: ["MxIN", "LOSDP"], sk_mo: "13+10", sk_mt: null, sk_sms_mo: "1401", sk_sms_mt: "1501" }
+  - { tipos_cliente: "Worten Mobile", ambiente: "Producao", csp: "19", oick: "14", tick: null, servicos_in_node: ["MxIN", "POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Worten Mobile", ambiente: "Producao", csp: "20", oick: "14", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- FM PESSOAL ---
+  - { tipos_cliente: "FM Pessoal Pos", ambiente: null, csp: "21", oick: "15", tick: null, servicos_in_node: ["NGIN2"], sk_mo: "515", sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "FM Pessoal Pre", ambiente: null, csp: "22", oick: "17", tick: null, servicos_in_node: ["NGIN2", "LOSDP"], sk_mo: "517+10", sk_mt: null, sk_sms_mo: "1401", sk_sms_mt: "1501" }
+  - { tipos_cliente: "FM Pessoal Pre", ambiente: null, csp: "23", oick: "17", tick: null, servicos_in_node: ["NGIN2", "POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "FM Pessoal Pre", ambiente: null, csp: "24", oick: "17", tick: null, servicos_in_node: ["NGIN2", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- MAE (IMS) ---
+  - { tipos_cliente: "MAE", ambiente: null, csp: "25", oick: "38", tick: "38", servicos_in_node: ["IMS"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- CUG SMS ---
+  - { tipos_cliente: "CUG SMS PP", ambiente: "Producao", csp: "26", oick: "61", tick: null, servicos_in_node: ["MxIN", "LOSDP"], sk_mo: "13+10", sk_mt: null, sk_sms_mo: "1408", sk_sms_mt: "1501" }
+  - { tipos_cliente: "CUG SMS PP", ambiente: "Producao", csp: "27", oick: "61", tick: null, servicos_in_node: ["MxIN", "POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "CUG SMS PP", ambiente: "Producao", csp: "28", oick: "61", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "CUG SMS Regular", ambiente: "Producao", csp: "29", oick: "62", tick: null, servicos_in_node: ["MxIN"], sk_mo: "41", sk_mt: null, sk_sms_mo: "4405", sk_sms_mt: null }
+
+  # --- TAG / TEENS ---
+  - { tipos_cliente: "TAG aka Teens", ambiente: null, csp: "30", oick: "63", tick: null, servicos_in_node: ["MxIN", "LOSDP"], sk_mo: "1701+10", sk_mt: null, sk_sms_mo: "1401", sk_sms_mt: "1501" }
+  - { tipos_cliente: "TAG aka Teens", ambiente: null, csp: "31", oick: "63", tick: null, servicos_in_node: ["MxIN", "POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "TAG aka Teens", ambiente: null, csp: "32", oick: "63", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- CUG FM PESSOAL ---
+  - { tipos_cliente: "CUG FM Pessoal Pos", ambiente: null, csp: "33", oick: "36", tick: null, servicos_in_node: ["MxIN", "NGIN2"], sk_mo: "41+515", sk_mt: null, sk_sms_mo: "4436", sk_sms_mt: null }
+
+  # --- VPN PPS ---
+  - { tipos_cliente: "VPN PPS", ambiente: "Producao", csp: "34", oick: "66", tick: "66", servicos_in_node: ["NGIN1", "xSDP"], sk_mo: "60", sk_mt: "61", sk_sms_mo: "62", sk_sms_mt: "63" }
+
+  # --- KIDS ---
+  - { tipos_cliente: "Kids", ambiente: "Producao", csp: "35", oick: "64", tick: "64", servicos_in_node: ["MxIN", "LOSDP"], sk_mo: "70+10", sk_mt: "71+11", sk_sms_mo: "72", sk_sms_mt: "73" }
+  - { tipos_cliente: "Kids", ambiente: "Producao", csp: "36", oick: "64", tick: "64", servicos_in_node: ["MxIN", "POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Kids", ambiente: "Producao", csp: "37", oick: "64", tick: "64", servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- VPN ALCATEL (variante LU CAMEL) ---
+  - { tipos_cliente: "VPN Alcatel (LU apenas onde há Camel)", ambiente: null, csp: "38", oick: "16", tick: "16", servicos_in_node: ["NGIN1"], sk_mo: "60", sk_mt: "61", sk_sms_mo: "62", sk_sms_mt: "63" }
+
+  # --- FM PESSOAL VPN ---
+  - { tipos_cliente: "FM Pessoal VPN", ambiente: null, csp: "39", oick: "67", tick: "67", servicos_in_node: ["NGIN2", "NGIN1"], sk_mo: "519+60", sk_mt: "61", sk_sms_mo: "62", sk_sms_mt: "63" }
+
+  # --- TAG ALL IN ---
+  - { tipos_cliente: "TAG All in (TAG borlas / Smart Total / TAG taste)", ambiente: "Producao", csp: "40", oick: "65", tick: "65", servicos_in_node: ["LOSDP"], sk_mo: "1709", sk_mt: "75+11", sk_sms_mo: "1710", sk_sms_mt: "76+1711" }
+  - { tipos_cliente: "TAG All in (TAG borlas / Smart Total / TAG taste)", ambiente: "Producao", csp: "41", oick: "65", tick: "65", servicos_in_node: ["POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "TAG All in (TAG borlas / Smart Total / TAG taste)", ambiente: "Producao", csp: "42", oick: "65", tick: "65", servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- IoT ---
+  - { tipos_cliente: "IoT Pre-pago com controlo de consumos", ambiente: "Producao", csp: "43", oick: "68", tick: null, servicos_in_node: ["LOSDP"], sk_mo: "10", sk_mt: null, sk_sms_mo: "1408", sk_sms_mt: "1501" }
+  - { tipos_cliente: "IoT Pre-pago com controlo de consumos", ambiente: "Producao", csp: "44", oick: "68", tick: null, servicos_in_node: ["POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "IoT Pre-pago com controlo de consumos", ambiente: "Producao", csp: "45", oick: "68", tick: null, servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "IoT Pos-pago com controlo de consumos", ambiente: "Producao", csp: "46", oick: "69", tick: null, servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- SHAPPING TAG ---
+  - { tipos_cliente: "Shapping TAG destination #1 (Vodafone)", ambiente: "Producao", csp: "47", oick: "70", tick: null, servicos_in_node: ["MxIN", "LOSDP"], sk_mo: "120+1709", sk_mt: null, sk_sms_mo: "1710", sk_sms_mt: "1711" }
+  - { tipos_cliente: "Shapping TAG destination #1 (Vodafone)", ambiente: "Producao", csp: "48", oick: "70", tick: null, servicos_in_node: ["MxIN", "POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Shapping TAG destination #1 (Vodafone)", ambiente: "Producao", csp: "49", oick: "70", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Shapping TAG destination #2 (TMN)", ambiente: "Producao", csp: "50", oick: "71", tick: null, servicos_in_node: ["MxIN", "LOSDP"], sk_mo: "121+1709", sk_mt: null, sk_sms_mo: "1710", sk_sms_mt: "1711" }
+  - { tipos_cliente: "Shapping TAG destination #2 (TMN)", ambiente: "Producao", csp: "51", oick: "71", tick: null, servicos_in_node: ["MxIN", "POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Shapping TAG destination #2 (TMN)", ambiente: "Producao", csp: "52", oick: "71", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Shapping TAG destination #3 (TBD)", ambiente: "Producao", csp: "53", oick: "72", tick: null, servicos_in_node: ["MxIN", "LOSDP"], sk_mo: "122+1709", sk_mt: null, sk_sms_mo: "1710", sk_sms_mt: "1711" }
+  - { tipos_cliente: "Shapping TAG destination #3 (TBD)", ambiente: "Producao", csp: "54", oick: "72", tick: null, servicos_in_node: ["MxIN", "POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Shapping TAG destination #3 (TBD)", ambiente: "Producao", csp: "55", oick: "72", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- MIGRAÇÃO TAG para CCNs ---
+  - { tipos_cliente: "Migração TAG para CCNs", ambiente: "Producao", csp: "56", oick: "73", tick: null, servicos_in_node: ["LOSDP"], sk_mo: "1709", sk_mt: null, sk_sms_mo: "1710", sk_sms_mt: "1711" }
+  - { tipos_cliente: "Migração TAG para CCNs", ambiente: "Producao", csp: "57", oick: "73", tick: null, servicos_in_node: ["POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Migração TAG para CCNs", ambiente: "Producao", csp: "58", oick: "73", tick: null, servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- RLAH (sem survival flag) ---
+  - { tipos_cliente: "Igual a CSP4 sem survival flag (RLAH)", ambiente: "Producao", csp: "74", oick: "1", tick: null, servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Igual a CSP15 sem survival flag (RLAH)", ambiente: "Producao", csp: "75", oick: "8", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Igual a CSP28 sem survival flag (RLAH)", ambiente: "Producao", csp: "76", oick: "61", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Igual a CSP58 sem survival flag (RLAH)", ambiente: "Producao", csp: "77", oick: "73", tick: null, servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Igual a CSP66 sem survival flag (RLAH)", ambiente: "Producao", csp: "78", oick: "76", tick: null, servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- EXTRA TEMPO ---
+  - { tipos_cliente: "Extra tempo", ambiente: "Producao", csp: "70", oick: "74", tick: null, servicos_in_node: ["MxIN", "LOSDP"], sk_mo: "55+10", sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Extra tempo", ambiente: "Producao", csp: "71", oick: "74", tick: null, servicos_in_node: ["MxIN", "POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Extra tempo", ambiente: "Producao", csp: "72", oick: "74", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- VPN BROADSOFT (MOBILE CENTREX) ---
+  - { tipos_cliente: "VPN Broadsoft (Mobile Centrex)", ambiente: "Producao", csp: "73", oick: null, tick: null, servicos_in_node: ["SCF Broadsoft"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- WOO ---
+  - { tipos_cliente: "WOO Pre-Pago", ambiente: null, csp: "61", oick: "75", tick: null, servicos_in_node: ["LOSDP"], sk_mo: "10", sk_mt: null, sk_sms_mo: "1408", sk_sms_mt: "1501" }
+  - { tipos_cliente: "WOO Pre-Pago", ambiente: null, csp: "62", oick: "75", tick: null, servicos_in_node: ["POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "WOO Pos-Pago", ambiente: null, csp: "63", oick: "75", tick: null, servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- ZON OPTIMUS / GO ---
+  - { tipos_cliente: "Zon Optimus com trigger CS (GO)", ambiente: "Producao", csp: "64", oick: "76", tick: null, servicos_in_node: ["LOSDP"], sk_mo: "10", sk_mt: null, sk_sms_mo: "1401", sk_sms_mt: null }
+  - { tipos_cliente: "Zon Optimus com trigger CS (GO)", ambiente: "Producao", csp: "65", oick: "76", tick: null, servicos_in_node: ["POSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Zon Optimus com trigger CS (GO)", ambiente: "Producao", csp: "66", oick: "76", tick: null, servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Zon Optimus pos-pago puro", ambiente: "Producao", csp: "67", oick: "59", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- DUNNING ---
+  - { tipos_cliente: "Zon Optimus em dunning", ambiente: "Producao", csp: "0", oick: "50", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "NOS Madeira em Dunning", ambiente: "Reservado", csp: "0", oick: "53", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "NOS Açores em Dunning", ambiente: "Reservado", csp: "0", oick: "54", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- VPN MIGRAÇÃO ---
+  - { tipos_cliente: "Reservado migração VPN Regular", ambiente: null, csp: "68", oick: "77", tick: "77", servicos_in_node: ["VPN2.4"], sk_mo: "60", sk_mt: "61", sk_sms_mo: "62", sk_sms_mt: "63" }
+  - { tipos_cliente: "Reservado migração VPN PPS", ambiente: null, csp: "69", oick: "78", tick: "78", servicos_in_node: ["VPN2.4", "xSDP"], sk_mo: "60", sk_mt: "61", sk_sms_mo: "62", sk_sms_mt: "63" }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROFILE DATA — HOME (Fixed/2P) — OICK-only (no mobile CSP)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # --- HOME ---
+  - { tipos_cliente: "HOME (DUMMY) - 20x", ambiente: null, csp: null, oick: "20", tick: "20", servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "HOME PREPAGO", ambiente: null, csp: null, oick: "21", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: "30+10", sk_mt: "31", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "HOME POSPAGO VIRTUAL", ambiente: null, csp: null, oick: "22", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: "30+10", sk_mt: "31", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "HOME CUG", ambiente: null, csp: null, oick: "23", tick: null, servicos_in_node: ["MxIN", "MxIN"], sk_mo: "30+41", sk_mt: "31", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "HOME REGULAR", ambiente: null, csp: null, oick: "25", tick: null, servicos_in_node: ["MxIN"], sk_mo: "30", sk_mt: "31", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "HOME VPN", ambiente: null, csp: null, oick: "26", tick: "26", servicos_in_node: ["MxIN", "NGIN1"], sk_mo: "30+60", sk_mt: "31", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "2P VOZ Pos Pago (wOw)", ambiente: null, csp: null, oick: "28", tick: null, servicos_in_node: ["MxIN"], sk_mo: "33", sk_mt: "31", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "2P VOZ DUMMY RESIDENCIAL (wOw)", ambiente: null, csp: null, oick: "29", tick: "20", servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- ZON OPTIMUS HOME ---
+  - { tipos_cliente: "Zon Optimus Home pos pago", ambiente: "Producao", csp: null, oick: "55", tick: null, servicos_in_node: ["MxIN"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- SERVIÇO UNIVERSAL ---
+  - { tipos_cliente: "Servico universal via GSM", ambiente: "Producao", csp: null, oick: "51", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Servico universal via GSM em dunning", ambiente: "Producao", csp: null, oick: "52", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- FM PESSOAL FIXO ---
+  - { tipos_cliente: "FM PESSOAL - N FIXO - REGULAR", ambiente: null, csp: null, oick: "35", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "FM PESSOAL - N FIXO - PP", ambiente: null, csp: null, oick: "37", tick: null, servicos_in_node: ["xSDP"], sk_mo: "37", sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "FM Corporate - N FIXO", ambiente: null, csp: null, oick: null, tick: "16", servicos_in_node: ["MxIN", "NGIN1"], sk_mo: null, sk_mt: "31+61", sk_sms_mo: null, sk_sms_mt: null }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROFILE DATA — TICK-only (Terminating triggers)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # --- PPS / PASSIVE ---
+  - { tipos_cliente: "PPS (passivo/no service)", ambiente: null, csp: null, oick: null, tick: "1", servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: "11", sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- RBT ---
+  - { tipos_cliente: "Ring Back Tones", ambiente: null, csp: null, oick: null, tick: "9", servicos_in_node: ["RBT"], sk_mo: null, sk_mt: "5010", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Ring Back Tones + BIC", ambiente: null, csp: null, oick: null, tick: "11", servicos_in_node: ["xSDP", "RBT"], sk_mo: null, sk_mt: "11+5010", sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- BIC ---
+  - { tipos_cliente: "BIC (CS3.0)", ambiente: null, csp: null, oick: null, tick: "12", servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: "78+11", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "BIC (CS3.0) + RBT", ambiente: null, csp: null, oick: null, tick: "13", servicos_in_node: ["MxIN", "xSDP", "RBT"], sk_mo: null, sk_mt: "78+11+5010", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "BIC (CS3.0) pre activo / No Service", ambiente: null, csp: null, oick: null, tick: "14", servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- VPN + RBT ---
+  - { tipos_cliente: "VPN Regular + RBT", ambiente: null, csp: "17", oick: "16", tick: "17", servicos_in_node: ["NGIN1", "RBT"], sk_mo: null, sk_mt: "61+5010", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "VPN Prepago + RBT", ambiente: null, csp: "34", oick: "66", tick: "17", servicos_in_node: ["NGIN1", "RBT"], sk_mo: null, sk_mt: "61+5010", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "FM Pessoal VPN + RBT", ambiente: null, csp: "39", oick: "67", tick: "17", servicos_in_node: ["NGIN1", "RBT"], sk_mo: null, sk_mt: "61+5010", sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- REMOCAO CONFIDENCIALIDADE ---
+  - { tipos_cliente: "Remoção de confidencialidade (+ RBT)", ambiente: null, csp: null, oick: null, tick: "31", servicos_in_node: ["MxIN", "RBT"], sk_mo: null, sk_mt: "273+5010", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Remoção de confidencialidade + VPN (+ RBT)", ambiente: null, csp: null, oick: null, tick: "32", servicos_in_node: ["MxIN", "VPN", "RBT"], sk_mo: null, sk_mt: "61+237+5010", sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- RGPD ---
+  - { tipos_cliente: "RGPD barramentos", ambiente: null, csp: null, oick: null, tick: "33", servicos_in_node: ["MxIN"], sk_mo: null, sk_mt: "37", sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- MIGRAÇÕES TICK ---
+  - { tipos_cliente: "Migração OICK-1 para TSP (TICK-73)", ambiente: null, csp: null, oick: null, tick: "73", servicos_in_node: ["xSDP"], sk_mo: null, sk_mt: "11", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Migração OICK-1 para TSP (TICK-73) + RBT", ambiente: null, csp: null, oick: null, tick: "18", servicos_in_node: ["xSDP", "RBT"], sk_mo: null, sk_mt: "11+5010", sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- HOME VPN + RBT ---
+  - { tipos_cliente: "HOME VPN + RBT", ambiente: null, csp: null, oick: "26", tick: "27", servicos_in_node: ["NGIN2", "NGIN1", "RBT"], sk_mo: null, sk_mt: "61", sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- KIDS + RBT ---
+  - { tipos_cliente: "Kids + RBT", ambiente: null, csp: "35/36/37", oick: "64", tick: "19", servicos_in_node: ["MxIN", "xSDP", "RBT"], sk_mo: null, sk_mt: "71+11+5010", sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- TAG ALL IN + RBT ---
+  - { tipos_cliente: "TAG All in + RBT", ambiente: null, csp: "40/41/42", oick: "65", tick: "15", servicos_in_node: ["MxIN", "xSDP", "RBT"], sk_mo: null, sk_mt: "75+11+5010", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "TAG All in (no service / antes da 1st call)", ambiente: null, csp: "40/41/42", oick: "65", tick: "165", servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- N PBX / CARTÕES VIRTUAIS ---
+  - { tipos_cliente: "N PBX (Ligações Directas - cartões virtuais)", ambiente: null, csp: null, oick: null, tick: "110", servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Cartões virtuais Serviços Apoio Cliente NOS", ambiente: null, csp: null, oick: "19", tick: "110", servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Cartões virtuais Corporate com VPN", ambiente: null, csp: null, oick: "16", tick: "110", servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- VOZ LTE (VoLTE CAMEL triggers) ---
+  - { tipos_cliente: "Regulares com Voz LTE", ambiente: null, csp: "1", oick: "19", tick: "300", servicos_in_node: ["MxIN"], sk_mo: null, sk_mt: "301", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "VPN Alcatel com Voz LTE", ambiente: null, csp: "17/38", oick: "16", tick: "316", servicos_in_node: ["MxIN", "NGIN1"], sk_mo: "60", sk_mt: "301+61", sk_sms_mo: "62", sk_sms_mt: "63" }
+  - { tipos_cliente: "Ring Back Tones com Voz LTE", ambiente: null, csp: "1", oick: "19", tick: "309", servicos_in_node: ["MxIN", "MxIN"], sk_mo: null, sk_mt: "301+5010", sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "RBT + VPN com Voz LTE", ambiente: null, csp: "17/38", oick: "16", tick: "317", servicos_in_node: ["MxIN", "NGIN1", "MxIN"], sk_mo: "60", sk_mt: "301+61+5010", sk_sms_mo: "62", sk_sms_mt: "63" }
+
+  # --- RESERVADO MIGRAÇÃO VPN + RBT ---
+  - { tipos_cliente: "Reservado migração VPN Regular + RBT", ambiente: null, csp: null, oick: null, tick: "377", servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Reservado migração VPN PPS + RBT", ambiente: null, csp: null, oick: null, tick: "378", servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- RES NOVIS ---
+  - { tipos_cliente: "RES Novis", ambiente: null, csp: "1", oick: "19", tick: "115", servicos_in_node: ["MxIN"], sk_mo: null, sk_mt: "961", sk_sms_mo: null, sk_sms_mt: null }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROFILE DATA — VoIP / IN-only (não existe no HLR)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # --- PPS FIXO (Softphone IN only) ---
+  - { tipos_cliente: "PPS Fixo (Softphone IN — não existe no HLR)", ambiente: null, csp: null, oick: "201", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: "82+10", sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- IP CENTREX VPN ---
+  - { tipos_cliente: "IP Centrex VPN (não existe no HLR)", ambiente: null, csp: null, oick: "216", tick: null, servicos_in_node: ["NGIN1"], sk_mo: "60", sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- CLIENTES FIXOS (Softphone default) ---
+  - { tipos_cliente: "Clientes fixos (Softphone OICK default — não existe no HLR)", ambiente: null, csp: null, oick: "222", tick: null, servicos_in_node: ["MxIN"], sk_mo: "82", sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- SERVICO UNIVERSAL VoIP ---
+  - { tipos_cliente: "Servico universal via VoIP (IN only — não existe no HLR)", ambiente: null, csp: null, oick: "251", tick: null, servicos_in_node: ["MxIN", "xSDP"], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- VoLTE (IN OICK only) ---
+  - { tipos_cliente: "Clientes VoLTE (não existe no HLR)", ambiente: null, csp: null, oick: "300", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROFILE DATA — Test Environments
+# ═══════════════════════════════════════════════════════════════════════════════
+
+  # --- STORM DUMMY ---
+  - { tipos_cliente: "Storm dummy", ambiente: null, csp: null, oick: "30", tick: "30", servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- TESTES TRÁFEGO INTERNACIONAL SIP ---
+  - { tipos_cliente: "Testes tráfego internacional SIP", ambiente: null, csp: null, oick: "90-97", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- TESTES GENÉRICOS ---
+  - { tipos_cliente: "Testes genéricos", ambiente: null, csp: null, oick: "98-99", tick: "98-99", servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+  # --- C-SIM / TEST PROFILES ---
+  - { tipos_cliente: "Teste PPS", ambiente: null, csp: "100", oick: "1", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Teste Regular", ambiente: null, csp: "101", oick: "19", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Teste VPN E//", ambiente: null, csp: "102", oick: "2", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Teste PPS C-SIM Live", ambiente: null, csp: "103", oick: "1", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Teste Regular C-SIM Live", ambiente: null, csp: "104", oick: "19", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Teste VPN Alcatel TPL C-SIM Live", ambiente: null, csp: "105", oick: "16", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Teste PPS C-SIM TP", ambiente: null, csp: "106", oick: "1", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Teste Regular C-SIM TP", ambiente: null, csp: "107", oick: "19", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Teste VPN Alcatel C-SIM TP", ambiente: null, csp: "108", oick: "16", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Live PPS SCP2 C-SIM TP", ambiente: null, csp: "109", oick: "1", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Teste VPN-Alcatel TP NGIN TP", ambiente: null, csp: "110", oick: "16", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Live PPS CCN1 C-SIM TP", ambiente: null, csp: "111", oick: "1", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Live PPS CCN Cluster C-SIM Live", ambiente: null, csp: "112", oick: "1", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Live PPS LOCCN1 C-SIM Live", ambiente: null, csp: "113", oick: "1", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+  - { tipos_cliente: "Live PPS POCCN1 C-SIM Live", ambiente: null, csp: "114", oick: "1", tick: null, servicos_in_node: [], sk_mo: null, sk_mt: null, sk_sms_mo: null, sk_sms_mt: null }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERSION HISTORY
+# ═══════════════════════════════════════════════════════════════════════════════
+
+version_history:
+  - { version: "1.1", date: "2026-06-29", changes: "Version rollover from v1.0. Updated file naming and archived previous version into versioning folder." }
+  - { version: "1.0", date: "2026-06-26", changes: "Converted from unstructured JSON to pure YAML. Added metadata, glossary, lookup instructions, special CSP notes. Grouped by segment." }

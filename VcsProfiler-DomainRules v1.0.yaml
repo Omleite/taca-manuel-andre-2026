@@ -1,0 +1,138 @@
+# VcsProfiler-DomainRules v1.0
+# Compact domain rule skill for Expertise-VcsProfiler.
+
+meta:
+  version: "1.0"
+  date: "2026-06-29"
+  role: "Reference domain logic (no tool sequencing)"
+  used_by: "Expertise-VcsProfiler V4.2"
+
+purpose:
+  description: >
+    Provides compact technical truth tables for interpretation, correlations,
+    expected behaviors, and misconfiguration flags.
+  not_for:
+    - "Does not define tool order"
+    - "Does not replace output template"
+
+core_domain_rules:
+  subscriber_identity:
+    - "MSISDN = service number"
+    - "Canonical normalized MSISDN in output = digits only with 351 prefix (no '+')"
+    - "IMSI = SIM identity"
+    - "ICS-1 presence is key for IMS voice enablement paths"
+
+  volte_and_mobile_centrex:
+    indicators:
+      volte_typical:
+        - "ICS-1 present"
+        - "CSP 79 or 80 (typical)"
+      mobile_centrex_typical:
+        - "ICS-1 present"
+        - "CSP 73 (typical)"
+        - "IMPI contains @ipcentrex.ims.nos.pt OR Service Profile BW_MobileCentrex_Active"
+    decisive_rule: "Final VoLTE vs Mobile Centrex decision is made at STEP 4 using HssSubscriberProfile."
+
+  fixed_and_centrex:
+    rules:
+      - "ACTIVE_CENTREX + HGSDP found -> Home Centrex"
+      - "ACTIVE_CENTREX + HGSDP absent -> Centrex pure (expected)"
+      - "Fixed numbers do not follow mobile 5G authentication path"
+
+  iot_m2m:
+    range: "35149x"
+    expected:
+      - "IMS may be absent"
+      - "HssSubscriberProfile may be absent"
+      - "BS30 expected"
+      - "TS11 and ICS-1 normally absent"
+    interpretation: "Treat data-only behavior as normal unless contradictory provisioning exists."
+
+roaming_logic:
+  principle: "Roaming must be interpreted per layer; no single flag is universal."
+  layers:
+    - mechanism: "OBR-2"
+      layer: "HLR ODB"
+      meaning: "Prevents roaming registration on foreign networks"
+    - mechanism: "BICROAM"
+      layer: "HLR supplementary services"
+      meaning: "Bars incoming calls when roaming"
+    - mechanism: "roamingRestriction"
+      layer: "EPS/HSS"
+      meaning: "Restriction profile applied, not definitive by itself"
+    - mechanism: "epsTenantId"
+      layer: "EPS/HSS"
+      meaning: "Tenant-specific policy context when present"
+    - mechanism: "epsRoamingAllowed"
+      layer: "EPS/HSS"
+      meaning: "Definitive EPS roaming state"
+    - mechanism: "roamingAllowed"
+      layer: "IMS/HSS"
+      meaning: "IMS context flag only; non-decisive for roaming root cause"
+  definitive_eps_parameter: "epsRoamingAllowed"
+
+enum_correlations:
+  matrix:
+    - condition: "IMS_STATUS ACTIVE + HssSubscriberProfile present"
+      outcome: "IMS path consistent; classify VoLTE vs Mobile Centrex via IMPI/Service Profile"
+    - condition: "IMS_STATUS ACTIVE + HssSubscriberProfile absent"
+      outcome: "Possible ENUM/HSS desynchronization"
+    - condition: "IMS_STATUS ABSENT + HssSubscriberProfile present"
+      outcome: "Possible ENUM provisioning gap"
+    - condition: "IMS_STATUS NOT_APPLICABLE + IoT + no HssSubscriberProfile"
+      outcome: "Expected IoT data-only"
+
+smart_number_multidevice:
+  mandatory_internal_check: true
+  key_fields:
+    - "IMPU/publicIdValue"
+    - "privateUserId"
+    - "aliasGroupId"
+    - "serviceProfileId"
+    - "maxNumberOfContacts"
+    - "maxNumberSessions"
+  core_rules:
+    - "Secondary MSISDN in IMPU/publicIdValue is sufficient to detect Smart Number"
+    - "maxNumberOfContacts = 1 does not exclude Smart Number"
+    - "Only include Multi-device line when maxNumberOfContacts > 1 or equivalent high-session signal"
+
+fiveg_sa_interpretation:
+  high_level:
+    - "Use authentication + UDM/EPC evidence together"
+    - "If inventory UUIDs are unknown, report raw UUID and flag unknown node"
+    - "Treat ambiguous locationState/purge combinations as explicit ambiguity flags"
+
+misconfiguration_taxonomy:
+  critical:
+    - "Tool order violation (analysis before FGNTP/eNUM gate)"
+    - "Mandatory STEP 4 skipped"
+    - "Normalized MSISDN output not in canonical format (must be 351... digits only, no '+')"
+    - "ICS-1 present but MTAS not executed (without explicit NOT_ANALYSED reason)"
+  ims_voice:
+    - "IMS_STATUS ACTIVE with missing ICS-1"
+    - "IMS_STATUS ACTIVE with missing HssSubscriberProfile"
+    - "Mobile Centrex indicators inconsistent (wrong IMPI domain or profile)"
+  roaming:
+    - "epsRoamingAllowed false when service expects roaming"
+  iot:
+    - "BS30 absent"
+    - "Unexpected TS11 or ICS-1 on data-only profile"
+  smart_number:
+    - "Secondary MSISDN exists but omitted from analysis"
+    - "Smart Number wrongly rejected due to maxNumberOfContacts=1"
+
+expected_behaviors_not_errors:
+  - "IoT/M2M with IMS absent"
+  - "IoT/M2M with HssSubscriberProfile absent"
+  - "Pure Centrex with HGSDP absence"
+  - "Mobile Centrex initially appearing as Mobile VoLTE before STEP 4 reclassification"
+  - "Limited MTAS data for Mobile Centrex"
+
+usage_contract:
+  when_to_use:
+    - "When interpreting outcomes from NumeracaoNOS step execution"
+    - "When deciding whether to flag behavior as expected or misconfigured"
+    - "When writing concise root-cause summaries"
+  output_style:
+    - "Prefer deterministic statements with explicit evidence"
+    - "Separate confirmed findings from hypotheses"

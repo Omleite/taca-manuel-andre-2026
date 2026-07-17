@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taça Manuel André 2026 · Estela Golf Club</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══ TOP NAVIGATION ══════════════════════════════════════════ -->
+<header class="site-nav" id="siteNav">
+    <div class="nav-inner">
+        <a class="nav-brand" href="#">
+            <img src="https://www.biucca.com/estela/img/logo-branco.png"
+                 alt="Estela Golf Club"
+                 class="nav-logo-img"
+                 onerror="this.style.display='none'">
+            <span class="nav-brand-text">Estela<em>Golf</em></span>
+        </a>
+        <nav class="nav-links" id="navLinks">
+            <button class="tab-btn active" data-tab="jogadores">Jogadores</button>
+            <button class="tab-btn" data-tab="equipas">Equipas</button>
+            <button class="tab-btn" data-tab="calcular">Calcular Handicap</button>
+            <button class="tab-btn" data-tab="calendario">Calendário</button>
+            <button class="tab-btn" data-tab="classificacao">Classificação</button>
+            <button class="tab-btn" data-tab="config">Configurações</button>
+        </nav>
+        <!-- Auth: botão entrar / info utilizador -->
+        <div class="nav-auth">
+            <button class="btn-nav-login" id="btnOpenLogin">Entrar</button>
+            <div class="nav-user hidden" id="navUser">
+                <span id="navUserRole" class="nav-role-badge badge-admin">Admin</span>
+                <span id="navUsername" class="nav-username">—</span>
+                <button id="btnLogout" class="btn-nav-logout">Sair</button>
+            </div>
+        </div>
+        <button class="nav-burger" id="navBurger" aria-label="Abrir menu">&#9776;</button>
+    </div>
+</header>
+
+<!-- ══ LOGIN MODAL ═══════════════════════════════════════════ -->
+<div id="loginModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <div class="modal-box">
+        <button class="modal-close" id="btnCloseLogin" aria-label="Fechar">×</button>
+        <div class="modal-brand">
+            <span class="modal-icon">⛳</span>
+            <div>
+                <span class="modal-brand-name" id="loginTitle">Estela<em>Golf</em></span>
+                <p class="modal-subtitle">Taça Manuel André 2026</p>
+            </div>
+        </div>
+        <form id="loginForm" novalidate>
+            <div class="form-field">
+                <label for="loginUsername">Utilizador</label>
+                <input type="text" id="loginUsername" autocomplete="username" spellcheck="false" placeholder="Nome de utilizador">
+            </div>
+            <div class="form-field">
+                <label for="loginPassword">Palavra-passe</label>
+                <div class="pwd-row">
+                    <input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••">
+                    <button type="button" id="btnTogglePwd" class="btn-eye" tabindex="-1" title="Mostrar/ocultar">👁</button>
+                </div>
+            </div>
+            <p class="login-error hidden" id="loginError"></p>
+            <button type="submit" class="btn btn-primary btn-block" id="btnLoginSubmit">Entrar</button>
+        </form>
+        <p class="login-footer">Acesso reservado à organização do torneio.</p>
+    </div>
+</div>
+
+<!-- ══ HERO BANNER ═════════════════════════════════════════════ -->
+<section class="site-hero">
+    <div class="hero-inner">
+        <span class="hero-eyebrow">Estela Golf Club · 2026</span>
+        <h1 class="hero-title">Taça Manuel André</h1>
+        <p class="hero-sub">Texas Scramble por Pares &nbsp;·&nbsp; Match Play</p>
+    </div>
+</section>
+
+<main class="app-main">
+
+    <!-- ===== JOGADORES ===== -->
+    <section id="tab-jogadores" class="tab-pane active">
+        <div class="pane-header">
+            <h2>Jogadores</h2>
+            <button class="btn btn-primary" id="btnShowPlayerForm">+ Adicionar Jogador</button>
+        </div>
+
+        <div id="playerForm" class="card form-card hidden">
+            <h3 id="playerFormTitle">Novo Jogador</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="inputPlayerName">Nome do Jogador</label>
+                    <input type="text" id="inputPlayerName" placeholder="Nome completo">
+                </div>
+                <div class="form-field">
+                    <label for="inputPlayerHcpWhs">Handicap WHS</label>
+                    <input type="number" id="inputPlayerHcpWhs" placeholder="Ex: 12" step="1" min="-10" max="54">
+                </div>
+                <div class="form-field">
+                    <label for="inputPlayerHcp">Handicap de Jogo</label>
+                    <input type="number" id="inputPlayerHcp" placeholder="Ex: 12" step="1" min="-10" max="54" style="margin-bottom:.5rem">
+                    <div class="fpg-btn-row">
+                        <a href="https://scoring.fpg.pt/lists/1PreparePage.aspx?user=admin&amp;page=fedsearch&amp;ccode=All"
+                           target="_blank" rel="noopener" class="fpg-inline-btn">
+                            🔍 Pesquisar WHS
+                        </a>
+                        <a href="https://portal.fpg.pt/handicaps-course-rating/calculo-de-handicap-de-campo/"
+                           target="_blank" rel="noopener" class="fpg-inline-btn">
+                            ⛳ Handicap de Campo
+                        </a>
+                    </div>
+                    <span class="field-hint">Introduza o handicap de <strong>jogo</strong> (já calculado para as amarelas do Estela).
+                        Use os botões acima para consultar o WHS e converter para handicap de campo.</span>
+                </div>
+            </div>
+            <div class="form-footer">
+                <button class="btn btn-ghost" id="btnCancelPlayer">Cancelar</button>
+                <button class="btn btn-primary" id="btnSavePlayer">Guardar Jogador</button>
+            </div>
+            <input type="hidden" id="playerEditId">
+        </div>
+
+        <div id="playersList" class="players-grid"></div>
+    </section>
+
+    <!-- ===== EQUIPAS ===== -->
+    <section id="tab-equipas" class="tab-pane">
+        <div class="pane-header">
+            <h2>Equipas</h2>
+            <button class="btn btn-primary" id="btnShowTeamForm">+ Nova Equipa</button>
+        </div>
+
+        <div id="teamForm" class="card form-card hidden">
+            <h3 id="teamFormTitle">Nova Equipa</h3>
+            <div class="form-field">
+                <label for="inputTeamName">Nome da Equipa</label>
+                <input type="text" id="inputTeamName" placeholder="Ex: Os Falcões">
+            </div>
+            <div class="form-field">
+                <label>Seleccionar 4 Jogadores</label>
+                <div id="teamPlayerPicker" class="player-picker"></div>
+                <span class="picker-hint" id="pickerHint">0/4 jogadores seleccionados</span>
+            </div>
+            <div class="form-footer">
+                <button class="btn btn-ghost" id="btnCancelTeam">Cancelar</button>
+                <button class="btn btn-primary" id="btnSaveTeam">Guardar</button>
+            </div>
+            <input type="hidden" id="teamEditId">
+        </div>
+
+        <div id="teamsList" class="teams-grid"></div>
+    </section>
+
+    <!-- ===== CALCULAR HANDICAP ===== -->
+
+    <section id="tab-calcular" class="tab-pane">
+        <div class="pane-header">
+            <h2>Calcular Handicap dos Pares</h2>
+        </div>
+
+        <!-- Atalhos FPG -->
+        <div class="fpg-quickbar">
+            <span class="fpg-quickbar-label">FPG</span>
+            <a href="https://scoring.fpg.pt/lists/1PreparePage.aspx?user=admin&page=fedsearch&ccode=All"
+               target="_blank" rel="noopener" class="fpg-quickbar-link">
+                🔍 Pesquisa de Handicaps WHS
+            </a>
+            <span class="fpg-quickbar-sep">·</span>
+            <a href="https://portal.fpg.pt/handicaps-course-rating/calculo-de-handicap-de-campo/"
+               target="_blank" rel="noopener" class="fpg-quickbar-link">
+                ⛳ Cálculo de Handicap de Campo (Estela · Amarelas)
+            </a>
+        </div>
+
+        <p class="section-desc">Seleccione as duas equipas em confronto.</p>
+
+        <!-- Seleção de Equipas -->
+        <div class="teams-selection">
+            <div class="card team-select-card">
+                <h3 class="team-select-title">Equipa A</h3>
+                <div class="form-field">
+                    <label>Seleccionar Equipa</label>
+                    <select id="selTeamA"><option value="">-- Seleccionar Equipa A --</option></select>
+                </div>
+            </div>
+
+            <div class="vs-badge">VS</div>
+
+            <div class="card team-select-card">
+                <h3 class="team-select-title">Equipa B</h3>
+                <div class="form-field">
+                    <label>Seleccionar Equipa</label>
+                    <select id="selTeamB"><option value="">-- Seleccionar Equipa B --</option></select>
+                </div>
+            </div>
+        </div>
+
+        <p class="section-desc">Seleccione dois jogadores de cada equipa para cada par.</p>
+
+        <div class="match-setup">
+            <div class="card par-card">
+                <h3 class="par-title par-a-title" id="parATitle">Par A</h3>
+                <div class="form-field">
+                    <label>Jogador 1</label>
+                    <select id="selA1"><option value="">-- Seleccionar --</option></select>
+                </div>
+                <div class="form-field">
+                    <label>Jogador 2</label>
+                    <select id="selA2"><option value="">-- Seleccionar --</option></select>
+                </div>
+                <div class="par-total" id="parATotal">
+                    <span>Handicap Total</span>
+                    <strong>—</strong>
+                </div>
+            </div>
+
+            <div class="vs-badge">VS</div>
+
+            <div class="card par-card">
+                <h3 class="par-title par-b-title" id="parBTitle">Par B</h3>
+                <div class="form-field">
+                    <label>Jogador 1</label>
+                    <select id="selB1"><option value="">-- Seleccionar --</option></select>
+                </div>
+                <div class="form-field">
+                    <label>Jogador 2</label>
+                    <select id="selB2"><option value="">-- Seleccionar --</option></select>
+                </div>
+                <div class="par-total" id="parBTotal">
+                    <span>Handicap Total</span>
+                    <strong>—</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="calc-actions">
+            <button class="btn btn-primary btn-lg" id="btnCalculate">⛳ Calcular Pancadas de Abono</button>
+        </div>
+
+        <div id="calcResult" class="hidden">
+            <div class="card result-card">
+                <h3>Resultado</h3>
+                <div id="resultSummary"></div>
+            </div>
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h3 style="margin: 0;">Distribuição por Buracos</h3>
+                    <button class="btn btn-sm" id="btnPrintStroke" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">🖨️ Imprimir</button>
+                </div>
+                <p class="table-hint">Os buracos a verde (<span class="stroke-dot">●</span>) recebem pancada de abono.</p>
+                <div class="table-scroll">
+                    <table id="strokeTable" class="stroke-table">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CONFIGURAÇÕES ===== -->
+    <section id="tab-config" class="tab-pane">
+        <div class="pane-header">
+            <h2>Configurações</h2>
+        </div>
+
+        <!-- Gestão de Utilizadores — admin only -->
+        <div class="card admin-only hidden" id="cardUsers">
+            <div class="card-header-row">
+                <h3>Utilizadores</h3>
+                <button class="btn btn-sm btn-primary" id="btnShowNewUser">+ Novo Utilizador</button>
+            </div>
+            <p class="config-desc">Crie e gira os utilizadores com acesso ao backoffice (inscrição de jogadores e equipas).</p>
+
+            <!-- Formulário novo utilizador -->
+            <div id="newUserForm" class="inner-form hidden">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="inputNewDisplayName">Nome de display</label>
+                        <input type="text" id="inputNewDisplayName" placeholder="Ex: João Silva">
+                    </div>
+                    <div class="form-field">
+                        <label for="inputNewUsername">Nome de utilizador</label>
+                        <input type="text" id="inputNewUsername" placeholder="Ex: jsilva" autocomplete="off" spellcheck="false">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="inputNewPassword">Palavra-passe</label>
+                        <input type="password" id="inputNewPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                    </div>
+                    <div class="form-field">
+                        <label for="inputNewRole">Função</label>
+                        <select id="inputNewRole">
+                            <option value="user">Utilizador</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-footer">
+                    <button class="btn btn-ghost btn-sm" id="btnCancelNewUser">Cancelar</button>
+                    <button class="btn btn-primary btn-sm" id="btnSaveNewUser">Criar Utilizador</button>
+                </div>
+            </div>
+
+            <div id="usersList" class="users-list"></div>
+        </div>
+
+        <!-- Alterar palavra-passe — para qualquer utilizador com sessão -->
+        <div class="card auth-only hidden" id="cardChangePwd">
+            <h3>Alterar Palavra-passe</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="inputCurrentPwd">Palavra-passe actual</label>
+                    <input type="password" id="inputCurrentPwd" autocomplete="current-password">
+                </div>
+                <div></div>
+            </div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="inputNewPwd">Nova palavra-passe</label>
+                    <input type="password" id="inputNewPwd" autocomplete="new-password">
+                </div>
+                <div class="form-field">
+                    <label for="inputConfirmPwd">Confirmar nova</label>
+                    <input type="password" id="inputConfirmPwd" autocomplete="new-password">
+                </div>
+            </div>
+            <div class="form-footer">
+                <button class="btn btn-primary" id="btnChangePwd">Alterar Palavra-passe</button>
+            </div>
+        </div>
+
+        <div class="card admin-only hidden">
+            <h3>Stroke Index (SI) dos Buracos</h3>
+            <p class="config-desc">O SI define a ordem de dificuldade de cada buraco. Os buracos com SI mais baixo recebem as primeiras pancadas de abono. Os valores devem ser únicos entre 1 e 18.</p>
+            <div class="si-section-label">Front 9 (Buracos 1–9)</div>
+            <div id="siGridFront" class="si-grid"></div>
+            <div class="si-section-label" style="margin-top:1rem">Back 9 (Buracos 10–18)</div>
+            <div id="siGridBack" class="si-grid"></div>
+            <div class="form-footer">
+                <button class="btn btn-ghost" id="btnResetSI">Repor Predefinição</button>
+                <button class="btn btn-primary" id="btnSaveSI">Guardar SI</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Regulamento – Cálculo de Handicap</h3>
+            <div class="regulation">
+                <ol>
+                    <li>Somam-se os <strong>handicaps de jogo</strong> dos dois jogadores de cada par.</li>
+                    <li>Calcula-se a <strong>diferença</strong> entre os handicaps totais dos dois pares.</li>
+                    <li>O par com handicap total mais elevado recebe <strong>¾ (75%) dessa diferença</strong>, arredondada para a unidade mais próxima.</li>
+                    <li>O par com handicap total mais baixo joga com <strong>0 pancadas de vantagem</strong>.</li>
+                    <li>As pancadas são distribuídas pelos buracos com <strong>Stroke Index mais baixo</strong> (buracos mais difíceis).</li>
+                </ol>
+                <div class="example-box">
+                    <strong>Exemplo:</strong><br>
+                    Par A: 8 + 12 = <strong>20</strong> &nbsp;|&nbsp; Par B: 15 + 17 = <strong>32</strong><br>
+                    Diferença: 32 − 20 = <strong>12</strong><br>
+                    ¾ de 12 = <strong>9 pancadas</strong><br>
+                    ➡️ Par B recebe <strong>9 pancadas</strong> nos buracos com SI 1 a 9. Par A joga sem pancadas.
+                </div>
+            </div>
+        </div>
+
+        <div class="card fpg-card">
+            <div class="fpg-header">
+                <div>
+                    <h3>Federação Portuguesa de Golfe</h3>
+                    <p class="config-desc">Consulte o handicap WHS de qualquer jogador e calcule o handicap de jogo para as <strong>amarelas do Estela Golf Club</strong>.</p>
+                </div>
+            </div>
+            <div class="fpg-links">
+                <a href="https://scoring.fpg.pt/lists/1PreparePage.aspx?user=admin&page=fedsearch&ccode=All"
+                   target="_blank" rel="noopener" class="fpg-link-btn">
+                    <span class="fpg-link-icon">🔍</span>
+                    <span>
+                        <strong>Pesquisa de Handicaps</strong>
+                        <small>Consultar o handicap WHS de qualquer sócio federado</small>
+                    </span>
+                    <span class="fpg-link-arrow">↗</span>
+                </a>
+                <a href="https://portal.fpg.pt/handicaps-course-rating/calculo-de-handicap-de-campo/"
+                   target="_blank" rel="noopener" class="fpg-link-btn">
+                    <span class="fpg-link-icon">⛳</span>
+                    <span>
+                        <strong>Calcular Handicap de Jogo</strong>
+                        <small>Obter o handicap para as amarelas do Estela Golf Club (CR 72,7 · Slope 131)</small>
+                    </span>
+                    <span class="fpg-link-arrow">↗</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="card admin-only hidden">
+            <h3>Gestão de Dados</h3>
+            <p class="config-desc">Guarde uma cópia dos dados ou restaure a partir de um ficheiro exportado anteriormente.</p>
+            <div class="form-footer">
+                <button class="btn btn-ghost" id="btnExport">↓ Exportar JSON</button>
+                <button class="btn btn-ghost" id="btnImport">↑ Importar JSON</button>
+                <button class="btn btn-danger" id="btnClearAll">Limpar Tudo</button>
+            </div>
+            <input type="file" id="importFile" accept=".json" class="hidden">
+        </div>
+    </section>
+
+    <!-- ===== CALENDÁRIO ===== -->
+    <section id="tab-calendario" class="tab-pane">
+        <div class="pane-header">
+            <h2>Calendário da Competição</h2>
+        </div>
+        <p class="section-desc">Texas Scramble por Pares · Match Play · Grupos A, B, C e D</p>
+
+        <!-- ─── 1ª RONDA ─── -->
+        <div class="ronda-block">
+            <div class="ronda-header">
+                <span class="ronda-num">1ª Ronda</span>
+                <span class="ronda-date">Até 21 de Junho</span>
+            </div>
+            <div class="grupos-grid">
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo A</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">Os Craques</span><span class="jogo-vs">VS</span><span class="team-away">LJMS</span></li>
+                        <li class="jogo"><span class="team-home">Os 4 no Buraco</span><span class="jogo-vs">VS</span><span class="team-away">Estela Birdies</span></li>
+                        <li class="folga">CGGG — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo B</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">AMVJ</span><span class="jogo-vs">VS</span><span class="team-away">V.T.F.</span></li>
+                        <li class="jogo"><span class="team-home">Equipa Eleven</span><span class="jogo-vs">VS</span><span class="team-away">EMJC</span></li>
+                        <li class="folga">Red Hot Chilli Putters — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo C</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">Birdies e Boggies</span><span class="jogo-vs">VS</span><span class="team-away">Jacaré</span></li>
+                        <li class="jogo"><span class="team-home">Os Golfinhos</span><span class="jogo-vs">VS</span><span class="team-away">Piratas</span></li>
+                        <li class="folga">Masters — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo D</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">MMLH</span><span class="jogo-vs">VS</span><span class="team-away">School</span></li>
+                        <li class="jogo"><span class="team-home">Golfistas da Madrugada</span><span class="jogo-vs">VS</span><span class="team-away">Old Fashion Team</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── 2ª RONDA ─── -->
+        <div class="ronda-block">
+            <div class="ronda-header">
+                <span class="ronda-num">2ª Ronda</span>
+                <span class="ronda-date">Até 26 de Julho</span>
+            </div>
+            <div class="grupos-grid">
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo A</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">Os Craques</span><span class="jogo-vs">VS</span><span class="team-away">Os 4 no Buraco</span></li>
+                        <li class="jogo"><span class="team-home">CGGG</span><span class="jogo-vs">VS</span><span class="team-away">LJMS</span></li>
+                        <li class="folga">Estela Birdies — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo B</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">AMVJ</span><span class="jogo-vs">VS</span><span class="team-away">Equipa Eleven</span></li>
+                        <li class="jogo"><span class="team-home">V.T.F.</span><span class="jogo-vs">VS</span><span class="team-away">Red Hot Chilli Putters</span></li>
+                        <li class="folga">EMJC — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo C</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">Birdies e Boggies</span><span class="jogo-vs">VS</span><span class="team-away">Os Golfinhos</span></li>
+                        <li class="jogo"><span class="team-home">Masters</span><span class="jogo-vs">VS</span><span class="team-away">Jacaré</span></li>
+                        <li class="folga">Piratas — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo D</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">MMLH</span><span class="jogo-vs">VS</span><span class="team-away">Golfistas da Madrugada</span></li>
+                        <li class="jogo"><span class="team-home">School</span><span class="jogo-vs">VS</span><span class="team-away">Old Fashion Team</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── 3ª RONDA ─── -->
+        <div class="ronda-block">
+            <div class="ronda-header">
+                <span class="ronda-num">3ª Ronda</span>
+                <span class="ronda-date">Até 30 de Agosto</span>
+            </div>
+            <div class="grupos-grid">
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo A</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">Os Craques</span><span class="jogo-vs">VS</span><span class="team-away">Estela Birdies</span></li>
+                        <li class="jogo"><span class="team-home">Os 4 no Buraco</span><span class="jogo-vs">VS</span><span class="team-away">CGGG</span></li>
+                        <li class="folga">LJMS — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo B</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">AMVJ</span><span class="jogo-vs">VS</span><span class="team-away">EMJC</span></li>
+                        <li class="jogo"><span class="team-home">Equipa Eleven</span><span class="jogo-vs">VS</span><span class="team-away">Red Hot Chilli Putters</span></li>
+                        <li class="folga">V.T.F. — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo C</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">Birdies e Boggies</span><span class="jogo-vs">VS</span><span class="team-away">Piratas</span></li>
+                        <li class="jogo"><span class="team-home">Masters</span><span class="jogo-vs">VS</span><span class="team-away">Os Golfinhos</span></li>
+                        <li class="folga">Jacaré — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo D</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">MMLH</span><span class="jogo-vs">VS</span><span class="team-away">Old Fashion Team</span></li>
+                        <li class="jogo"><span class="team-home">School</span><span class="jogo-vs">VS</span><span class="team-away">Golfistas da Madrugada</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── 4ª RONDA ─── -->
+        <div class="ronda-block">
+            <div class="ronda-header">
+                <span class="ronda-num">4ª Ronda</span>
+                <span class="ronda-date">Até 27 de Setembro</span>
+            </div>
+            <div class="grupos-grid">
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo A</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">Os Craques</span><span class="jogo-vs">VS</span><span class="team-away">CGGG</span></li>
+                        <li class="jogo"><span class="team-home">LJMS</span><span class="jogo-vs">VS</span><span class="team-away">Estela Birdies</span></li>
+                        <li class="folga">Os 4 no Buraco — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo B</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">AMVJ</span><span class="jogo-vs">VS</span><span class="team-away">Red Hot Chilli Putters</span></li>
+                        <li class="jogo"><span class="team-home">V.T.F.</span><span class="jogo-vs">VS</span><span class="team-away">EMJC</span></li>
+                        <li class="folga">Equipa Eleven — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo C</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">Birdies e Boggies</span><span class="jogo-vs">VS</span><span class="team-away">Masters</span></li>
+                        <li class="jogo"><span class="team-home">Jacaré</span><span class="jogo-vs">VS</span><span class="team-away">Piratas</span></li>
+                        <li class="folga">Os Golfinhos — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card grupo-card--d-placeholder">
+                    <h4 class="grupo-title">Grupo D</h4>
+                    <p class="folga" style="text-align:center;padding:.75rem 0;"><em>Sem jogos nesta ronda</em></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── 5ª RONDA ─── -->
+        <div class="ronda-block">
+            <div class="ronda-header">
+                <span class="ronda-num">5ª Ronda</span>
+                <span class="ronda-date">Até 25 de Outubro</span>
+            </div>
+            <div class="grupos-grid">
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo A</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">LJMS</span><span class="jogo-vs">VS</span><span class="team-away">Os 4 no Buraco</span></li>
+                        <li class="jogo"><span class="team-home">Estela Birdies</span><span class="jogo-vs">VS</span><span class="team-away">CGGG</span></li>
+                        <li class="folga">Os Craques — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo B</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">V.T.F.</span><span class="jogo-vs">VS</span><span class="team-away">Equipa Eleven</span></li>
+                        <li class="jogo"><span class="team-home">EMJC</span><span class="jogo-vs">VS</span><span class="team-away">Red Hot Chilli Putters</span></li>
+                        <li class="folga">AMVJ — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card">
+                    <h4 class="grupo-title">Grupo C</h4>
+                    <ul class="jogos-list">
+                        <li class="jogo"><span class="team-home">Jacaré</span><span class="jogo-vs">VS</span><span class="team-away">Os Golfinhos</span></li>
+                        <li class="jogo"><span class="team-home">Piratas</span><span class="jogo-vs">VS</span><span class="team-away">Masters</span></li>
+                        <li class="folga">Birdies e Boggies — <em>Folga</em></li>
+                    </ul>
+                </div>
+                <div class="grupo-card grupo-card--d-placeholder">
+                    <h4 class="grupo-title">Grupo D</h4>
+                    <p class="folga" style="text-align:center;padding:.75rem 0;"><em>Sem jogos nesta ronda</em></p>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ===== CLASSIFICAÇÃO ===== -->
+    <section id="tab-classificacao" class="tab-pane">
+        <div class="pane-header">
+            <h2>Classificação</h2>
+            <div class="pane-actions">
+                <select id="selRondaClass" class="sel-ronda">
+                    <option value="1">1ª Ronda</option>
+                    <option value="2">2ª Ronda</option>
+                    <option value="3">3ª Ronda</option>
+                    <option value="4">4ª Ronda</option>
+                    <option value="5">5ª Ronda</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="classificacaoContainer">
+            <!-- Grupos com classificações serão renderizados aqui -->
+        </div>
+    </section>
+
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <span class="footer-logo">Estela<em>Golf</em> Club</span>
+            <p>Lugar do Rio Alto · Estela · 4570-242 Póvoa de Varzim</p>
+            <p>geral@estelagolf.pt · +351 252 601 814</p>
+        </div>
+        <div class="footer-copy">
+            <p>Taça Manuel André 2026 · Estela Golf Club</p>
+            <p>© 2026 · Todos os direitos reservados</p>
+        </div>
+    </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
