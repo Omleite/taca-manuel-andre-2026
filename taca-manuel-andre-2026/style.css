@@ -438,12 +438,16 @@ body {
 .btn-nav-logout {
     font-family: var(--font-head); font-size: .7rem; font-weight: 700;
     letter-spacing: .05em; text-transform: uppercase;
-    padding: .3rem .7rem; border-radius: var(--r-sm); cursor: pointer;
-    background: transparent; color: rgba(255,255,255,.5);
-    border: 1px solid rgba(255,255,255,.2);
-    transition: background .15s, color .15s;
+    padding: .35rem .9rem; border-radius: var(--r-sm); cursor: pointer;
+    background: var(--red); color: white;
+    border: none;
+    transition: background .15s, box-shadow .15s;
+    box-shadow: 0 2px 6px rgba(192, 32, 32, 0.3);
 }
-.btn-nav-logout:hover { background: rgba(255,255,255,.08); color: rgba(255,255,255,.85); }
+.btn-nav-logout:hover { 
+    background: #a01a1a; 
+    box-shadow: 0 4px 12px rgba(192, 32, 32, 0.5);
+}
 
 /* ══════════════════════════════════════════════
    LOGIN MODAL
@@ -649,6 +653,64 @@ body {
     .grupo-card:first-child { border-top: none; }
 }
 
+/* ── GESTÃO DE GRUPOS ──────────────────────────────────────── */
+.grupos-edit-container {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.grupo-edit-card {
+    background: var(--card-bg); border-radius: var(--r-lg); padding: 1.5rem;
+    box-shadow: var(--sh-sm); border: 2px solid var(--border);
+}
+
+.grupo-edit-title {
+    font-family: var(--font-head); font-size: 1.3rem; font-weight: 800;
+    color: white; background: var(--primary); padding: 0.6rem 1rem;
+    border-radius: var(--r-md); margin-bottom: 1rem; text-align: center;
+}
+
+.grupo-teams-list {
+    display: flex; flex-direction: column; gap: 0.7rem;
+}
+
+.grupo-team-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.7rem; background: var(--page-bg); border-radius: var(--r-sm);
+    border: 1px solid var(--border);
+}
+
+.grupo-team-name {
+    font-weight: 600; color: var(--txt-dark); flex: 1;
+}
+
+.grupo-team-actions {
+    display: flex; gap: 0.4rem;
+}
+
+.btn-grupo-remove {
+    padding: 0.3rem 0.6rem; background: var(--red); color: white;
+    border: none; border-radius: var(--r-sm); cursor: pointer;
+    font-size: 0.8rem; font-weight: 600; transition: background .15s;
+}
+
+.btn-grupo-remove:hover { background: #a01a1a; }
+
+.grupo-add-team {
+    margin-top: 1rem;
+}
+
+.sel-add-team {
+    width: 100%; padding: 0.6rem; border: 1px solid var(--border);
+    border-radius: var(--r-sm); background: white; color: var(--txt-dark);
+    font-family: var(--font-body); font-size: 0.9rem; cursor: pointer;
+}
+
+.grupo-empty-msg {
+    text-align: center; color: var(--txt-light); font-size: 0.9rem;
+    padding: 1rem; background: var(--page-bg); border-radius: var(--r-sm);
+}
+
 /* ── CLASSIFICAÇÃO ─────────────────────────────────────────── */
 .pane-actions {
     display: flex; gap: 1rem; align-items: center;
@@ -737,6 +799,17 @@ body {
 
 .btn-result.active {
     background: var(--primary); color: white; border-color: var(--primary);
+}
+
+.btn-result-clear {
+    padding: 0.5rem 0.8rem; border: 2px solid var(--border); background: #f0f0f0;
+    color: var(--txt-dark); border-radius: var(--r-sm); cursor: pointer;
+    font-family: var(--font-body); font-size: 0.85rem; font-weight: 600;
+    transition: all 0.2s ease; margin-left: 0.5rem;
+}
+
+.btn-result-clear:hover {
+    border-color: var(--red); color: var(--red); background: #ffe6e6;
 }
 
 @media (max-width: 768px) {
