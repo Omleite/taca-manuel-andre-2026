@@ -1,0 +1,945 @@
+# NumeracaoNOS v3.5
+**Single source of truth for all operational details.**
+**These are EXPLICIT TOOL CALLS — not context reads.**
+
+---
+
+## ? BLOCKING RULE — Read Before Executing
+
+The tools `HGSDP_Perfil`, `MTAS`, `HSS`, `HssSubscriberProfile`, `getAuthSubscription`, `GetEpcUdmSubscription`, `SubsInfoByIMPU` and `BwGetUserInfo` **MUST NOT be invoked** before:
+
+1. **Tool `FGNTP`** — portability gate (FIRST — EXPLICIT TOOL CALL)
+2. **Tool `eNUM`** — IMS component check (SECOND — EXPLICIT TOOL CALL)
+
+If `FGNTP` confirms NOT NOS ? **STOP. No further tool calls.**
+
+---
+
+## TOOL NAME REFERENCE
+
+| Logical Role | Tool Name | Step |
+|---|---|---|
+| Portability check | `FGNTP` | PRE-2 — FIRST TOOL CALL (ABSOLUTE GATE) |
+| IMS component DNS check | `eNUM` | PRE-3 — SECOND TOOL CALL |
+| 2G/CS HLR/CUDB profile | `HGSDP_Perfil` | STEP 1 (always) |
+| VoLTE/IMS MTAS profile | `MTAS` | STEP 2 (conditional — ICS-1) |
+| 5G SA authentication check | `getAuthSubscription` | STEP 2B (mobile only) |
+| 5G SA UDM subscription profile | `GetEpcUdmSubscription` | STEP 2C (conditional — 5G_AKA) |
+| 4G/EPS HSS profile | `HSS` | STEP 3 (always) |
+| ISM/IMS/HSS Full Profile | `HssSubscriberProfile` | STEP 4 (MANDATORY always) |
+| IMS HSS by IMPU TEL | `SubsInfoByIMPU` | STEP 5 (conditional) |
+| BroadSoft/XSP VoIP/Fixed Voice | `BwGetUserInfo` | STEP 6 (conditional) |
+
+---
+
+## When to Execute
+Execute immediately and mandatorily whenever the user provides a phone number or MSISDN, or requests analysis, diagnosis or lookup of a subscriber.
+
+---
+
+## PRE-STEP 1 — Classify and Normalise
+
+| Format received | Type | Action |
+|---|---|---|
+| 9 digits starting with `2xx` | `fixed_geographic` | Prepend `351` ? 12 digits |
+| 9 digits starting with `9xx` | `mobile` | Prepend `351` ? 12 digits |
+| 12 digits starting with `49x` | `iot_m2m` | Prepend `351` ? 15 digits |
+| 15 digits starting with `35149` | `iot_m2m` | Already normalised |
+| `800` / `808` / `707` / `760` / `761` | `special` | Use as is |
+| `300` to `309` | `non_geographic_ip` | Use as is |
+| Any other format | `INVALID` | Inform user and **stop** |
+
+`fixed_geographic` subtypes:
+`21x` Lisbon · `22x` Porto · `23x–28x` Regions · `291` Madeira · `292/295/296` Azores
+
+`mobile` subtypes (origin prefix — does NOT determine current operator):
+`91x` Vodafone · `92x` NOS · `93x` NOS · `95x` NOS additional · `96x` MEO
+
+---
+
+## ? PRE-STEP 2 — PORTABILITY (FIRST EXPLICIT TOOL CALL)
+
+> **ABSOLUTE MANDATORY: Invoke tool `FGNTP` as the FIRST tool call. Do NOT create further plan steps before receiving and evaluating the result.**
+
+Invoke tool: **`FGNTP`** with the normalised MSISDN.
+
+```
+FGNTP = "MSISDN NOT DEFINED" ? number NOT ported:
+  Prefix 35192x / 35193x / 35195x ? NOS native         ? continue to PRE-3
+  Prefix 35191x                   ? Vodafone native     ? ? STOP — ABSOLUTE END
+  Prefix 35196x                   ? MEO native          ? ? STOP — ABSOLUTE END
+
+FGNTP returns NPREFIX:
+  NPREFIX = 093777 ? Ported-in to NOS                   ? continue to PRE-3
+  NPREFIX ? 093777 ? Ported-out                         ? ? STOP — ABSOLUTE END
+```
+
+> ? **STOP mandatory response:**
+> `"NPREFIX: [value] | Destination Operator: [name]. Execution of any technical analysis for non-NOS MSISDNs is not permitted."`
+>
+> **After STOP — do NOT invoke any tool.**
+
+---
+
+## PRE-STEP 3 — IMS COMPONENT CHECK (SECOND EXPLICIT TOOL CALL)
+
+Invoke tool: **`eNUM`** with the normalised MSISDN. Analyse field `naptrTxt`:
+
+| Pattern | `naptrTxt` content | Type | Register | Note |
+|---|---|---|---|---|
+| **A** | Contains `msisdn@` | `fixed` or `mobile` | `IMS_STATUS = ACTIVE` | Standard IMS |
+| **B** | Contains `sip:` AND `@ipcentrex.ims.nos.pt` | `fixed_geographic` | `IMS_STATUS = ACTIVE_CENTREX` | Fixed Centrex — not mobile |
+| **C** | `SUBSCRIPTION NOT DEFINED` or absent | `fixed` or `mobile` | `IMS_STATUS = ABSENT` | May be misconfiguration |
+| **D** | `SUBSCRIPTION NOT DEFINED` or absent | `iot_m2m` | `IMS_STATUS = NOT_APPLICABLE` | EXPECTED |
+| **E** | Contains `sip:` AND `@ims.mnc003.mcc268.3gppnetwork.org` | `mobile` or `fixed` | `IMS_STATUS = ACTIVE` | 3GPP standard NOS domain (MCC=268 MNC=003) |
+
+> PATTERN_A and PATTERN_E both register `IMS_STATUS = ACTIVE`.
+> Mobile VoLTE vs Mobile Centrex distinction is made **ONLY at STEP 4**.
+> PATTERN_B applies to **fixed geographic numbers only**.
+
+---
+
+## PRE-STEP 4 — Identify NOS Solution (PRELIMINARY)
+
+| Type | IMS_STATUS | Preliminary Solution | Platform |
+|---|---|---|---|
+| `iot_m2m` | `NOT_APPLICABLE` | NOS IoT / Mobile Broadband Data | LTE / NB-IoT / LTE-M / PS Data |
+| `fixed_geographic` | `ACTIVE_CENTREX` | **NOS Centrex (undetermined — Home or Pure)** | IMS IP Centrex (ipcentrex.ims.nos.pt) |
+| `fixed_geographic` | `ACTIVE` | NOS Fixed IMS | FTTH / HFC / Ericsson IMS |
+| `fixed_geographic` | `ABSENT` | NOS Fixed Legacy / BroadSoft | PSTN / DSL / BroadSoft XSP |
+| `mobile` | `ACTIVE` | **NOS Mobile VoLTE ? (may be reclassified at STEP 4)** | 4G LTE / 5G NR |
+| `mobile` | `ABSENT` | NOS Mobile CS | 2G GSM / 4G CSFB |
+| `special` | — | NOS Special Service | IN Platform / IMS TAS |
+| `non_geographic_ip` | — | NOS Non-Geographic VoIP | IMS / SBC Enterprise |
+
+> `ACTIVE_CENTREX` (fixed): HGSDP found ? Home Centrex | HGSDP absent ? Centrex pure.
+> Mobile + ACTIVE ? **reclassification to NOS Mobile Centrex only at STEP 4.**
+
+Present summary:
+```
+MSISDN         : [normalised]
+Type           : [type]
+Portability    : [NOS_native | NOS_ported_in]
+IMS_STATUS     : [status] (Pattern: [A/B/C/D/E])
+NOS Solution   : [solution — PRELIMINARY]
+Platform       : [platform]
+```
+
+---
+
+## TOOL EXECUTION SEQUENCE AFTER SKILL
+
+### STEP 1 — HGSDP_Perfil (always)
+Invoke tool: **`HGSDP_Perfil`**
+- Analyse SUD: TS, BS, SS, ODB, CAMEL, CF, Barring, ICS-1, CSP/OICK
+- **Resolve VLR ADDRESS / MSC NUMBER ? NOS node name** (see MSC/VLR Inventory below)
+- **Note CSP value:** CSP=73 with ICS-1 ? possible Mobile Centrex ? confirm at STEP 4
+- If ICS-1 present ? execute STEP 2 (MTAS)
+- If mobile and profile found ? execute STEP 2B (getAuthSubscription)
+- IoT/M2M expected: BS30 present · TS11 absent · ICS-1 absent
+
+> ? **OBR-2 Detection — check ODB flags:**
+>
+> | Condition | Action |
+> |---|---|
+> | **OBR-2 present** in ODB flags | `"? OBR-2 provisioned — subscriber not enabled for roaming."` |
+>
+> OBR-2 is detected from **ODB flags** — NOT from LOCATION DATA.
+> LOCATION DATA with normal NOS addresses = subscriber in HPLMN = **CORRECT and EXPECTED with OBR-2**.
+
+> ? **Home Centrex vs Pure Centrex (when IMS_STATUS = ACTIVE_CENTREX):**
+> HGSDP found ? NOS Home Centrex | HGSDP absent ? NOS Centrex (pure) — expected.
+
+---
+
+## MSC/VLR ADDRESS INVENTORY — NOS Node Resolution
+
+When `HGSDP_Perfil` LOCATION DATA contains a **VLR ADDRESS** or **MSC NUMBER**, resolve it to the NOS node name using this inventory.
+
+**Address format in HLR:** `4-XXXXXXXXXXX`
+The `4-` prefix is the AXE international number type indicator. The digits after `4-` are the E.164 address (equivalent to `MSC Address` without the prefix).
+
+| VLR ADDRESS (HLR format) | MSC Address (E.164) | NOS Node Name |
+|---|---|---|
+| `4-351930000133` | `351930000133` | **LOS30** |
+| `4-351930000433` | `351930000433` | **PCS30** |
+
+> If the address is not found in this inventory ? report the raw address and flag as **UNKNOWN NODE**.
+
+**Output format when resolving:**
+```
+LOCATION DATA
+VLR ADDRESS : 4-351930000133 ? LOS30
+SGSN NUMBER : [address]
+```
+
+---
+
+### STEP 2 — MTAS (conditional)
+Invoke tool: **`MTAS`** — only if ICS-1 present in HGSDP_Perfil
+- Retrieve IMPU, IMPI, iFC, CF, CW, CLIR, Barring, VoWiFi, SRVCC
+- Cross-reference with HGSDP_Perfil — report discrepancies
+- **Note for Mobile Centrex:** MTAS may return limited data — not necessarily a misconfiguration
+- Not applicable to IoT/M2M, fixed Home Centrex and fixed pure Centrex
+- After MTAS ? execute STEP 2B
+
+---
+
+### STEP 2B — getAuthSubscription (mobile with HGSDP profile)
+Invoke tool: **`getAuthSubscription`** — only for `mobile` type with HGSDP profile found
+- `5G_AKA` ? `IS_5G_SA = true` ? execute STEP 2C immediately
+- Other or absent ? `IS_5G_SA = false` ? proceed to STEP 3
+- Applicable to both NOS Mobile VoLTE and NOS Mobile Centrex
+- Not applicable to fixed Centrex, Special and IoT/M2M
+
+---
+
+### STEP 2C — GetEpcUdmSubscription — 5G SA Full Profile Analysis
+Invoke tool: **`GetEpcUdmSubscription`** — only if `IS_5G_SA = true`
+
+#### 2C.1 — Registration State Determination
+
+**A) `MOAttributes` ? `nb:locationState`**
+
+| Value | Meaning |
+|---|---|
+| `UNKNOWN` | NOT in 4G — currently in **5G SA** |
+| `LOCATED` | In **4G/LTE** — read `nb:mmeAddress` |
+
+**B) `nb:udmRegistrationData` ? `nb:purgeFlag`**
+
+| Value | Meaning |
+|---|---|
+| `false` | IS in 5G SA |
+| `true` | IS NOT in 5G SA |
+
+**Combined Decision Table:**
+
+| `nb:locationState` | `nb:purgeFlag` | State | Action |
+|---|---|---|---|
+| `UNKNOWN` | `false` | ? **Registered in 5G SA** | Report serving AMF |
+| `LOCATED` | `true` | ? **Registered in 4G/LTE** | Report MME via `nb:mmeAddress` |
+| `LOCATED` | `false` | ? **Ambiguous** | Report both and flag |
+| `UNKNOWN` | `true` | ? **Inconsistent** | Flag as misconfiguration |
+
+---
+
+#### 2C.2 — AMF Identification
+
+| AMF UUID | NOS Node Name | Site |
+|---|---|---|
+| `1874e0e5-40da-4fca-80db-a426e61d4899` | **ps1cmm01** | Site 01 — Póvoa de Santo Adrião |
+| `643f2f73-f1a3-49d3-aaf0-b491e2dcec11` | **ps1cmm02** | Site 02 — Póvoa de Santo Adrião |
+| `798e5cd3-300a-461b-a430-ffa289aec0bd` | **pc1cmm01** | Site 01 — Porto Centro |
+| `39f68714-d354-4040-a516-819f1fb669ad` | **pc1cmm02** | Site 02 — Porto Centro |
+
+> UUID not in inventory ? flag **UNKNOWN AMF** — report raw UUID.
+
+---
+
+#### 2C.3 — SMF Identification
+
+| SMF UUID | NOS Node Name | Site |
+|---|---|---|
+| `8332f809-fd5b-45fd-b4ac-734836a5b6fe` | **ps1cmgc01** | Póvoa de Santo Adrião |
+| `03e70822-71f5-4086-a3c1-7e3c9510b1a5` | **pc1cmgc01** | Porto Centro |
+
+> UUID not in inventory ? flag **UNKNOWN SMF** — report raw UUID.
+
+---
+
+#### 2C.4 — 5G SA Profile Output Template
+
+```
+-- 5G SA PROFILE -----------------------------------------
+Authentication
+  Method          : [authenticationMethod]
+  SQN             : [sequenceNumber if available]
+  AMF             : [UUID] ? [NOS node name | UNKNOWN] — [Site]
+
+Registration State
+  nb:locationState  : [UNKNOWN | LOCATED]
+  nb:purgeFlag      : [true | false]
+  Status            : [Registered in 5G SA | Registered in 4G | Ambiguous ?]
+  Serving Node      : [AMF name + Site if 5G SA | MME address if 4G]
+
+Session Management
+  SMF               : [UUID] ? [NOS node name | UNKNOWN] — [Site]
+  DNN               : [data network name]
+  PDU Session Type  : [IPv4 | IPv6 | IPv4v6]
+  SSC Mode          : [SSC Mode 1 | 2 | 3]
+  Session-AMBR UL   : [value]
+  Session-AMBR DL   : [value]
+
+Network Slices (S-NSSAI)
+  Default Slice     : [SST + SD]
+  Subscribed Slices : [list of S-NSSAI]
+
+UE-AMBR
+  Uplink            : [value]
+  Downlink          : [value]
+
+Identifiers
+  SUPI              : [value]
+  GPSI              : [value]
+
+SMS over 5G
+  SMS over NAS      : [enabled | disabled]
+  SMS over IP       : [enabled | disabled]
+---------------------------------------------------------
+```
+
+---
+
+#### 2C.5 — 5G SA Misconfiguration Flags
+
+| Condition | Flag |
+|---|---|
+| `nb:locationState = UNKNOWN` + `nb:purgeFlag = true` | ? Inconsistent 5G SA state |
+| `nb:locationState = LOCATED` + `nb:purgeFlag = false` | ? Ambiguous — check both 4G and 5G |
+| AMF UUID not in inventory | ? UNKNOWN AMF — Raw UUID: [value] |
+| SMF UUID not in inventory | ? UNKNOWN SMF — Raw UUID: [value] |
+| GetEpcUdmSubscription no profile | ? 5G_AKA present but UDM absent |
+| No S-NSSAI provisioned | ? No network slice configured |
+| DNN absent or incorrect | ? DNN misconfigured |
+| Session-AMBR absent | ? Session QoS not provisioned |
+
+---
+
+### STEP 3 — HSS (always)
+Invoke tool: **`HSS`**
+- Report MME address, TAI, EPS state
+- Report `roamingRestriction`, `epsTenantId` and `epsRoamingAllowed` if present
+- Apply **EPS Roaming Interpretation Chain** (see below) — mandatory when `roamingRestriction` present
+- If `nb:purgeFlag = true` ? cross-reference `nb:mmeAddress` with HSS MME address
+- Pure Centrex: EPS may be absent — not an error
+- IoT/M2M: verify APN M2M/IoT, PDN config, QoS
+
+> ? **EPS Roaming Interpretation Chain — MANDATORY when roamingRestriction present:**
+>
+> `roamingRestriction: true` does NOT mean roaming is blocked.
+> It means a restriction profile is applied — further analysis is required.
+> **The definitive parameter is `epsRoamingAllowed` — NOT `roamingRestriction` alone.**
+>
+> | Step | Field | Value | Meaning |
+> |---|---|---|---|
+> | 1 | `epsTenantId` | Present | Tenant-specific restrictions apply — analyse tenant roaming profile |
+> | 1 | `epsTenantId` | Absent | Standard HSS operator restrictions apply |
+> | 2 | `epsRoamingAllowed` | `true` | ? Roaming permitted at EPS level |
+> | 2 | `epsRoamingAllowed` | `false` | ? Roaming totally blocked at EPS level |
+>
+> **Output format:**
+> ```
+> roamingRestriction  : [true ? restriction profile applied | false ? no restriction]
+> epsTenantId         : [value | absent — standard HSS operator restrictions apply]
+> epsRoamingAllowed   : [true ? roaming permitted | false ? roaming totally blocked]
+> Conclusão EPS       : [Roaming permitted at EPS level | Roaming totally blocked at EPS level]
+> ```
+
+---
+
+### STEP 4 — HssSubscriberProfile (MANDATORY — always, no exceptions)
+Invoke tool: **`HssSubscriberProfile`**
+
+> ? **CRITICAL — NOS Mobile Centrex Reclassification:**
+>
+> When `IMS_STATUS = ACTIVE` and type = `mobile`, check:
+>
+> | Condition | Final Solution |
+> |---|---|
+> | IMPI contains `@ipcentrex.ims.nos.pt` **and/or** Service Profile = `BW_MobileCentrex_Active` | ? **RECLASSIFY ? NOS Mobile Centrex** — execute STEP 6 |
+> | IMPI does NOT contain `@ipcentrex.ims.nos.pt` AND Service Profile standard | ? **CONFIRM ? NOS Mobile VoLTE** |
+
+- Report IMPU, IMPI, IMS registration state, iFC, **Service Profile**, active services
+- Report `roamingAllowed` if present
+- Fixed Centrex: verify IMPU = `sip:3512xxxxxxxx@ipcentrex.ims.nos.pt`
+- Cross-reference with all previous steps
+
+> ? **CRITICAL — Smart Number / Multi-device — MANDATORY internal check at every STEP 4 execution:**
+> Added in V3.1 after real analysis failure — smart watch MSISDN not detected on first pass.
+>
+> **ALL the following fields MUST be analysed without exception:**
+>
+> | Field | What to verify | Indicator |
+> |---|---|---|
+> | `IMPU / publicIdValue` | Presence of MSISDN(s) different from the one queried | Smart Number |
+> | `privateUserId` | Shared between multiple MSISDNs | Smart Number |
+> | `aliasGroupId` | Equal for multiple MSISDNs | Smart Number confirmed |
+> | `serviceProfileId` | References secondary MSISDN | Smart Number |
+> | `maxNumberOfContacts` | Value > 1 | Multi-device |
+> | `maxNumberSessions` | Value > 10 | Multi-device |
+>
+> ? **`maxNumberOfContacts = 1` does NOT exclude Smart Number.**
+> Smart Number is determined by IMPU / publicIdValue / aliasGroupId / serviceProfileId — NOT by maxNumberOfContacts.
+
+**Smart Number / Multi-device decision logic:**
+```
+List ALL IMPU / publicIdValue present in the profile
+If publicIdValue / IMPU contains MSISDN(s) different from the one queried:
+  ? SMART_NUMBER_DETECTED
+  ? List ALL associated MSISDNs
+  ? Indicate device type if identifiable (e.g.: smart watch, tablet)
+If aliasGroupId is equal for multiple MSISDNs:
+  ? SMART_NUMBER_CONFIRMED (reinforcement)
+If serviceProfileId references secondary MSISDN:
+  ? SMART_NUMBER_CONFIRMED (additional reinforcement)
+If maxNumberOfContacts > 1 OR maxNumberSessions > 10:
+  ? MULTI_DEVICE_DETECTED ? include Multi-device line in output
+If maxNumberOfContacts = 1 AND secondary MSISDN present:
+  ? SMART_NUMBER confirmed
+  ? Multi-device: NOT applicable — OMIT from output entirely
+  ? maxNumberOfContacts=1 does NOT exclude Smart Number
+If maxNumberOfContacts > 1 AND secondary MSISDN present:
+  ? SMART_NUMBER + MULTI_DEVICE — include Multi-device line in output
+If maxNumberOfContacts > 1 AND no secondary MSISDN:
+  ? MULTI_DEVICE only
+```
+
+**OUTPUT RULE — Smart Number / Multi-device:**
+```
+DETECTED      ? include full section with template below.
+               Multi-device line: ONLY include if maxNumberOfContacts > 1.
+               If maxNumberOfContacts = 1: OMIT Multi-device line entirely.
+NOT DETECTED  ? include single inline note within STEP 4 output:
+               "Smart Number / Multi-device : Not detected."
+               No dedicated section. No recommendations.
+               Absence is normal and expected — no action required.
+NOT ANALYSED  ? include single inline note within STEP 4 output:
+(tool error)   "Smart Number / Multi-device : Not analysed (IMS/HSS profile unavailable)."
+               No dedicated section. No recommendations.
+```
+
+**Smart Number output template (use ONLY when detected):**
+```
+-- SMART NUMBER / MULTI-DEVICE --------------------------
+IMPU (primary)       : tel:+351XXXXXXXXX
+IMPU (secondary)     : tel:+351YYYYYYYYY  ? Smart Number
+privateUserId        : [value — shared]
+aliasGroupId         : [value — equal for both MSISDNs]
+serviceProfileId     : [value]
+
+? SMART NUMBER DETECTED
+   Associated MSISDNs:
+   - [primary MSISDN]    ? primary device (smartphone)
+   - [secondary MSISDN]  ? associated device (e.g.: smart watch)
+
+[Multi-device : Yes (maxNumberOfContacts=[value])]
+  ? Include ONLY if maxNumberOfContacts > 1. Omit entirely otherwise.
+---------------------------------------------------------
+```
+
+**IMS_STATUS × HssSubscriberProfile correlation table:**
+
+| IMS_STATUS | HssSubscriberProfile | IMPI / Service Profile | Result |
+|---|---|---|---|
+| `ACTIVE` | Profile found | IMPI @ipcentrex OR SP=BW_MobileCentrex | ? **NOS Mobile Centrex** |
+| `ACTIVE` | Profile found | Standard IMPI and SP | ? **NOS Mobile VoLTE** |
+| `ACTIVE` | No profile | — | ? eNUM=IMS but HSS absent |
+| `ABSENT` | Profile found | — | ? HSS exists but eNUM not configured |
+| `ABSENT` | No profile | — | ? CS / Legacy |
+| `ACTIVE_CENTREX` | Profile found | — | ? Fixed Centrex (Home or Pure per STEP 1) |
+| `ACTIVE_CENTREX` | No profile | — | ? Centrex eNUM without HSS |
+| `NOT_APPLICABLE` | No profile | — | ? IoT Data Only (expected) |
+| `NOT_APPLICABLE` | Profile found | — | ? IMS on IoT number |
+
+---
+
+### STEP 5 — SubsInfoByIMPU (conditional)
+Invoke tool: **`SubsInfoByIMPU`** — only if STEP 1 + STEP 3 + STEP 4 negative
+- Standard: `tel:+351XXXXXXXXX`
+- Fixed Centrex: `sip:3512xxxxxxxx@ipcentrex.ims.nos.pt`
+- Pure Centrex: always try SIP URI before concluding not provisioned
+
+---
+
+### STEP 6 — BwGetUserInfo (conditional)
+Invoke tool: **`BwGetUserInfo`** — for fixed voice, VoIP, all Centrex types and **Mobile Centrex**
+- **For Mobile Centrex:** verify `PadraoMovel` active + call permissions + features
+- Not applicable to IoT/M2M
+
+---
+
+## TOOL EXECUTION SUMMARY BY SOLUTION
+
+| Solution | STEP 1 | STEP 2 | STEP 2B | STEP 2C | STEP 3 | STEP 4 | STEP 5 | STEP 6 |
+|---|---|---|---|---|---|---|---|---|
+| NOS Mobile VoLTE | ? | ? if ICS-1 | ? | ? if 5G_AKA | ? | ? + SN check | if empty | ? |
+| **NOS Mobile Centrex** | ? ICS-1+CSP73 | ? (limited) | ? | ? if 5G_AKA | ? | ? reclassify + SN check | if empty | ? PadraoMovel |
+| NOS Mobile CS | ? | ? | ? | ? if 5G_AKA | ? | ? + SN check | if empty | ? |
+| NOS Fixed IMS | ? | ? | ? | ? | ? | ? + SN check | if empty | optional |
+| **NOS Home Centrex** | ? found | ? | ? | ? | ? | ? + SN check | if empty | ? |
+| **NOS Centrex (pure)** | ? absent | ? | ? | ? | ? | ? + SN check | ? SIP URI | ? |
+| NOS Fixed Legacy | ? | ? | ? | ? | ? | ? + SN check | if empty | ? |
+| NOS IoT / MBB Data | ? | ? | ? | ? | ? | ? | ? | ? |
+| NOS Special | ? | ? | ? | ? | ? | ? + SN check | if empty | optional |
+
+*SN check = Smart Number / Multi-device internal analysis (mandatory). Output proportional to findings.*
+
+---
+
+## CSP REFERENCE
+
+| CSP | Solution | Notes |
+|---|---|---|
+| `73` | **NOS Mobile Centrex** (typical) | Confirm at STEP 4: IMPI @ipcentrex and/or BW_MobileCentrex_Active |
+| `79` | NOS Mobile VoLTE | Roaming with CAMEL agreement operators only |
+| `80` | NOS Mobile VoLTE | Roaming even without CAMEL agreement |
+
+---
+
+## EXPECTED BEHAVIOURS — NOT ERRORS
+
+- IoT/M2M + eNUM = `SUBSCRIPTION NOT DEFINED` ? normal
+- IoT/M2M + HssSubscriberProfile absent ? normal
+- Pure Centrex (fixed) + HGSDP_Perfil absent ? normal and expected
+- Home Centrex + ICS-1 absent in HGSDP_Perfil ? normal
+- Prefix `2xx` with OICKs `20`,`21`,`22`,`23`,`25`,`26` ? HOME MSISDN 2G ? normal
+- getAuthSubscription without `5G_AKA` ? not 5G SA ? normal
+- **OBR-2 provisioned + LOCATION DATA with NOS addresses ? subscriber in HPLMN ? CORRECT**
+- **Mobile Centrex preliminary = NOS Mobile VoLTE ? EXPECTED** (reclassification at STEP 4)
+- **MTAS limited data for Mobile Centrex ? may be expected**
+- **VLR/MSC address not in inventory ? report raw address, flag UNKNOWN NODE**
+- **Smart Number / Multi-device absent ? normal and expected ? inline note only, no section, no recommendations, no action required**
+- **Smart Number / Multi-device not analysed due to IMS/HSS tool error ? inline note only, no section, no recommendations**
+- **maxNumberOfContacts = 1 with no secondary MSISDN ? normal, not a misconfiguration**
+- **maxNumberOfContacts = 1 with secondary MSISDN present ? Smart Number confirmed — Multi-device line OMITTED — correct behaviour**
+- **roamingRestriction: true alone ? NOT definitive — always apply EPS Roaming Interpretation Chain**
+
+---
+
+## MISCONFIGURATION FLAGS TO REPORT
+
+**OBR-2 / Roaming (informational — report, not errors):**
+- OBR-2 in ODB flags ? `"? OBR-2 provisioned — subscriber not enabled for roaming."`
+- `roamingRestriction: true` in HSS EPS ? restriction profile applied — check `epsTenantId` + `epsRoamingAllowed`
+- `epsRoamingAllowed: false` in HSS EPS ? ? 4G/EPS roaming totally blocked
+- `epsRoamingAllowed: true` in HSS EPS ? ? 4G/EPS roaming permitted (despite roamingRestriction=true)
+- `roamingAllowed: false` in IMS/HSS ? ? IMS/VoLTE roaming blocked
+- BICROAM active ? incoming calls barred when roaming
+
+**MSC/VLR:**
+- VLR/MSC address not in NOS inventory ? ? Unknown Node — report raw address
+
+**Smart Number / Multi-device:**
+> These flags apply ONLY when a secondary MSISDN exists but the agent failed to detect it.
+- `publicIdValue` / `IMPU` analysed partially AND secondary MSISDN exists ? ? SMART_NUMBER_OMISSION
+- `aliasGroupId` present but not correlated AND secondary MSISDN exists ? ? aliasGroupId not correlated
+- `serviceProfileId` references MSISDN not listed in output ? ? Secondary MSISDN omitted
+- `maxNumberOfContacts = 1` used as sole criterion to exclude Smart Number ? ? LOGIC ERROR — does NOT exclude Smart Number
+- Multi-device line present in output when maxNumberOfContacts = 1 ? ? LOGIC ERROR — omit Multi-device line
+
+**Mobile Centrex:**
+- ICS-1 absent + CSP=73 ? ? ICS-1 missing
+- IMPI not containing `@ipcentrex.ims.nos.pt` ? ? Wrong IMPI domain
+- Service Profile ? `BW_MobileCentrex_Active` ? ? Wrong service profile
+- BwGetUserInfo `PadraoMovel` not active ? ? BroadSoft service inactive
+- BwGetUserInfo state = Suspended ? ? BroadSoft suspended
+
+**IMS / VoLTE:**
+- `IMS_STATUS=ACTIVE` + ICS-1 absent ? ? HLR not configured for VoLTE
+- `IMS_STATUS=ABSENT` + ICS-1 present ? ? eNUM not configured
+- `IMS_STATUS=ACTIVE` + HssSubscriberProfile absent ? ? IMS/HSS not provisioned
+- `IMS_STATUS=ABSENT` + HssSubscriberProfile present ? ? DNS ENUM not configured
+- `IMS_STATUS=ACTIVE_CENTREX` + HssSubscriberProfile absent ? ? Centrex HSS not provisioned
+
+**5G SA:**
+- `IS_5G_SA=true` + no UDM profile ? ? UDM absent
+- Inconsistent/ambiguous state ? ? flags per 2C.5
+- AMF/SMF UUID not in inventory ? ? Unknown node
+
+**IoT/M2M:**
+- TS11 present / ICS-1 present / HssSubscriberProfile present ? ? unexpected on IoT
+- BS30 absent ? ? No PS data service
+
+---
+
+## OUTPUT TEMPLATE — Standard Response Format
+
+> **Single source of truth for output structure.**
+> Use `{{PLACEHOLDERS}}` for agent auto-fill.
+> Referenced by Expertise-VcsProfiler Section 3.2 — Final Response Must Always Include.
+
+---
+
+### 0. Resumo Executivo
+
+- **Solução NOS (estado atual):** `{{SOLUCAO_NOS_FINAL}}`
+  *(ex.: NOS Mobile VoLTE; NOS Mobile Centrex; NOS Fixed IMS; NOS IoT / Banda Larga Dados; NOS Fixed Legacy / BroadSoft)*
+
+- **Situação do cliente (estado global):**
+  - **Registo CS:** `{{RESUMO_CS}}`
+    *(ex.: "Registado em LOS30"; "Não registado"; "HGSDP ausente — IoT/M2M (esperado)")*
+  - **Registo EPS/4G:** `{{RESUMO_EPS}}`
+    *(ex.: "Registado"; "NOT_REGISTERED / PURGED"; "Sem perfil EPS (fixed Centrex — esperado)")*
+  - **5G SA:** `{{RESUMO_5G_SA}}`
+    *(ex.: "Não provisionado (sem 5G_AKA)"; "Registado em ps1cmm01"; "UDM ausente — misconfiguration")*
+  - **IMS/VoLTE/Mobile Centrex:** `{{RESUMO_IMS_VOLTE_CENTREX}}`
+    *(ex.: "VoLTE ativo, VoLTE-PPS, IMS registado"; "Mobile Centrex confirmado"; "IMS_STATUS=ACTIVE mas HssSubscriberProfile indisponível")*
+  - **Serviços avançados (Smart Number / Multi-device):** `{{RESUMO_SMARTNUMBER_MULTIDEVICE}}`
+    *(ex.: "Smart Number Sim (MSISDN 35196XXXXXXX associado)"; "Not detected"; "Not analysed (IMS/HSS unavailable)")*
+
+- **Impacto principal para o cliente:**
+  `{{IMPACTO_PRINCIPAL_CLIENTE}}`
+  *(ex.: "Cliente não consegue utilizar serviços em roaming internacional.";
+        "Em território nacional, voz/SMS e VoLTE devem estar operacionais.";
+        "VoLTE/IMS não pode ser confirmado enquanto HssSubscriberProfile estiver indisponível.")*
+
+---
+
+### 1. Classificação e Normalização
+
+- **MSISDN recebido (input):** `{{MSISDN_INPUT}}`
+- **Número normalizado (E.164):** `{{MSISDN_NORMALIZADO}}`
+- **Tipo:** `{{TIPO_NUMERO}}`
+  *(mobile, fixed_geographic, iot_m2m, special, non_geographic_ip)*
+- **Prefixo:** `{{PREFIXO_DESCRICAO}}`
+  *(ex.: "35193 — NOS nativo"; "35149x — IoT/M2M NOS")*
+- **Formato:** `{{FORMATO_MSISDN}}`
+  *(ex.: "E.164 (já normalizado)"; "15 dígitos IoT/M2M")*
+
+---
+
+### 2. Portabilidade — FGNTP (Gate Bloqueante, PRE-2)
+
+- **Resultado FGNTP:** `{{FGNTP_RESULT}}`
+  *(ex.: "MSISDN NOT DEFINED"; "NPREFIX=093777"; "NPREFIX=091XXX")*
+- **Operador:** `{{FGNTP_OPERATOR_INFO}}`
+  *(ex.: "NOS nativo"; "Ported-in NOS (093777)"; "Vodafone — análise não permitida")*
+- **Decisão:** `{{DECISAO_FGNTP}}`
+  *(ex.: "Número NOS nativo ? análise técnica pode prosseguir.";
+        "NPREFIX: 091XXX | Destination Operator: Vodafone. Technical analysis for non-NOS MSISDNs is not permitted.")*
+
+> **Nota:** Se NON-NOS ? STOP. Não preencher restante template.
+
+---
+
+### 3. IMS Component — eNUM (PRE-3)
+
+- **naptrTxt:** `{{ENUM_NAPTRTXT}}`
+- **Padrão eNUM:** `{{ENUM_PADRAO}}`
+  *(PATTERN_A, PATTERN_B, PATTERN_C, PATTERN_D, PATTERN_E)*
+- **IMS_STATUS:** `{{IMS_STATUS}}`
+  *(ACTIVE, ACTIVE_CENTREX, ABSENT, NOT_APPLICABLE)*
+- **Nota (interpretação):** `{{ENUM_NOTA_INTERPRETACAO}}`
+  *(ex.: "IMS ativo (3GPP NOS domain) — VoLTE/Mobile Centrex a confirmar no STEP 4.";
+        "IMS_STATUS=ACTIVE_CENTREX (fixo) — Centrex a distinguir em STEP 1/4.";
+        "IMS_STATUS=ABSENT — subscritor CS/Legacy.";
+        "IMS_STATUS=NOT_APPLICABLE — IoT/M2M sem IMS (esperado).")*
+
+---
+
+### 4. Solução NOS Preliminar (PRE-4)
+
+- **Solução preliminar:** `{{SOLUCAO_NOS_PRELIMINAR}}`
+  *(ex.: "NOS Mobile VoLTE (pode ser reclassificado para NOS Mobile Centrex no STEP 4)";
+        "NOS Centrex (indeterminado — Home ou puro — a confirmar no STEP 1)";
+        "NOS IoT / Banda Larga Dados")*
+- **Plataforma:** `{{PLATAFORMA_PRELIMINAR}}`
+  *(ex.: "4G LTE / 5G NR"; "IMS IP Centrex (ipcentrex.ims.nos.pt)"; "LTE / NB-IoT / LTE-M")*
+
+---
+
+### 5. Perfil 2G/CS — HLR/CUDB (HGSDP_Perfil — STEP 1)
+
+- **Estado HLR/CUDB:** `{{HLR_ESTADO}}`
+  *(CONNECTED; NOT_CONNECTED; PROFILE_ABSENT)*
+- **IMSI:** `{{HLR_IMSI}}`
+
+**Location / Registo CS:**
+
+- **VLR ADDRESS:** `{{HLR_VLR_ADDRESS_RAW}}` ? `{{HLR_VLR_NODE_NAME}}`
+  *(ex.: "4-351930000133 ? LOS30"; "4-351930000433 ? PCS30"; "4-XXXXXXXXXXX ? UNKNOWN NODE")*
+- **MSC NUMBER:** `{{HLR_MSC_NUMBER}}` ? `{{HLR_MSC_NODE_NAME}}`
+- **SGSN NUMBER:** `{{HLR_SGSN_NUMBER}}`
+
+**Perfil de serviço:**
+
+- **CSP:** `{{HLR_CSP}}` — `{{HLR_CSP_DESCRICAO}}`
+  *(ex.: "79 — VoLTE (roaming com acordos CAMEL)"; "80 — VoLTE (roaming mais aberto)"; "73 — Mobile Centrex típico")*
+- **ICS-1:** `{{ICS1_PRESENCA}}`
+  *(Presente / Ausente)*
+
+**ODB / Roaming (HLR):**
+
+- **Flags ODB:** `{{HLR_ODB_FLAGS}}`
+- **OBR-2:** `{{HLR_OBR2_STATUS}}`
+  *(Presente / Ausente)*
+- **Conclusão OBR-2 (se presente):**
+  `{{HLR_OBR2_CONCLUSAO}}`
+  *(ex.: "? OBR-2 provisioned — subscriber not enabled for roaming.")*
+
+**Serviços suplementares (SUD — resumo):**
+
+- **TS:** `{{HLR_TS_RESUMO}}`
+  *(ex.: "TS11, TS21, TS22 presentes; TS61/TS62 ausentes.")*
+- **BS / PDP:** `{{HLR_BS_RESUMO}}`
+  *(ex.: "BS30 presente; APNID 301/302; EQOSID 57/163; PDPTY IPv4.")*
+- **Barrings / CF / outros SS:** `{{HLR_SS_RESUMO}}`
+  *(ex.: "BAOC, BOIC, CFU, CFB, CFNRY, CFNRC, CAW, CLIP, CLIR, HOLD.")*
+
+**Notas específicas:**
+`{{HLR_NOTAS_ESPECIAIS}}`
+*(ex.: "CSP=73 + ICS-1 presente — possível Mobile Centrex, confirmar no STEP 4.";
+      "BS30 ausente em IoT/M2M — misconfiguration.")*
+
+---
+
+### 6. Perfil MTAS — IMS/VoLTE (STEP 2)
+
+- **Condição de execução:** `{{COND_ICS1_MTAS}}`
+  *(ex.: "ICS-1 presente ? MTAS executado"; "ICS-1 ausente ? MTAS não aplicável")*
+- **Resultado MTAS:** `{{MTAS_RESULTADO}}`
+  *(Perfil encontrado; sem dados detalhados; erro técnico; não aplicável)*
+
+**Resumo MTAS (quando perfil encontrado):**
+
+- **IMPU / IMPI:** `{{MTAS_IMPU_IMPI}}`
+- **iFC principais:** `{{MTAS_IFC_RESUMO}}`
+- **Serviços IMS (CF/CW/CLIR/Barring, VoWiFi, SRVCC):** `{{MTAS_SS_RESUMO}}`
+
+**Nota interpretativa:** `{{MTAS_NOTA}}`
+*(ex.: "Para Mobile Centrex, dados limitados em MTAS podem ser esperados.";
+      "Ausência de perfil MTAS em VoLTE pode indicar falta de provisionamento ou limitação momentânea.")*
+
+---
+
+### 7. Autenticação 5G SA — getAuthSubscription (STEP 2B)
+
+- **Condição de execução:** `{{COND_GETAUTHSUBSCRIPTION}}`
+  *(ex.: "Tipo=mobile e HGSDP perfil encontrado ? executado"; "fixed/iot ? não aplicável")*
+- **IMSI consultado:** `{{AUTH_IMSI}}`
+- **Algoritmo / authenticationMethod:** `{{AUTH_METHOD}}`
+- **IS_5G_SA:** `{{IS_5G_SA}}`
+  *(true / false)*
+- **Nota:** `{{AUTH_NOTA}}`
+  *(ex.: "Sem 5G_AKA ? subscritor não provisionado para 5G SA (comportamento normal).";
+        "5G_AKA presente ? STEP 2C executado.")*
+
+---
+
+### 8. Perfil 5G SA UDM — GetEpcUdmSubscription (STEP 2C)
+
+- **Condição de execução:** `{{COND_GETUDMSUBSCRIPTION}}`
+  *(ex.: "IS_5G_SA=true ? executado"; "IS_5G_SA=false ? não executado")*
+
+**Quando executado:**
+
+- **locationState:** `{{UDM_LOCATION_STATE}}`
+- **purgeFlag:** `{{UDM_PURGE_FLAG}}`
+- **Estado combinado:** `{{UDM_ESTADO_COMBINADO}}`
+  *(ex.: "Registered in 5G SA"; "Registered in 4G/LTE"; "Ambiguous ?"; "Misconfiguration ?")*
+- **AMF UUID:** `{{UDM_AMF_UUID}}` ? `{{UDM_AMF_NODE_NAME}}` — `{{UDM_AMF_SITE}}`
+- **SMF UUID:** `{{UDM_SMF_UUID}}` ? `{{UDM_SMF_NODE_NAME}}` — `{{UDM_SMF_SITE}}`
+- **Outros parâmetros (DNN, S-NSSAI, AMBR, QoS):** `{{UDM_RESUMO_ADICIONAL}}`
+- **Notas / Flags:** `{{UDM_NOTAS_FLAGS}}`
+  *(ex.: "UNKNOWN AMF — UUID não está no inventário."; "Sem S-NSSAI configurado.")*
+
+**Quando não executado (IS_5G_SA=false) — dados EPS/UDM disponíveis se devolvidos:**
+
+- **RoamingAllowed:** `{{UDM_ROAMING_ALLOWED}}`
+- **RoamingRestriction:** `{{UDM_ROAMING_RESTRICTION}}`
+- **locationState:** `{{UDM_LOCATION_STATE}}`
+- **MME Address:** `{{UDM_MME_ADDRESS}}`
+
+---
+
+### 9. Perfil 4G/EPS — HSS (STEP 3)
+
+- **IMSI:** `{{HSS_IMSI}}`
+- **Estado EPS:** `{{HSS_EPS_STATE}}`
+  *(REGISTERED; NOT_REGISTERED; PURGED)*
+- **mmeAddress:** `{{HSS_MME_ADDRESS}}`
+- **TAI:** `{{HSS_TAI}}`
+- **EPS ProfileId:** `{{HSS_EPS_PROFILE_ID}}`
+
+**Roaming EPS (cadeia de interpretação obrigatória):**
+
+- **roamingRestriction:** `{{HSS_ROAMING_RESTRICTION}}`
+  *(true = perfil de restrição aplicado — NÃO é conclusão definitiva sozinho)*
+- **epsTenantId:** `{{HSS_EPS_TENANT_ID}}`
+  *(ex.: valor presente ? restrições de tenant aplicadas; ausente ? restrições standard HSS)*
+- **epsRoamingAllowed:** `{{HSS_EPS_ROAMING_ALLOWED}}`
+  *(true = roaming permitido; false = roaming totalmente bloqueado)*
+- **Conclusão roaming EPS:** `{{HSS_EPS_ROAMING_CONCLUSAO}}`
+  *(ex.: "Roaming permitido ao nível EPS."; "Roaming totalmente bloqueado ao nível EPS.")*
+
+**Roaming IMS:**
+
+- **roamingAllowed (IMS):** `{{HSS_IMS_ROAMING_ALLOWED}}`
+  *(true = roaming IMS permitido; false = roaming IMS bloqueado)*
+
+**Notas:**
+`{{HSS_NOTAS}}`
+*(ex.: "roamingRestriction=true com epsRoamingAllowed=true ? roaming EPS permitido apesar da restrição.";
+      "roamingRestriction=true com epsRoamingAllowed=false ? roaming EPS totalmente bloqueado.";
+      "epsTenantId ausente ? aplicam-se restrições standard de operador no HSS.";
+      "EPS ausente para fixed Centrex — comportamento esperado.")*
+
+---
+
+### 10. Perfil ISM/IMS/HSS Completo — HssSubscriberProfile (STEP 4 — MANDATÓRIO)
+
+- **Resultado:** `{{HSSSUB_PROFILE_RESULTADO}}`
+  *(Perfil encontrado; Perfil ausente; Erro técnico na ferramenta)*
+
+**Quando perfil encontrado:**
+
+- **IMPU(s) / publicIdValue:** `{{HSSSUB_IMPU_LISTA}}`
+- **IMPI:** `{{HSSSUB_IMPI}}`
+- **Service Profile:** `{{HSSSUB_SERVICE_PROFILE}}`
+- **Estado IMS:** `{{HSSSUB_IMS_REG_STATE}}`
+- **iFC / serviços IMS ativos (resumo):** `{{HSSSUB_SERVICOS_IMS}}`
+- **roamingAllowed (IMS):** `{{HSSSUB_ROAMING_ALLOWED}}`
+- **maxNumberOfContacts:** `{{HSSSUB_MAX_CONTACTS}}` *(análise interna — só reportar se > 1)*
+- **maxNumberSessions:** `{{HSSSUB_MAX_SESSIONS}}` *(análise interna — só reportar se > 10)*
+- **aliasGroupId:** `{{HSSSUB_ALIAS_GROUP_ID}}`
+- **serviceProfileId:** `{{HSSSUB_SERVICE_PROFILE_ID}}`
+- **privateUserId:** `{{HSSSUB_PRIVATE_USER_ID}}`
+
+**Reclassificação Mobile Centrex:**
+
+- IMPI contém `@ipcentrex.ims.nos.pt`: `{{HSSSUB_IMPI_IPCENTREX_BOOL}}`
+- Service Profile = `BW_MobileCentrex_Active`: `{{HSSSUB_SP_MOBILE_CENTREX_BOOL}}`
+- **Conclusão:** `{{HSSSUB_RECLASSIFICACAO_CONCLUSAO}}`
+  *(ex.: "Reclassificado para NOS Mobile Centrex — executar STEP 6."; "Confirmado NOS Mobile VoLTE.")*
+
+**Smart Number / Multi-device (análise obrigatória interna):**
+
+`{{SMARTNUMBER_ESTADO}}`
+
+- Se **detetado** ? incluir secção completa (template acima). Multi-device line APENAS se maxNumberOfContacts > 1.
+- Se **não detetado** ? `Smart Number / Multi-device : Not detected.`
+- Se **não analisado** (erro ferramenta) ? `Smart Number / Multi-device : Not analysed (IMS/HSS profile unavailable).`
+
+**Quando perfil não encontrado ou erro técnico:**
+
+- **Flag:** `{{HSSSUB_ABSENCIA_FLAG}}`
+  *(ex.: "HssSubscriberProfile ausente"; "Erro técnico — IMS/HSS indisponível")*
+- **Correlações relevantes:** `{{HSSSUB_CORRELACOES}}`
+  *(ex.: "IMS_STATUS=ACTIVE mas HssSubscriberProfile ausente — possível dessincronização ENUM/HSS.";
+        "IMS_STATUS=NOT_APPLICABLE + HssSubscriberProfile ausente em IoT/M2M — comportamento esperado.")*
+
+---
+
+### 11. SubsInfoByIMPU (STEP 5)
+
+- **Condição de execução:** `{{SUBSINFO_CONDICAO}}`
+  *(ex.: "STEP1/3/4 sem perfil ? executado"; "Não executado — já existe perfil nos STEP anteriores.")*
+- **IMPU usado na query:** `{{SUBSINFO_IMPU_QUERY}}`
+  *(ex.: "tel:+351XXXXXXXXX"; "sip:3512xxxxxxxx@ipcentrex.ims.nos.pt")*
+- **Resultado:** `{{SUBSINFO_RESULTADO}}`
+  *(Perfil encontrado; sem dados; erro técnico; não executado)*
+- **Notas (se executado):** `{{SUBSINFO_NOTAS}}`
+  *(ex.: "Confirma associação Smart Number com MSISDNs X, Y, Z no mesmo grupo IMS.")*
+
+---
+
+### 12. BroadSoft/XSP — BwGetUserInfo (STEP 6)
+
+- **Condição de execução:** `{{BW_CONDICAO}}`
+  *(ex.: "Fixed voice / Home Centrex / Centrex puro / Mobile Centrex ? aplicável"; "VoLTE standard / IoT/M2M ? não aplicável")*
+- **Resultado BwGetUserInfo:** `{{BW_RESULTADO}}`
+  *(Perfil encontrado; PadraoMovel ativo; Suspended; erro técnico; não aplicável)*
+- **Resumo BroadSoft:** `{{BW_RESUMO}}`
+  *(ex.: "PadraoMovel ativo — Mobile Centrex confirmado em BroadSoft.";
+        "Perfil suspenso — serviço BroadSoft inativo.";
+        "Unable to get Application Server — irrelevante para VoLTE standard.")*
+
+---
+
+### 13. Correlações, Misconfigurações e Impacto
+
+**13.1. Síntese por camada**
+
+- **2G/CS (HLR/CUDB):** `{{SINTES_CS}}`
+- **4G/EPS (HSS):** `{{SINTES_EPS}}`
+- **IMS/VoLTE/Mobile Centrex (MTAS + HssSubscriberProfile):** `{{SINTES_IMS}}`
+- **5G SA (UDM):** `{{SINTES_5G_SA}}`
+- **BroadSoft/XSP:** `{{SINTES_BW}}`
+
+**13.2. Misconfigurações / configurações relevantes**
+
+- `{{MISCONFIG_1}}`
+- `{{MISCONFIG_2}}`
+- `{{MISCONFIG_3}}`
+*(lista conforme aplicável; ex.: "OBR-2 presente — roaming não permitido.";
+      "epsRoamingAllowed=false — roaming EPS totalmente bloqueado.";
+      "IMS_STATUS=ACTIVE mas HssSubscriberProfile ausente — possível dessincronização ENUM/HSS.";
+      "BS30 ausente em IoT/M2M — PS data não configurado.")*
+
+**13.3. Impacto típico no cliente**
+
+`{{IMPACTO_CLIENTE_DETALHE}}`
+*(ex.: "Em Portugal: voz/SMS operacionais; VoLTE a confirmar.";
+      "Fora de Portugal: sem serviço (roaming bloqueado em HLR + EPS + IMS).";
+      "Smartwatch associado (Smart Number) pode não receber chamadas se IMPU/IMPI mal configurado.")*
+
+---
+
+### 14. Conclusão Final e Recomendações
+
+**14.1. Conclusão técnica consolidada**
+
+- **Solução NOS confirmada / reclassificada:** `{{SOLUCAO_NOS_FINAL}}`
+- **Resumo final por domínio:**
+  - **CS/2G:** `{{CONCLUSAO_CS}}`
+  - **EPS/4G:** `{{CONCLUSAO_EPS}}`
+  - **5G SA:** `{{CONCLUSAO_5G_SA}}`
+  - **IMS/HSS:** `{{CONCLUSAO_IMS}}`
+  - **BroadSoft/XSP:** `{{CONCLUSAO_BW}}`
+- **Roaming:** `{{CONCLUSAO_ROAMING}}`
+  *(ex.: "Bloqueado em todos os domínios (OBR-2 + epsRoamingAllowed=false + roamingAllowed=false).";
+        "Roaming EPS permitido (epsRoamingAllowed=true); IMS bloqueado (roamingAllowed=false).";
+        "Sem restrições de roaming configuradas.")*
+
+**14.2. Recomendações operacionais**
+
+1. `{{RECOMENDACAO_1}}`
+2. `{{RECOMENDACAO_2}}`
+3. `{{RECOMENDACAO_3}}`
+
+*(ex.:
+1. "Remover OBR-2 (HLR ODB flags) e ajustar epsRoamingAllowed / roamingAllowed (EPS/IMS) se cliente tiver roaming contratado."
+2. "Provisionar ICS-1 + eNUM + HssSubscriberProfile para ativar VoLTE corretamente."
+3. "Repetir análise HssSubscriberProfile quando sistema IMS/HSS estiver estável para confirmar VoLTE/Mobile Centrex e Smart Number.")*
+
+---
+
+### 15. Resumo Técnico Final
+
+- **MSISDN:** `{{MSISDN_NORMALIZADO}}`
+- **Tipo / Solução:** `{{TIPO_E_SOLUCAO_RESUMO}}`
+  *(ex.: "Móvel NOS — NOS Mobile VoLTE"; "Móvel NOS — NOS Mobile Centrex"; "IoT/M2M — NOS IoT Data Only")*
+- **Registo CS:** `{{RESUMO_TECNICO_CS}}`
+  *(ex.: "CONNECTED em LOS30"; "Não registado"; "HGSDP ausente (IoT — esperado)")*
+- **Registo EPS/4G:** `{{RESUMO_TECNICO_EPS}}`
+  *(ex.: "REGISTERED"; "NOT_REGISTERED / PURGED"; "Sem perfil EPS (fixed Centrex)")*
+- **5G SA:** `{{RESUMO_TECNICO_5G_SA}}`
+  *(ex.: "Não provisionado (sem 5G_AKA)"; "Registado em ps1cmm01 — Póvoa de Santo Adrião")*
+- **IMS_STATUS (eNUM):** `{{IMS_STATUS}}` (`{{ENUM_PADRAO}}`)
+- **HssSubscriberProfile:** `{{HSSSUB_PROFILE_STATUS_CURTO}}`
+  *(ex.: "Presente — VoLTE-PPS, IMS registado"; "Ausente"; "Indisponível por erro técnico")*
+- **OBR-2:** `{{OBR2_STATUS_CURTO}}`
+  *(ex.: "Presente — roaming não permitido"; "Ausente")*
+- **Roaming EPS:** `{{ROAMING_EPS_RESUMO_CURTO}}`
+  *(ex.: "epsRoamingAllowed=true — roaming EPS permitido"; "epsRoamingAllowed=false — roaming EPS bloqueado"; "roamingRestriction=false — sem restrição")*
+- **Smart Number / Multi-device:** `{{SMARTNUMBER_RESUMO_CURTO}}`
+  *(ex.: "Smart Number Sim (351968308837 associado)"; "Not detected"; "Not analysed (IMS/HSS unavailable)")*
+- **Notas finais:** `{{RESUMO_NOTAS_FINAIS}}`
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---|---|---|
+| **v3.5** | 2026-06-24 | EPS Roaming interpretation corrected. roamingRestriction: true no longer interpreted as definitive roaming block. New mandatory EPS Roaming Interpretation Chain added after STEP 3: roamingRestriction ? epsTenantId ? epsRoamingAllowed. epsRoamingAllowed is the definitive parameter (true=permitted, false=blocked). epsTenantId: present=tenant restrictions; absent=standard HSS operator restrictions. STEP 3 section updated. MISCONFIGURATION FLAGS updated. OUTPUT TEMPLATE Section 9 updated with EPS roaming chain fields. Section 15 updated with roamingEPS summary field. EXPECTED BEHAVIOURS updated. |
+| **v3.4** | 2026-06-24 | Smart Number output corrected: Multi-device line OMITTED from output when maxNumberOfContacts=1. Absence of Multi-device is normal and expected — not reported. Multi-device line only included when maxNumberOfContacts > 1. maxNumberOfContacts and maxNumberSessions remain mandatory internal analysis fields at STEP 4 but not surfaced in output unless Multi-device detected. Added NOT_ANALYSED case for IMS/HSS tool errors. MISCONFIGURATION FLAGS updated with Multi-device line logic error flag. |
+| **v3.3** | 2026-06-24 | Added OUTPUT TEMPLATE — Standard Response Format (Sections 0–15). Replaces and supersedes former FINAL CONCLUSION section. Template includes full placeholders. Referenced by Expertise-VcsProfiler Section 3.2. Aligned with real case analysis (MSISDN 351931152832). Updated EXPECTED BEHAVIOURS. |
+| **v3.2** | 2026-06-16 | Smart Number / Multi-device output behavior revised: internal check mandatory at every STEP 4; output proportional to findings. If not detected ? single inline note only, no dedicated section, no recommendations. |
+| **v3.1** | 2026-06-16 | Added Smart Number / Multi-device mandatory detection at STEP 4. Triggered by real analysis failure — smart watch MSISDN not detected on first pass. |
+| **v3.0** | 2026-06-15 | Added MSC/VLR Address Inventory (LOS30, PCS30). Added NOS Mobile Centrex. PATTERN_E eNUM. CSP=73. OBR-2 corrected. |
+| **v2.9** | 2026-06-15 | OBR-2 corrected. Roaming multi-layer. |
+| **v2.8** | 2026-06-15 | BLOCKING RULE. FGNTP/eNUM explicit tool calls. |
+| **v2.7** | 2026-06-15 | 5G SA profile analysis. |
+| **v2.0** | 2026-06-15 | eNUM integration + solution classification. |
