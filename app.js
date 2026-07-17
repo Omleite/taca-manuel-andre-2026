@@ -1014,46 +1014,82 @@ function clearAll() {
 // Definição dos jogos (ronda, grupo, equipas)
 const CALENDAR_DATA = [
     // Ronda 1
-    { ronda: 1, grupo: 'A', home: 'Os Craques', away: 'LJMS' },
-    { ronda: 1, grupo: 'A', home: 'Os 4 no Buraco', away: 'Estela Birdies' },
-    { ronda: 1, grupo: 'B', home: 'AMVJ', away: 'V.T.F.' },
-    { ronda: 1, grupo: 'B', home: 'Equipa Eleven', away: 'EMJC' },
-    { ronda: 1, grupo: 'C', home: 'Birdies e Boggies', away: 'Jacaré' },
-    { ronda: 1, grupo: 'C', home: 'Os Golfinhos', away: 'Piratas' },
-    { ronda: 1, grupo: 'D', home: 'MMLH', away: 'School' },
-    { ronda: 1, grupo: 'D', home: 'Golfistas da Madrugada', away: 'Old Fashion Team' },
+    { ronda: 1, grupo: 'A', par: 1, home: 'Os Craques', away: 'LJMS' },
+    { ronda: 1, grupo: 'A', par: 2, home: 'Os Craques', away: 'LJMS' },
+    { ronda: 1, grupo: 'A', par: 1, home: 'Os 4 no Buraco', away: 'Estela Birdies' },
+    { ronda: 1, grupo: 'A', par: 2, home: 'Os 4 no Buraco', away: 'Estela Birdies' },
+    { ronda: 1, grupo: 'B', par: 1, home: 'AMVJ', away: 'V.T.F.' },
+    { ronda: 1, grupo: 'B', par: 2, home: 'AMVJ', away: 'V.T.F.' },
+    { ronda: 1, grupo: 'B', par: 1, home: 'Equipa Eleven', away: 'EMJC' },
+    { ronda: 1, grupo: 'B', par: 2, home: 'Equipa Eleven', away: 'EMJC' },
+    { ronda: 1, grupo: 'C', par: 1, home: 'Birdies e Boggies', away: 'Jacaré' },
+    { ronda: 1, grupo: 'C', par: 2, home: 'Birdies e Boggies', away: 'Jacaré' },
+    { ronda: 1, grupo: 'C', par: 1, home: 'Os Golfinhos', away: 'Piratas' },
+    { ronda: 1, grupo: 'C', par: 2, home: 'Os Golfinhos', away: 'Piratas' },
+    { ronda: 1, grupo: 'D', par: 1, home: 'MMLH', away: 'School' },
+    { ronda: 1, grupo: 'D', par: 2, home: 'MMLH', away: 'School' },
+    { ronda: 1, grupo: 'D', par: 1, home: 'Golfistas da Madrugada', away: 'Old Fashion Team' },
+    { ronda: 1, grupo: 'D', par: 2, home: 'Golfistas da Madrugada', away: 'Old Fashion Team' },
     // Ronda 2
-    { ronda: 2, grupo: 'A', home: 'Os Craques', away: 'Os 4 no Buraco' },
-    { ronda: 2, grupo: 'A', home: 'CGGG', away: 'LJMS' },
-    { ronda: 2, grupo: 'B', home: 'AMVJ', away: 'Equipa Eleven' },
-    { ronda: 2, grupo: 'B', home: 'V.T.F.', away: 'Red Hot Chilli Putters' },
-    { ronda: 2, grupo: 'C', home: 'Birdies e Boggies', away: 'Os Golfinhos' },
-    { ronda: 2, grupo: 'C', home: 'Masters', away: 'Jacaré' },
-    { ronda: 2, grupo: 'D', home: 'MMLH', away: 'Golfistas da Madrugada' },
-    { ronda: 2, grupo: 'D', home: 'School', away: 'Old Fashion Team' },
+    { ronda: 2, grupo: 'A', par: 1, home: 'Os Craques', away: 'Os 4 no Buraco' },
+    { ronda: 2, grupo: 'A', par: 2, home: 'Os Craques', away: 'Os 4 no Buraco' },
+    { ronda: 2, grupo: 'A', par: 1, home: 'CGGG', away: 'LJMS' },
+    { ronda: 2, grupo: 'A', par: 2, home: 'CGGG', away: 'LJMS' },
+    { ronda: 2, grupo: 'B', par: 1, home: 'AMVJ', away: 'Equipa Eleven' },
+    { ronda: 2, grupo: 'B', par: 2, home: 'AMVJ', away: 'Equipa Eleven' },
+    { ronda: 2, grupo: 'B', par: 1, home: 'V.T.F.', away: 'Red Hot Chilli Putters' },
+    { ronda: 2, grupo: 'B', par: 2, home: 'V.T.F.', away: 'Red Hot Chilli Putters' },
+    { ronda: 2, grupo: 'C', par: 1, home: 'Birdies e Boggies', away: 'Os Golfinhos' },
+    { ronda: 2, grupo: 'C', par: 2, home: 'Birdies e Boggies', away: 'Os Golfinhos' },
+    { ronda: 2, grupo: 'C', par: 1, home: 'Masters', away: 'Jacaré' },
+    { ronda: 2, grupo: 'C', par: 2, home: 'Masters', away: 'Jacaré' },
+    { ronda: 2, grupo: 'D', par: 1, home: 'MMLH', away: 'Golfistas da Madrugada' },
+    { ronda: 2, grupo: 'D', par: 2, home: 'MMLH', away: 'Golfistas da Madrugada' },
+    { ronda: 2, grupo: 'D', par: 1, home: 'School', away: 'Old Fashion Team' },
+    { ronda: 2, grupo: 'D', par: 2, home: 'School', away: 'Old Fashion Team' },
     // Ronda 3
-    { ronda: 3, grupo: 'A', home: 'Os Craques', away: 'Estela Birdies' },
-    { ronda: 3, grupo: 'A', home: 'Os 4 no Buraco', away: 'CGGG' },
-    { ronda: 3, grupo: 'B', home: 'AMVJ', away: 'EMJC' },
-    { ronda: 3, grupo: 'B', home: 'Equipa Eleven', away: 'Red Hot Chilli Putters' },
-    { ronda: 3, grupo: 'C', home: 'Birdies e Boggies', away: 'Piratas' },
-    { ronda: 3, grupo: 'C', home: 'Masters', away: 'Os Golfinhos' },
-    { ronda: 3, grupo: 'D', home: 'MMLH', away: 'Old Fashion Team' },
-    { ronda: 3, grupo: 'D', home: 'School', away: 'Golfistas da Madrugada' },
+    { ronda: 3, grupo: 'A', par: 1, home: 'Os Craques', away: 'Estela Birdies' },
+    { ronda: 3, grupo: 'A', par: 2, home: 'Os Craques', away: 'Estela Birdies' },
+    { ronda: 3, grupo: 'A', par: 1, home: 'Os 4 no Buraco', away: 'CGGG' },
+    { ronda: 3, grupo: 'A', par: 2, home: 'Os 4 no Buraco', away: 'CGGG' },
+    { ronda: 3, grupo: 'B', par: 1, home: 'AMVJ', away: 'EMJC' },
+    { ronda: 3, grupo: 'B', par: 2, home: 'AMVJ', away: 'EMJC' },
+    { ronda: 3, grupo: 'B', par: 1, home: 'Equipa Eleven', away: 'Red Hot Chilli Putters' },
+    { ronda: 3, grupo: 'B', par: 2, home: 'Equipa Eleven', away: 'Red Hot Chilli Putters' },
+    { ronda: 3, grupo: 'C', par: 1, home: 'Birdies e Boggies', away: 'Piratas' },
+    { ronda: 3, grupo: 'C', par: 2, home: 'Birdies e Boggies', away: 'Piratas' },
+    { ronda: 3, grupo: 'C', par: 1, home: 'Masters', away: 'Os Golfinhos' },
+    { ronda: 3, grupo: 'C', par: 2, home: 'Masters', away: 'Os Golfinhos' },
+    { ronda: 3, grupo: 'D', par: 1, home: 'MMLH', away: 'Old Fashion Team' },
+    { ronda: 3, grupo: 'D', par: 2, home: 'MMLH', away: 'Old Fashion Team' },
+    { ronda: 3, grupo: 'D', par: 1, home: 'School', away: 'Golfistas da Madrugada' },
+    { ronda: 3, grupo: 'D', par: 2, home: 'School', away: 'Golfistas da Madrugada' },
     // Ronda 4
-    { ronda: 4, grupo: 'A', home: 'Os Craques', away: 'CGGG' },
-    { ronda: 4, grupo: 'A', home: 'LJMS', away: 'Estela Birdies' },
-    { ronda: 4, grupo: 'B', home: 'AMVJ', away: 'Red Hot Chilli Putters' },
-    { ronda: 4, grupo: 'B', home: 'V.T.F.', away: 'EMJC' },
-    { ronda: 4, grupo: 'C', home: 'Birdies e Boggies', away: 'Masters' },
-    { ronda: 4, grupo: 'C', home: 'Jacaré', away: 'Piratas' },
+    { ronda: 4, grupo: 'A', par: 1, home: 'Os Craques', away: 'CGGG' },
+    { ronda: 4, grupo: 'A', par: 2, home: 'Os Craques', away: 'CGGG' },
+    { ronda: 4, grupo: 'A', par: 1, home: 'LJMS', away: 'Estela Birdies' },
+    { ronda: 4, grupo: 'A', par: 2, home: 'LJMS', away: 'Estela Birdies' },
+    { ronda: 4, grupo: 'B', par: 1, home: 'AMVJ', away: 'Red Hot Chilli Putters' },
+    { ronda: 4, grupo: 'B', par: 2, home: 'AMVJ', away: 'Red Hot Chilli Putters' },
+    { ronda: 4, grupo: 'B', par: 1, home: 'V.T.F.', away: 'EMJC' },
+    { ronda: 4, grupo: 'B', par: 2, home: 'V.T.F.', away: 'EMJC' },
+    { ronda: 4, grupo: 'C', par: 1, home: 'Birdies e Boggies', away: 'Masters' },
+    { ronda: 4, grupo: 'C', par: 2, home: 'Birdies e Boggies', away: 'Masters' },
+    { ronda: 4, grupo: 'C', par: 1, home: 'Jacaré', away: 'Piratas' },
+    { ronda: 4, grupo: 'C', par: 2, home: 'Jacaré', away: 'Piratas' },
     // Ronda 5
-    { ronda: 5, grupo: 'A', home: 'LJMS', away: 'Os 4 no Buraco' },
-    { ronda: 5, grupo: 'A', home: 'Estela Birdies', away: 'CGGG' },
-    { ronda: 5, grupo: 'B', home: 'V.T.F.', away: 'Equipa Eleven' },
-    { ronda: 5, grupo: 'B', home: 'EMJC', away: 'Red Hot Chilli Putters' },
-    { ronda: 5, grupo: 'C', home: 'Jacaré', away: 'Os Golfinhos' },
-    { ronda: 5, grupo: 'C', home: 'Piratas', away: 'Masters' }
+    { ronda: 5, grupo: 'A', par: 1, home: 'LJMS', away: 'Os 4 no Buraco' },
+    { ronda: 5, grupo: 'A', par: 2, home: 'LJMS', away: 'Os 4 no Buraco' },
+    { ronda: 5, grupo: 'A', par: 1, home: 'Estela Birdies', away: 'CGGG' },
+    { ronda: 5, grupo: 'A', par: 2, home: 'Estela Birdies', away: 'CGGG' },
+    { ronda: 5, grupo: 'B', par: 1, home: 'V.T.F.', away: 'Equipa Eleven' },
+    { ronda: 5, grupo: 'B', par: 2, home: 'V.T.F.', away: 'Equipa Eleven' },
+    { ronda: 5, grupo: 'B', par: 1, home: 'EMJC', away: 'Red Hot Chilli Putters' },
+    { ronda: 5, grupo: 'B', par: 2, home: 'EMJC', away: 'Red Hot Chilli Putters' },
+    { ronda: 5, grupo: 'C', par: 1, home: 'Jacaré', away: 'Os Golfinhos' },
+    { ronda: 5, grupo: 'C', par: 2, home: 'Jacaré', away: 'Os Golfinhos' },
+    { ronda: 5, grupo: 'C', par: 1, home: 'Piratas', away: 'Masters' },
+    { ronda: 5, grupo: 'C', par: 2, home: 'Piratas', away: 'Masters' }
 ];
 
 function saveGameResults() {
@@ -1067,16 +1103,16 @@ function loadGameResults() {
     } catch (e) { console.error('loadGameResults:', e); }
 }
 
-function getGameResult(ronda, home, away) {
-    return state.gameResults.find(r => r.ronda === ronda && r.home === home && r.away === away);
+function getGameResult(ronda, par, home, away) {
+    return state.gameResults.find(r => r.ronda === ronda && r.par === par && r.home === home && r.away === away);
 }
 
-function setGameResult(ronda, home, away, result) {
-    const existing = getGameResult(ronda, home, away);
+function setGameResult(ronda, par, home, away, result) {
+    const existing = getGameResult(ronda, par, home, away);
     if (existing) {
         existing.result = result;
     } else {
-        state.gameResults.push({ ronda, home, away, result });
+        state.gameResults.push({ ronda, par, home, away, result });
     }
     saveGameResults();
 }
@@ -1113,7 +1149,7 @@ function calculateStandings(ronda) {
         
         // Só processar se ambas as equipas existem em state.teams
         if (homeTeam && awayTeam) {
-            const gameResult = getGameResult(game.ronda, game.home, game.away);
+            const gameResult = getGameResult(game.ronda, game.par, game.home, game.away);
             
             homeTeam.played++;
             awayTeam.played++;
@@ -1207,15 +1243,16 @@ function renderClassificacao(ronda) {
             `;
             
             groupGames.forEach(game => {
-                const result = getGameResult(game.ronda, game.home, game.away);
+                const result = getGameResult(game.ronda, game.par, game.home, game.away);
                 const resultHtml = `
                 <div class="game-result-row">
+                    <span class="team-name" style="font-size: 0.85rem; color: var(--txt-light);">Par ${game.par}</span>
                     <span class="team-name">${esc(game.home)}</span>
                     <div class="result-buttons">
-                        <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
-                        <button class="btn-result ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="draw">Empate</button>
-                        <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
-                        <button class="btn-result-clear" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
+                        <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
+                        <button class="btn-result ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">Empate</button>
+                        <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
+                        <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
                     </div>
                     <span class="team-name">${esc(game.away)}</span>
                 </div>
@@ -1240,13 +1277,14 @@ function renderClassificacao(ronda) {
         document.querySelectorAll('.btn-result').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const ronda = parseInt(e.target.dataset.ronda, 10);
+                const par = parseInt(e.target.dataset.par, 10);
                 const home = e.target.dataset.home;
                 const away = e.target.dataset.away;
                 const result = e.target.dataset.result;
                 
-                setGameResult(ronda, home, away, result);
+                setGameResult(ronda, par, home, away, result);
                 renderClassificacao(ronda);
-                showToast(`Resultado registado: ${home} vs ${away}`);
+                showToast(`Resultado registado - Par ${par}: ${home} vs ${away}`);
             });
         });
         
@@ -1254,12 +1292,13 @@ function renderClassificacao(ronda) {
         document.querySelectorAll('.btn-result-clear').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const ronda = parseInt(e.target.dataset.ronda, 10);
+                const par = parseInt(e.target.dataset.par, 10);
                 const home = e.target.dataset.home;
                 const away = e.target.dataset.away;
                 
-                setGameResult(ronda, home, away, null);
+                setGameResult(ronda, par, home, away, null);
                 renderClassificacao(ronda);
-                showToast(`Resultado limpo: ${home} vs ${away}`);
+                showToast(`Resultado limpo - Par ${par}: ${home} vs ${away}`);
             });
         });
     }
