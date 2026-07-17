@@ -1,0 +1,11 @@
+[build]
+  command = "echo 'No build required'"
+  publish = "."
+
+[context.production]
+  environment = { ENVIRONMENT = "production" }
+
+[[redirects]]
+  from = "/*"
+  to = "index.html"
+  status = 200
