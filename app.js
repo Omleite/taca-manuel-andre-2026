@@ -19,7 +19,8 @@ let state = {
     players: [],
     teams: [],
     strokeIndex: [...DEFAULT_SI],
-    gameResults: []  // Array de resultados de jogos: { ronda, grupo, homeTeam, awayTeam, result }
+    gameResults: [],  // Array de resultados de jogos
+    calendar: []      // Calendário editável de jogos
 };
 
 let authState = {
@@ -412,6 +413,7 @@ function initTabs() {
             if (target === 'calcular') refreshCalcSelects();
             if (target === 'config')   { renderSIGrids(); if (isAdmin()) renderUsers(); }
             if (target === 'grupos')   { if (isAdmin()) renderGrupos(); }
+            if (target === 'calendario') renderCalendario();
             if (target === 'classificacao') { 
                 const ronda = parseInt(document.getElementById('selRondaClass').value, 10) || 1;
                 renderClassificacao(ronda);
@@ -1011,7 +1013,16 @@ function clearAll() {
 //  CLASSIFICAÇÃO
 // ════════════════════════════════════════════════════════════
 
-// Definição dos jogos (ronda, grupo, equipas)
+// Datas de cada ronda
+const RONDA_DATES = {
+    1: 'Até 21 de Junho',
+    2: 'Até 26 de Julho',
+    3: 'Até 30 de Agosto',
+    4: 'Até 27 de Setembro',
+    5: 'Até 25 de Outubro'
+};
+
+// Calendário inicial predefinido (seed) — editável pelo admin
 const CALENDAR_DATA = [
     // Ronda 1
     { ronda: 1, grupo: 'A', par: 1, home: 'Os Craques', away: 'LJMS' },
@@ -1092,6 +1103,24 @@ const CALENDAR_DATA = [
     { ronda: 5, grupo: 'C', par: 2, home: 'Piratas', away: 'Masters' }
 ];
 
+function saveCalendar() {
+    localStorage.setItem(STORAGE_KEY + '-calendar', JSON.stringify(state.calendar));
+}
+
+function loadCalendar() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY + '-calendar');
+        if (raw) state.calendar = JSON.parse(raw);
+    } catch (e) { console.error('loadCalendar:', e); }
+}
+
+function initializeCalendar() {
+    if (!state.calendar.length) {
+        state.calendar = CALENDAR_DATA.map(g => ({ ...g }));
+        saveCalendar();
+    }
+}
+
 function saveGameResults() {
     localStorage.setItem(STORAGE_KEY + '-results', JSON.stringify(state.gameResults));
 }
@@ -1141,7 +1170,7 @@ function calculateStandings(ronda) {
     });
     
     // Calcular pontos baseado nos resultados
-    const games = CALENDAR_DATA.filter(g => g.ronda <= ronda);
+    const games = state.calendar.filter(g => g.ronda <= ronda);
     
     games.forEach(game => {
         const homeTeam = standings[game.grupo].find(t => t.name === game.home);
@@ -1196,7 +1225,7 @@ function renderClassificacao(ronda) {
     
     Object.keys(standings).sort().forEach(grupo => {
         const teams = standings[grupo];
-        const groupGames = CALENDAR_DATA.filter(g => g.ronda <= ronda && g.grupo === grupo);
+        const groupGames = state.calendar.filter(g => g.ronda <= ronda && g.grupo === grupo);
         
         html += `
         <div class="class-group">
@@ -1384,15 +1413,149 @@ function renderGrupos() {
 }
 
 // ════════════════════════════════════════════════════════════
+//  CALENDÁRIO — Interface dinâmica
+// ════════════════════════════════════════════════════════════
+
+function renderCalendario() {
+    const container = document.getElementById('calendarioContainer');
+    if (!container) return;
+
+    const rondes = [1, 2, 3, 4, 5];
+    let html = '';
+
+    rondes.forEach(ronda => {
+        const rondaGames = state.calendar.filter(g => g.ronda === ronda);
+        if (!rondaGames.length) return;
+
+        html += `<div class="ronda-block">
+            <div class="ronda-header">
+                <span class="ronda-num">${ronda}ª Ronda</span>
+                <span class="ronda-date">${RONDA_DATES[ronda] || ''}</span>
+            </div>
+            <div class="grupos-grid">`;
+
+        ['A', 'B', 'C', 'D'].forEach(grupo => {
+            const grupoGames = rondaGames.filter(g => g.grupo === grupo);
+            if (!grupoGames.length) return;
+
+            // Agrupar por confronto (home + away) — cada confronto tem Par 1 e Par 2
+            const matchups = new Map();
+            grupoGames.forEach(g => {
+                const key = g.home + '|||' + g.away;
+                if (!matchups.has(key)) matchups.set(key, g);
+            });
+
+            html += `<div class="grupo-card">
+                <h4 class="grupo-title">Grupo ${grupo}</h4>
+                <ul class="jogos-list">`;
+
+            matchups.forEach((game, key) => {
+                const [home, away] = key.split('|||');
+                const homeExists = state.teams.some(t => t.name === home);
+                const awayExists = state.teams.some(t => t.name === away);
+                const invalid = !homeExists || !awayExists;
+
+                html += `<li class="jogo${invalid ? ' jogo-invalid' : ''}">
+                    <span class="team-home">${esc(home)}</span>
+                    <span class="jogo-vs">VS</span>
+                    <span class="team-away">${esc(away)}</span>
+                    ${invalid ? '<span class="jogo-warning" title="Uma ou ambas as equipas não existem">⚠️</span>' : ''}
+                    ${isAdmin() ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
+                </li>`;
+            });
+
+            html += `</ul></div>`;
+        });
+
+        html += `</div></div>`;
+    });
+
+    if (!html) {
+        html = `<div class="empty-state"><p>Calendário vazio. ${isAdmin() ? 'Use o formulário abaixo para adicionar jogos.' : ''}</p></div>`;
+    }
+
+    container.innerHTML = html;
+
+    // Listeners para remover jogos (admin)
+    if (isAdmin()) {
+        container.querySelectorAll('.btn-del-match').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const ronda = parseInt(btn.dataset.ronda, 10);
+                const home = btn.dataset.home;
+                const away = btn.dataset.away;
+                if (!confirm(`Remover "${home} VS ${away}" da Ronda ${ronda}?\n(Remove Par 1 e Par 2)`)) return;
+                state.calendar = state.calendar.filter(
+                    g => !(g.ronda === ronda && g.home === home && g.away === away)
+                );
+                saveCalendar();
+                renderCalendario();
+                showToast(`Jogo removido: ${home} vs ${away}`);
+            });
+        });
+
+        // Actualizar dropdowns do formulário
+        updateAddMatchDropdowns();
+
+        // Mostrar painel de adicionar
+        const panel = document.getElementById('addMatchPanel');
+        if (panel) panel.classList.remove('hidden');
+    } else {
+        const panel = document.getElementById('addMatchPanel');
+        if (panel) panel.classList.add('hidden');
+    }
+}
+
+function updateAddMatchDropdowns() {
+    const grupoEl = document.getElementById('addMatchGrupo');
+    const homeEl  = document.getElementById('addMatchHome');
+    const awayEl  = document.getElementById('addMatchAway');
+    if (!grupoEl || !homeEl || !awayEl) return;
+
+    const grupo = grupoEl.value;
+    const teams = grupo
+        ? state.teams.filter(t => t.grupo === grupo)
+        : state.teams;
+
+    const opts = `<option value="">-- Selecionar --</option>` +
+        teams.map(t => `<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('');
+    homeEl.innerHTML = opts;
+    awayEl.innerHTML = opts;
+}
+
+function addCalendarMatch() {
+    if (!isAdmin()) return;
+    const ronda = parseInt(document.getElementById('addMatchRonda').value, 10);
+    const grupo = document.getElementById('addMatchGrupo').value;
+    const home  = document.getElementById('addMatchHome').value;
+    const away  = document.getElementById('addMatchAway').value;
+
+    if (!home || !away) { showToast('Selecione as duas equipas.', 'error'); return; }
+    if (home === away)  { showToast('As equipas têm de ser diferentes.', 'error'); return; }
+
+    const exists = state.calendar.some(
+        g => g.ronda === ronda && g.home === home && g.away === away
+    );
+    if (exists) { showToast('Este jogo já existe no calendário.', 'error'); return; }
+
+    state.calendar.push({ ronda, grupo, par: 1, home, away });
+    state.calendar.push({ ronda, grupo, par: 2, home, away });
+    saveCalendar();
+    renderCalendario();
+    showToast(`Jogo adicionado: ${home} vs ${away} (Par 1 + Par 2)`);
+}
+
+// ════════════════════════════════════════════════════════════
 //  INICIALIZAÇÃO
 // ════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', async () => {
     loadState();
     loadGameResults();
+    loadCalendar();
     await loadDataBackup();
     loadAuth();
     initializeTestData();
+    initializeCalendar();
     await ensureDefaultAdmin();
 
     initTabs();
@@ -1444,6 +1607,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('selRondaClass').addEventListener('change', (e) => {
         renderClassificacao(parseInt(e.target.value, 10));
     });
+
+    // Calendário — formulário de adicionar jogo (admin)
+    const addMatchGrupoEl = document.getElementById('addMatchGrupo');
+    if (addMatchGrupoEl) {
+        addMatchGrupoEl.addEventListener('change', updateAddMatchDropdowns);
+    }
+    const btnAddMatch = document.getElementById('btnAddMatch');
+    if (btnAddMatch) {
+        btnAddMatch.addEventListener('click', addCalendarMatch);
+    }
 
     // Configurações
     document.getElementById('btnSaveSI').addEventListener('click', saveSI);
