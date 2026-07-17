@@ -429,206 +429,52 @@
         </div>
         <p class="section-desc">Texas Scramble por Pares · Match Play · Grupos A, B, C e D</p>
 
-        <!-- ─── 1ª RONDA ─── -->
-        <div class="ronda-block">
-            <div class="ronda-header">
-                <span class="ronda-num">1ª Ronda</span>
-                <span class="ronda-date">Até 21 de Junho</span>
+        <!-- Container dinâmico renderizado por renderCalendario() -->
+        <div id="calendarioContainer"></div>
+
+        <!-- Painel de adicionar jogo — apenas admin (oculto por JS) -->
+        <div id="addMatchPanel" class="admin-only hidden" style="margin-top:2rem;">
+            <h3 class="section-title" style="margin-bottom:1rem;">➕ Adicionar Jogo ao Calendário</h3>
+            <div class="add-match-form">
+                <div class="add-match-field">
+                    <label>Ronda</label>
+                    <select id="addMatchRonda" class="sel-ronda">
+                        <option value="1">1ª Ronda</option>
+                        <option value="2">2ª Ronda</option>
+                        <option value="3">3ª Ronda</option>
+                        <option value="4">4ª Ronda</option>
+                        <option value="5">5ª Ronda</option>
+                    </select>
+                </div>
+                <div class="add-match-field">
+                    <label>Grupo</label>
+                    <select id="addMatchGrupo" class="sel-ronda">
+                        <option value="A">Grupo A</option>
+                        <option value="B">Grupo B</option>
+                        <option value="C">Grupo C</option>
+                        <option value="D">Grupo D</option>
+                    </select>
+                </div>
+                <div class="add-match-field">
+                    <label>Equipa Casa</label>
+                    <select id="addMatchHome" class="sel-ronda"><option value="">-- Selecionar --</option></select>
+                </div>
+                <div class="add-match-field">
+                    <label>Equipa Fora</label>
+                    <select id="addMatchAway" class="sel-ronda"><option value="">-- Selecionar --</option></select>
+                </div>
+                <div class="add-match-field add-match-btn-col">
+                    <button id="btnAddMatch" class="btn btn-primary">+ Adicionar (Par 1 + Par 2)</button>
+                </div>
             </div>
-            <div class="grupos-grid">
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo A</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">Os Craques</span><span class="jogo-vs">VS</span><span class="team-away">LJMS</span></li>
-                        <li class="jogo"><span class="team-home">Os 4 no Buraco</span><span class="jogo-vs">VS</span><span class="team-away">Estela Birdies</span></li>
-                        <li class="folga">CGGG — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo B</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">AMVJ</span><span class="jogo-vs">VS</span><span class="team-away">V.T.F.</span></li>
-                        <li class="jogo"><span class="team-home">Equipa Eleven</span><span class="jogo-vs">VS</span><span class="team-away">EMJC</span></li>
-                        <li class="folga">Red Hot Chilli Putters — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo C</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">Birdies e Boggies</span><span class="jogo-vs">VS</span><span class="team-away">Jacaré</span></li>
-                        <li class="jogo"><span class="team-home">Os Golfinhos</span><span class="jogo-vs">VS</span><span class="team-away">Piratas</span></li>
-                        <li class="folga">Masters — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo D</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">MMLH</span><span class="jogo-vs">VS</span><span class="team-away">School</span></li>
-                        <li class="jogo"><span class="team-home">Golfistas da Madrugada</span><span class="jogo-vs">VS</span><span class="team-away">Old Fashion Team</span></li>
-                    </ul>
-                </div>
-            </div>
+            <p style="font-size:.8rem; color:var(--txt-light); margin-top:.5rem;">
+                ⚠️ Os jogos com equipas inexistentes aparecem a laranja — clique ✕ para os remover.
+            </p>
         </div>
 
-        <!-- ─── 2ª RONDA ─── -->
-        <div class="ronda-block">
-            <div class="ronda-header">
-                <span class="ronda-num">2ª Ronda</span>
-                <span class="ronda-date">Até 26 de Julho</span>
-            </div>
-            <div class="grupos-grid">
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo A</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">Os Craques</span><span class="jogo-vs">VS</span><span class="team-away">Os 4 no Buraco</span></li>
-                        <li class="jogo"><span class="team-home">CGGG</span><span class="jogo-vs">VS</span><span class="team-away">LJMS</span></li>
-                        <li class="folga">Estela Birdies — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo B</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">AMVJ</span><span class="jogo-vs">VS</span><span class="team-away">Equipa Eleven</span></li>
-                        <li class="jogo"><span class="team-home">V.T.F.</span><span class="jogo-vs">VS</span><span class="team-away">Red Hot Chilli Putters</span></li>
-                        <li class="folga">EMJC — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo C</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">Birdies e Boggies</span><span class="jogo-vs">VS</span><span class="team-away">Os Golfinhos</span></li>
-                        <li class="jogo"><span class="team-home">Masters</span><span class="jogo-vs">VS</span><span class="team-away">Jacaré</span></li>
-                        <li class="folga">Piratas — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo D</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">MMLH</span><span class="jogo-vs">VS</span><span class="team-away">Golfistas da Madrugada</span></li>
-                        <li class="jogo"><span class="team-home">School</span><span class="jogo-vs">VS</span><span class="team-away">Old Fashion Team</span></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+        <!-- Espaçador para o HTML estático removido -->
 
-        <!-- ─── 3ª RONDA ─── -->
-        <div class="ronda-block">
-            <div class="ronda-header">
-                <span class="ronda-num">3ª Ronda</span>
-                <span class="ronda-date">Até 30 de Agosto</span>
-            </div>
-            <div class="grupos-grid">
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo A</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">Os Craques</span><span class="jogo-vs">VS</span><span class="team-away">Estela Birdies</span></li>
-                        <li class="jogo"><span class="team-home">Os 4 no Buraco</span><span class="jogo-vs">VS</span><span class="team-away">CGGG</span></li>
-                        <li class="folga">LJMS — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo B</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">AMVJ</span><span class="jogo-vs">VS</span><span class="team-away">EMJC</span></li>
-                        <li class="jogo"><span class="team-home">Equipa Eleven</span><span class="jogo-vs">VS</span><span class="team-away">Red Hot Chilli Putters</span></li>
-                        <li class="folga">V.T.F. — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo C</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">Birdies e Boggies</span><span class="jogo-vs">VS</span><span class="team-away">Piratas</span></li>
-                        <li class="jogo"><span class="team-home">Masters</span><span class="jogo-vs">VS</span><span class="team-away">Os Golfinhos</span></li>
-                        <li class="folga">Jacaré — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo D</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">MMLH</span><span class="jogo-vs">VS</span><span class="team-away">Old Fashion Team</span></li>
-                        <li class="jogo"><span class="team-home">School</span><span class="jogo-vs">VS</span><span class="team-away">Golfistas da Madrugada</span></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- ─── 4ª RONDA ─── -->
-        <div class="ronda-block">
-            <div class="ronda-header">
-                <span class="ronda-num">4ª Ronda</span>
-                <span class="ronda-date">Até 27 de Setembro</span>
-            </div>
-            <div class="grupos-grid">
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo A</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">Os Craques</span><span class="jogo-vs">VS</span><span class="team-away">CGGG</span></li>
-                        <li class="jogo"><span class="team-home">LJMS</span><span class="jogo-vs">VS</span><span class="team-away">Estela Birdies</span></li>
-                        <li class="folga">Os 4 no Buraco — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo B</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">AMVJ</span><span class="jogo-vs">VS</span><span class="team-away">Red Hot Chilli Putters</span></li>
-                        <li class="jogo"><span class="team-home">V.T.F.</span><span class="jogo-vs">VS</span><span class="team-away">EMJC</span></li>
-                        <li class="folga">Equipa Eleven — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo C</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">Birdies e Boggies</span><span class="jogo-vs">VS</span><span class="team-away">Masters</span></li>
-                        <li class="jogo"><span class="team-home">Jacaré</span><span class="jogo-vs">VS</span><span class="team-away">Piratas</span></li>
-                        <li class="folga">Os Golfinhos — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card grupo-card--d-placeholder">
-                    <h4 class="grupo-title">Grupo D</h4>
-                    <p class="folga" style="text-align:center;padding:.75rem 0;"><em>Sem jogos nesta ronda</em></p>
-                </div>
-            </div>
-        </div>
-
-        <!-- ─── 5ª RONDA ─── -->
-        <div class="ronda-block">
-            <div class="ronda-header">
-                <span class="ronda-num">5ª Ronda</span>
-                <span class="ronda-date">Até 25 de Outubro</span>
-            </div>
-            <div class="grupos-grid">
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo A</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">LJMS</span><span class="jogo-vs">VS</span><span class="team-away">Os 4 no Buraco</span></li>
-                        <li class="jogo"><span class="team-home">Estela Birdies</span><span class="jogo-vs">VS</span><span class="team-away">CGGG</span></li>
-                        <li class="folga">Os Craques — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo B</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">V.T.F.</span><span class="jogo-vs">VS</span><span class="team-away">Equipa Eleven</span></li>
-                        <li class="jogo"><span class="team-home">EMJC</span><span class="jogo-vs">VS</span><span class="team-away">Red Hot Chilli Putters</span></li>
-                        <li class="folga">AMVJ — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card">
-                    <h4 class="grupo-title">Grupo C</h4>
-                    <ul class="jogos-list">
-                        <li class="jogo"><span class="team-home">Jacaré</span><span class="jogo-vs">VS</span><span class="team-away">Os Golfinhos</span></li>
-                        <li class="jogo"><span class="team-home">Piratas</span><span class="jogo-vs">VS</span><span class="team-away">Masters</span></li>
-                        <li class="folga">Birdies e Boggies — <em>Folga</em></li>
-                    </ul>
-                </div>
-                <div class="grupo-card grupo-card--d-placeholder">
-                    <h4 class="grupo-title">Grupo D</h4>
-                    <p class="folga" style="text-align:center;padding:.75rem 0;"><em>Sem jogos nesta ronda</em></p>
-                </div>
-            </div>
-        </div>
-
-    </section>
+    </section>
 
     <!-- ===== CLASSIFICAÇÃO ===== -->
     <section id="tab-classificacao" class="tab-pane">
