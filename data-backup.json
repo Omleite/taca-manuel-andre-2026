@@ -422,114 +422,25 @@
     }
   ],
   "teams": [
-    {
-      "id": "team001",
-      "name": "CGGG",
-      "playerIds": ["mrpcd3x1pn305", "mrpcd3x1nnj2q", "mrpcd3x1h0l18", "mrpcd3x1ha3vw"],
-      "captainId": "mrpcd3x1pn305"
-    },
-    {
-      "id": "team002",
-      "name": "Os Craques",
-      "playerIds": ["mrpcd3x1efzv0", "mrpcd3x1l481y", "mrpcd3x18281c", "mrpcd3x1cjcgn"],
-      "captainId": "mrpcd3x1efzv0"
-    },
-    {
-      "id": "team003",
-      "name": "Os Golfinhos",
-      "playerIds": ["mrpcd3x180mbt", "mrpcd3x1eky1j", "mrpcd3x1m7cke", "mrpcd3x180cuf"],
-      "captainId": "mrpcd3x180mbt"
-    },
-    {
-      "id": "team004",
-      "name": "Estela Birdies",
-      "playerIds": ["mrpcd3x1dm2ug", "mrpcd3x1nqirr", "mrpcd3x1h2cl0", "mrpcd3x1im42z"],
-      "captainId": "mrpcd3x1h2cl0"
-    },
-    {
-      "id": "team005",
-      "name": "Piratas",
-      "playerIds": ["mrpcd3x1m77y6", "mrpcd3x1hjgrw", "mrpcd3x1b5bqt", "mrpcd3x154b2v"],
-      "captainId": "mrpcd3x154b2v"
-    },
-    {
-      "id": "team006",
-      "name": "Golfistas da Madrugada",
-      "playerIds": ["mrpcd3x1qjr3m", "mrpcd3x1bewgf", "mrpcd3x1ielq0", "mrpcd3x1e9c8y"],
-      "captainId": "mrpcd3x1qjr3m"
-    },
-    {
-      "id": "team007",
-      "name": "Green Legends",
-      "playerIds": ["mrpcd3x17yo8n", "mrpcd3x1j3gno", "mrpcd3x1d4sot", "mrpcd3x18z73s"],
-      "captainId": "mrpcd3x18z73s"
-    },
-    {
-      "id": "team008",
-      "name": "Masters",
-      "playerIds": ["mrpcd3x1n5jzv", "mrpcd3x1qz56v", "mrpcd3x1lbj3x", "mrpcd3x1jbuvx"],
-      "captainId": "mrpcd3x1n5jzv"
-    },
-    {
-      "id": "team009",
-      "name": "EMJC",
-      "playerIds": ["mrpcd3x1f5kxc", "mrpcd3x1m5e7w", "mrpcd3x1oxz3p", "mrpcd3x1hc60d"],
-      "captainId": "mrpcd3x1hc60d"
-    },
-    {
-      "id": "team010",
-      "name": "Red Hot Chilli Putters",
-      "playerIds": ["mrpcd3x1qg7hm", "mrpcd3x1k5alz", "mrpcd3x1gfgn3", "mrpcd3x1bgfio"],
-      "captainId": "mrpcd3x1qg7hm"
-    },
-    {
-      "id": "team011",
-      "name": "Equipa Eleven",
-      "playerIds": ["mrpcd3x1e5v5s", "mrpcd3x1lkt0z", "mrpcd3x1biqia", "mrpcd3x1qfh0m"],
-      "captainId": "mrpcd3x1biqia"
-    },
-    {
-      "id": "team012",
-      "name": "School",
-      "playerIds": ["mrpcd3x1g8qqk", "mrpcd3x1ov9aj", "mrpcd3x1jj0fn", "mrpcd3x1f4iyw"],
-      "captainId": "mrpcd3x1g8qqk"
-    },
-    {
-      "id": "team013",
-      "name": "4 no Buraco",
-      "playerIds": ["mrpcd3x1mpz3q", "mrpcd3x1nf4dl", "mrpcd3x1i3gvh"],
-      "captainId": "mrpcd3x1mpz3q"
-    },
-    {
-      "id": "team014",
-      "name": "Old Fashion Team",
-      "playerIds": ["mrpcd3x1j7r8q", "mrpcd3x1rkq71", "mrpcd3x1c5qyz", "mrpcd3x1qe0d1"],
-      "captainId": "mrpcd3x1j7r8q"
-    },
-    {
-      "id": "team015",
-      "name": "MMLH",
-      "playerIds": ["mrpcd3x1mhpgw", "mrpcd3x1oibya", "mrpcd3x1d8q0b", "mrpcd3x1kqxpj"],
-      "captainId": "mrpcd3x1mhpgw"
-    },
-    {
-      "id": "team016",
-      "name": "Os Últimos",
-      "playerIds": ["mrpcd3x1p2keb", "mrpcd3x1n0ayz", "mrpcd3x1e5v5s", "mrpcd3x1hmqrl"],
-      "captainId": "mrpcd3x1n0ayz"
-    },
-    {
-      "id": "team017",
-      "name": "Birdies e Boggies",
-      "playerIds": ["mrpcd3x1ec8gr", "mrpcd3x1g2pqk", "mrpcd3x1i6r9b", "mrpcd3x1l8nep"],
-      "captainId": "mrpcd3x1ec8gr"
-    },
-    {
-      "id": "team018",
-      "name": "V.T.F.",
-      "playerIds": ["mrpcd3x1qvhya", "mrpcd3x1jo4yf", "mrpcd3x1fcbvj", "mrpcd3x1pzxcn"],
-      "captainId": "mrpcd3x1qvhya"
-    }
+    { "id": "team001", "name": "CGGG", "grupo": "A", "playerIds": ["mrpcd3x1pn305", "mrpcd3x1nnj2q", "mrpcd3x1h0l18", "mrpcd3x1ha3vw"], "captainId": "mrpcd3x1pn305" },
+    { "id": "team002", "name": "Os Craques", "grupo": "A", "playerIds": ["mrpcd3x1efzv0", "mrpcd3x1l481y", "mrpcd3x18281c", "mrpcd3x1cjcgn"], "captainId": "mrpcd3x1efzv0" },
+    { "id": "team003", "name": "Os Golfinhos", "grupo": "C", "playerIds": ["mrpcd3x180mbt", "mrpcd3x1eky1j", "mrpcd3x1m7cke", "mrpcd3x180cuf"], "captainId": "mrpcd3x180mbt" },
+    { "id": "team004", "name": "Estela Birdies", "grupo": "A", "playerIds": ["mrpcd3x1dm2ug", "mrpcd3x1nqirr", "mrpcd3x1h2cl0", "mrpcd3x1im42z"], "captainId": "mrpcd3x1h2cl0" },
+    { "id": "team005", "name": "Piratas", "grupo": "C", "playerIds": ["mrpcd3x1m77y6", "mrpcd3x1hjgrw", "mrpcd3x1b5bqt", "mrpcd3x154b2v"], "captainId": "mrpcd3x154b2v" },
+    { "id": "team006", "name": "Golfistas da Madrugada", "grupo": "D", "playerIds": ["mrpcd3x1qjr3m", "mrpcd3x1bewgf", "mrpcd3x1ielq0", "mrpcd3x1e9c8y"], "captainId": "mrpcd3x1qjr3m" },
+    { "id": "team007", "name": "Green Legends", "grupo": "", "playerIds": ["mrpcd3x17yo8n", "mrpcd3x1j3gno", "mrpcd3x1d4sot", "mrpcd3x18z73s"], "captainId": "mrpcd3x18z73s" },
+    { "id": "team008", "name": "Masters", "grupo": "C", "playerIds": ["mrpcd3x1n5jzv", "mrpcd3x1qz56v", "mrpcd3x1lbj3x", "mrpcd3x1jbuvx"], "captainId": "mrpcd3x1n5jzv" },
+    { "id": "team009", "name": "EMJC", "grupo": "B", "playerIds": ["mrpcd3x1f5kxc", "mrpcd3x1m5e7w", "mrpcd3x1oxz3p", "mrpcd3x1hc60d"], "captainId": "mrpcd3x1hc60d" },
+    { "id": "team010", "name": "Red Hot Chilli Putters", "grupo": "B", "playerIds": ["mrpcd3x1qg7hm", "mrpcd3x1k5alz", "mrpcd3x1gfgn3", "mrpcd3x1bgfio"], "captainId": "mrpcd3x1qg7hm" },
+    { "id": "team011", "name": "Equipa Eleven", "grupo": "B", "playerIds": ["mrpcd3x1e5v5s", "mrpcd3x1lkt0z", "mrpcd3x1biqia", "mrpcd3x1qfh0m"], "captainId": "mrpcd3x1biqia" },
+    { "id": "team012", "name": "School", "grupo": "D", "playerIds": ["mrpcd3x1g8qqk", "mrpcd3x1ov9aj", "mrpcd3x1jj0fn", "mrpcd3x1f4iyw"], "captainId": "mrpcd3x1g8qqk" },
+    { "id": "team013", "name": "Os 4 no Buraco", "grupo": "A", "playerIds": ["mrpcd3x1mpz3q", "mrpcd3x1nf4dl", "mrpcd3x1i3gvh", "mrpcd3x1dxxxx"], "captainId": "mrpcd3x1mpz3q" },
+    { "id": "team014", "name": "Old Fashion Team", "grupo": "D", "playerIds": ["mrpcd3x1j7r8q", "mrpcd3x1rkq71", "mrpcd3x1c5qyz", "mrpcd3x1qe0d1"], "captainId": "mrpcd3x1j7r8q" },
+    { "id": "team015", "name": "MMLH", "grupo": "D", "playerIds": ["mrpcd3x1mhpgw", "mrpcd3x1oibya", "mrpcd3x1d8q0b", "mrpcd3x1kqxpj"], "captainId": "mrpcd3x1mhpgw" },
+    { "id": "team016", "name": "LJMS", "grupo": "A", "playerIds": ["mrpcd3x1p2keb", "mrpcd3x1n0ayz", "mrpcd3x1hmqrl", "mrpcd3x1hmqrl"], "captainId": "mrpcd3x1p2keb" },
+    { "id": "team017", "name": "Birdies e Boggies", "grupo": "C", "playerIds": ["mrpcd3x1ec8gr", "mrpcd3x1g2pqk", "mrpcd3x1i6r9b", "mrpcd3x1l8nep"], "captainId": "mrpcd3x1ec8gr" },
+    { "id": "team018", "name": "V.T.F.", "grupo": "B", "playerIds": ["mrpcd3x1qvhya", "mrpcd3x1jo4yf", "mrpcd3x1fcbvj", "mrpcd3x1pzxcn"], "captainId": "mrpcd3x1qvhya" },
+    { "id": "team019", "name": "AMVJ", "grupo": "B", "playerIds": ["mrpcd3x1xxxx1", "mrpcd3x1xxxx2", "mrpcd3x1xxxx3", "mrpcd3x1xxxx4"], "captainId": "mrpcd3x1xxxx1" }
   ],
   "strokeIndex": [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 6]
 }
