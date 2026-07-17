@@ -411,6 +411,7 @@ function initTabs() {
             document.getElementById(`tab-${target}`).classList.add('active');
             if (target === 'calcular') refreshCalcSelects();
             if (target === 'config')   { renderSIGrids(); if (isAdmin()) renderUsers(); }
+            if (target === 'grupos')   { if (isAdmin()) renderGrupos(); }
             if (target === 'classificacao') { 
                 const ronda = parseInt(document.getElementById('selRondaClass').value, 10) || 1;
                 renderClassificacao(ronda);
@@ -1081,37 +1082,39 @@ function setGameResult(ronda, home, away, result) {
 }
 
 function calculateStandings(ronda) {
-    // Retorna objeto: { grupoA: [...], grupoB: [...], etc }
-    // Cada equipa tem { name, points, played, wins, draws, losses }
+    // Retorna objeto: { A: [...], B: [...], etc }
+    // Apenas equipas que existem em state.teams e têm grupo definido
+    // Cada equipa tem { id, name, grupo, points, played, wins, draws, losses }
     
-    // Primeiro, obter todas as equipas em cada grupo
-    const groupTeams = { A: new Set(), B: new Set(), C: new Set(), D: new Set() };
-    const games = CALENDAR_DATA.filter(g => g.ronda <= ronda);
+    const standings = { A: [], B: [], C: [], D: [] };
     
-    games.forEach(g => {
-        groupTeams[g.grupo].add(g.home);
-        groupTeams[g.grupo].add(g.away);
-    });
-    
-    const standings = {};
-    Object.keys(groupTeams).forEach(grupo => {
-        standings[grupo] = Array.from(groupTeams[grupo]).map(teamName => ({
-            name: teamName,
-            points: 0,
-            played: 0,
-            wins: 0,
-            draws: 0,
-            losses: 0
-        }));
+    // Inicializar com equipas que têm grupo definido
+    state.teams.forEach(team => {
+        if (team.grupo && ['A', 'B', 'C', 'D'].includes(team.grupo)) {
+            standings[team.grupo].push({
+                id: team.id,
+                name: team.name,
+                grupo: team.grupo,
+                points: 0,
+                played: 0,
+                wins: 0,
+                draws: 0,
+                losses: 0
+            });
+        }
     });
     
     // Calcular pontos baseado nos resultados
+    const games = CALENDAR_DATA.filter(g => g.ronda <= ronda);
+    
     games.forEach(game => {
-        const gameResult = getGameResult(game.ronda, game.home, game.away);
         const homeTeam = standings[game.grupo].find(t => t.name === game.home);
         const awayTeam = standings[game.grupo].find(t => t.name === game.away);
         
+        // Só processar se ambas as equipas existem em state.teams
         if (homeTeam && awayTeam) {
+            const gameResult = getGameResult(game.ronda, game.home, game.away);
+            
             homeTeam.played++;
             awayTeam.played++;
             
@@ -1209,9 +1212,10 @@ function renderClassificacao(ronda) {
                 <div class="game-result-row">
                     <span class="team-name">${esc(game.home)}</span>
                     <div class="result-buttons">
-                        <button class="btn-result ${result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
-                        <button class="btn-result ${result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="draw">Empate</button>
-                        <button class="btn-result ${result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
+                        <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
+                        <button class="btn-result ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="draw">Empate</button>
+                        <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
+                        <button class="btn-result-clear" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
                     </div>
                     <span class="team-name">${esc(game.away)}</span>
                 </div>
@@ -1245,7 +1249,99 @@ function renderClassificacao(ronda) {
                 showToast(`Resultado registado: ${home} vs ${away}`);
             });
         });
+        
+        // Adicionar listeners ao botão "Limpar"
+        document.querySelectorAll('.btn-result-clear').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const ronda = parseInt(e.target.dataset.ronda, 10);
+                const home = e.target.dataset.home;
+                const away = e.target.dataset.away;
+                
+                setGameResult(ronda, home, away, null);
+                renderClassificacao(ronda);
+                showToast(`Resultado limpo: ${home} vs ${away}`);
+            });
+        });
     }
+}
+
+// ════════════════════════════════════════════════════════════
+//  GESTÃO DE GRUPOS
+// ════════════════════════════════════════════════════════════
+
+function renderGrupos() {
+    if (!isAdmin()) return;
+    
+    const container = document.getElementById('gruposContainer');
+    const grupos = ['A', 'B', 'C', 'D'];
+    
+    let html = '';
+    grupos.forEach(g => {
+        const teamsInGrupo = state.teams.filter(t => t.grupo === g);
+        
+        html += `<div class="grupo-edit-card">
+            <div class="grupo-edit-title">Grupo ${g}</div>`;
+        
+        if (teamsInGrupo.length > 0) {
+            html += `<div class="grupo-teams-list">`;
+            teamsInGrupo.forEach(team => {
+                html += `<div class="grupo-team-item" data-team-id="${team.id}">
+                    <span class="grupo-team-name">${team.name}</span>
+                    <div class="grupo-team-actions">
+                        <button class="btn-grupo-remove" data-team-id="${team.id}" data-grupo="${g}">Remover</button>
+                    </div>
+                </div>`;
+            });
+            html += `</div>`;
+        } else {
+            html += `<div class="grupo-empty-msg">Nenhuma equipa neste grupo</div>`;
+        }
+        
+        // Dropdown para adicionar
+        html += `<div class="grupo-add-team">
+            <select class="sel-add-team" data-grupo="${g}">
+                <option value="">+ Adicionar Equipa</option>`;
+        
+        const teamsSemGrupo = state.teams.filter(t => t.grupo !== g);
+        teamsSemGrupo.forEach(team => {
+            html += `<option value="${team.id}">${team.name}</option>`;
+        });
+        
+        html += `</select></div></div>`;
+    });
+    
+    container.innerHTML = html;
+    
+    // Event listeners para remover
+    container.querySelectorAll('.btn-grupo-remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const teamId = btn.dataset.teamId;
+            const team = state.teams.find(t => t.id === teamId);
+            if (team) {
+                team.grupo = '';
+                saveState();
+                renderGrupos();
+                showToast(`${team.name} removida do grupo`);
+            }
+        });
+    });
+    
+    // Event listeners para adicionar
+    container.querySelectorAll('.sel-add-team').forEach(sel => {
+        sel.addEventListener('change', () => {
+            const teamId = sel.value;
+            const grupo = sel.dataset.grupo;
+            if (teamId) {
+                const team = state.teams.find(t => t.id === teamId);
+                if (team) {
+                    team.grupo = grupo;
+                    saveState();
+                    renderGrupos();
+                    showToast(`${team.name} adicionada ao Grupo ${grupo}`);
+                }
+            }
+        });
+    });
 }
 
 // ════════════════════════════════════════════════════════════
