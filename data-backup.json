@@ -1,0 +1,535 @@
+{
+  "players": [
+    {
+      "id": "mrpcd3x1pn305",
+      "name": "Charles Mc Donald",
+      "handicapWhs": -4,
+      "handicap": -1
+    },
+    {
+      "id": "mrpcd3x1nnj2q",
+      "name": "Guy Xie",
+      "handicapWhs": 2,
+      "handicap": 5
+    },
+    {
+      "id": "mrpcd3x1h0l18",
+      "name": "Gabriel Guerreiro",
+      "handicapWhs": -2,
+      "handicap": -1
+    },
+    {
+      "id": "mrpcd3x1ha3vw",
+      "name": "Gabriel Macedo",
+      "handicapWhs": 21,
+      "handicap": 23
+    },
+    {
+      "id": "mrpcd3x1efzv0",
+      "name": "Higino Moreira",
+      "handicapWhs": -3,
+      "handicap": -3
+    },
+    {
+      "id": "mrpcd3x1l481y",
+      "name": "António Casanova",
+      "handicapWhs": -1,
+      "handicap": -1
+    },
+    {
+      "id": "mrpcd3x18281c",
+      "name": "Franquelim Moreira",
+      "handicapWhs": -8,
+      "handicap": -7
+    },
+    {
+      "id": "mrpcd3x1cjcgn",
+      "name": "Paulo Cubal",
+      "handicapWhs": 5,
+      "handicap": 9
+    },
+    {
+      "id": "mrpcd3x180mbt",
+      "name": "José Luís Veloso",
+      "handicapWhs": 12,
+      "handicap": 16
+    },
+    {
+      "id": "mrpcd3x1eky1j",
+      "name": "Amílcar Neiva",
+      "handicapWhs": 19,
+      "handicap": 19
+    },
+    {
+      "id": "mrpcd3x1m7cke",
+      "name": "Adelaide Figueiredo",
+      "handicapWhs": -10,
+      "handicap": -10
+    },
+    {
+      "id": "mrpcd3x180cuf",
+      "name": "Paulo Pereira",
+      "handicapWhs": -7,
+      "handicap": -7
+    },
+    {
+      "id": "mrpcd3x1dm2ug",
+      "name": "Alberto Quintas",
+      "handicapWhs": 29,
+      "handicap": 29
+    },
+    {
+      "id": "mrpcd3x1nqirr",
+      "name": "Filipe Quintas",
+      "handicapWhs": 2,
+      "handicap": 5
+    },
+    {
+      "id": "mrpcd3x1h2cl0",
+      "name": "Luís Amorim Teixeira",
+      "handicapWhs": 25,
+      "handicap": 28
+    },
+    {
+      "id": "mrpcd3x1im42z",
+      "name": "Nuno Poiarez",
+      "handicapWhs": 0,
+      "handicap": 3
+    },
+    {
+      "id": "mrpcd3x1m77y6",
+      "name": "Isaque Guimarães",
+      "handicapWhs": 4,
+      "handicap": 4
+    },
+    {
+      "id": "mrpcd3x1hjgrw",
+      "name": "Alexandre Melo",
+      "handicapWhs": 12,
+      "handicap": 16
+    },
+    {
+      "id": "mrpcd3x1b5bqt",
+      "name": "Tiago Rocha",
+      "handicapWhs": 19,
+      "handicap": 19
+    },
+    {
+      "id": "mrpcd3x154b2v",
+      "name": "Pedro Moutinho",
+      "handicapWhs": 2,
+      "handicap": 2
+    },
+    {
+      "id": "mrpcd3x1qjr3m",
+      "name": "Luís Costa",
+      "handicapWhs": -5,
+      "handicap": -3
+    },
+    {
+      "id": "mrpcd3x1bewgf",
+      "name": "Natália Pereira",
+      "handicapWhs": -6,
+      "handicap": -4
+    },
+    {
+      "id": "mrpcd3x1ielq0",
+      "name": "José António Pereira",
+      "handicapWhs": 2,
+      "handicap": 5
+    },
+    {
+      "id": "mrpcd3x1e9c8y",
+      "name": "Isaque Guimarães Jr",
+      "handicapWhs": 18,
+      "handicap": 18
+    },
+    {
+      "id": "mrpcd3x17yo8n",
+      "name": "Adelino Caldeira",
+      "handicapWhs": 5,
+      "handicap": 8
+    },
+    {
+      "id": "mrpcd3x1j3gno",
+      "name": "Moura Gonçalves",
+      "handicapWhs": -2,
+      "handicap": 0
+    },
+    {
+      "id": "mrpcd3x1d4sot",
+      "name": "Vasco Costa",
+      "handicapWhs": -9,
+      "handicap": -9
+    },
+    {
+      "id": "mrpcd3x18z73s",
+      "name": "Jorge Aires",
+      "handicapWhs": 11,
+      "handicap": 13
+    },
+    {
+      "id": "mrpcd3x1n5jzv",
+      "name": "José Correia",
+      "handicapWhs": -2,
+      "handicap": 1
+    },
+    {
+      "id": "mrpcd3x1qz56v",
+      "name": "Carlos Corte-Real",
+      "handicapWhs": 1,
+      "handicap": 3
+    },
+    {
+      "id": "mrpcd3x1lbj3x",
+      "name": "José Vale",
+      "handicapWhs": -8,
+      "handicap": -7
+    },
+    {
+      "id": "mrpcd3x1jbuvx",
+      "name": "Filipe Costa",
+      "handicapWhs": 0,
+      "handicap": 4
+    },
+    {
+      "id": "mrpcd3x1f5kxc",
+      "name": "Elisabete Teles",
+      "handicapWhs": -5,
+      "handicap": -3
+    },
+    {
+      "id": "mrpcd3x1m5e7w",
+      "name": "Maria do Carmo",
+      "handicapWhs": 0,
+      "handicap": 2
+    },
+    {
+      "id": "mrpcd3x1oxz3p",
+      "name": "José Vila",
+      "handicapWhs": 10,
+      "handicap": 14
+    },
+    {
+      "id": "mrpcd3x1hc60d",
+      "name": "Carlos Figueiredo da Silva",
+      "handicapWhs": 7,
+      "handicap": 9
+    },
+    {
+      "id": "mrpcd3x1qg7hm",
+      "name": "Hélder Ferreira",
+      "handicapWhs": 22,
+      "handicap": 22
+    },
+    {
+      "id": "mrpcd3x1k5alz",
+      "name": "José Rui Rodrigues",
+      "handicapWhs": 21,
+      "handicap": 24
+    },
+    {
+      "id": "mrpcd3x1gfgn3",
+      "name": "Orlando Leite",
+      "handicapWhs": -8,
+      "handicap": -6
+    },
+    {
+      "id": "mrpcd3x1bgfio",
+      "name": "José Santos",
+      "handicapWhs": 8,
+      "handicap": 11
+    },
+    {
+      "id": "mrpcd3x1e5v5s",
+      "name": "Manuel Rodrigues",
+      "handicapWhs": 24,
+      "handicap": 25
+    },
+    {
+      "id": "mrpcd3x1lkt0z",
+      "name": "Rui Feijóo",
+      "handicapWhs": -10,
+      "handicap": -10
+    },
+    {
+      "id": "mrpcd3x1biqia",
+      "name": "Manuel Rodrigues Jr",
+      "handicapWhs": 16,
+      "handicap": 19
+    },
+    {
+      "id": "mrpcd3x1qfh0m",
+      "name": "Luís Perez",
+      "handicapWhs": -9,
+      "handicap": -8
+    },
+    {
+      "id": "mrpcd3x1g8qqk",
+      "name": "Manuel Castro",
+      "handicapWhs": 26,
+      "handicap": 28
+    },
+    {
+      "id": "mrpcd3x1ov9aj",
+      "name": "Afonso Poiarez",
+      "handicapWhs": 14,
+      "handicap": 16
+    },
+    {
+      "id": "mrpcd3x1jj0fn",
+      "name": "Edgar Gomes",
+      "handicapWhs": 18,
+      "handicap": 21
+    },
+    {
+      "id": "mrpcd3x1f4iyw",
+      "name": "André Von Hafe",
+      "handicapWhs": -5,
+      "handicap": -2
+    },
+    {
+      "id": "mrpcd3x1mpz3q",
+      "name": "Afonso Polery",
+      "handicapWhs": 28,
+      "handicap": 30
+    },
+    {
+      "id": "mrpcd3x1nf4dl",
+      "name": "Tó Júlio Brito",
+      "handicapWhs": -6,
+      "handicap": -5
+    },
+    {
+      "id": "mrpcd3x1i3gvh",
+      "name": "Gabriel Guimarães",
+      "handicapWhs": 23,
+      "handicap": 26
+    },
+    {
+      "id": "mrpcd3x1j7r8q",
+      "name": "Carlos Silva Santos",
+      "handicapWhs": 3,
+      "handicap": 5
+    },
+    {
+      "id": "mrpcd3x1rkq71",
+      "name": "Manuel Pereira Mendes",
+      "handicapWhs": 15,
+      "handicap": 18
+    },
+    {
+      "id": "mrpcd3x1c5qyz",
+      "name": "Henrique Sampaio",
+      "handicapWhs": 6,
+      "handicap": 10
+    },
+    {
+      "id": "mrpcd3x1qe0d1",
+      "name": "José Eduardo Rocha Almeida",
+      "handicapWhs": 17,
+      "handicap": 19
+    },
+    {
+      "id": "mrpcd3x1mhpgw",
+      "name": "Martim Quintas",
+      "handicapWhs": -7,
+      "handicap": -5
+    },
+    {
+      "id": "mrpcd3x1oibya",
+      "name": "Miguel Ramos",
+      "handicapWhs": 11,
+      "handicap": 13
+    },
+    {
+      "id": "mrpcd3x1d8q0b",
+      "name": "Lourenço Araújo",
+      "handicapWhs": 9,
+      "handicap": 13
+    },
+    {
+      "id": "mrpcd3x1kqxpj",
+      "name": "Henrique Araújo",
+      "handicapWhs": 28,
+      "handicap": 31
+    },
+    {
+      "id": "mrpcd3x1p2keb",
+      "name": "Luís Paupério",
+      "handicapWhs": 2,
+      "handicap": 2
+    },
+    {
+      "id": "mrpcd3x1n0ayz",
+      "name": "Jorge Moura",
+      "handicapWhs": 4,
+      "handicap": 8
+    },
+    {
+      "id": "mrpcd3x1hmqrl",
+      "name": "Sérgio Lopes",
+      "handicapWhs": 20,
+      "handicap": 23
+    },
+    {
+      "id": "mrpcd3x1ec8gr",
+      "name": "Luísa Carrilho",
+      "handicapWhs": -3,
+      "handicap": -1
+    },
+    {
+      "id": "mrpcd3x1g2pqk",
+      "name": "Maria de Fátima Costa",
+      "handicapWhs": 6,
+      "handicap": 9
+    },
+    {
+      "id": "mrpcd3x1i6r9b",
+      "name": "Mário Paiva",
+      "handicapWhs": 21,
+      "handicap": 25
+    },
+    {
+      "id": "mrpcd3x1l8nep",
+      "name": "David Angelis",
+      "handicapWhs": 10,
+      "handicap": 13
+    },
+    {
+      "id": "mrpcd3x1qvhya",
+      "name": "José Nogueira",
+      "handicapWhs": 13,
+      "handicap": 16
+    },
+    {
+      "id": "mrpcd3x1jo4yf",
+      "name": "Alberto Amaral",
+      "handicapWhs": -4,
+      "handicap": -2
+    },
+    {
+      "id": "mrpcd3x1fcbvj",
+      "name": "Jorge Martins",
+      "handicapWhs": 0,
+      "handicap": 2
+    },
+    {
+      "id": "mrpcd3x1pzxcn",
+      "name": "Ruben Santos",
+      "handicapWhs": 25,
+      "handicap": 28
+    }
+  ],
+  "teams": [
+    {
+      "id": "team001",
+      "name": "CGGG",
+      "playerIds": ["mrpcd3x1pn305", "mrpcd3x1nnj2q", "mrpcd3x1h0l18", "mrpcd3x1ha3vw"],
+      "captainId": "mrpcd3x1pn305"
+    },
+    {
+      "id": "team002",
+      "name": "Os Craques",
+      "playerIds": ["mrpcd3x1efzv0", "mrpcd3x1l481y", "mrpcd3x18281c", "mrpcd3x1cjcgn"],
+      "captainId": "mrpcd3x1efzv0"
+    },
+    {
+      "id": "team003",
+      "name": "Os Golfinhos",
+      "playerIds": ["mrpcd3x180mbt", "mrpcd3x1eky1j", "mrpcd3x1m7cke", "mrpcd3x180cuf"],
+      "captainId": "mrpcd3x180mbt"
+    },
+    {
+      "id": "team004",
+      "name": "Estela Birdies",
+      "playerIds": ["mrpcd3x1dm2ug", "mrpcd3x1nqirr", "mrpcd3x1h2cl0", "mrpcd3x1im42z"],
+      "captainId": "mrpcd3x1h2cl0"
+    },
+    {
+      "id": "team005",
+      "name": "Piratas",
+      "playerIds": ["mrpcd3x1m77y6", "mrpcd3x1hjgrw", "mrpcd3x1b5bqt", "mrpcd3x154b2v"],
+      "captainId": "mrpcd3x154b2v"
+    },
+    {
+      "id": "team006",
+      "name": "Golfistas da Madrugada",
+      "playerIds": ["mrpcd3x1qjr3m", "mrpcd3x1bewgf", "mrpcd3x1ielq0", "mrpcd3x1e9c8y"],
+      "captainId": "mrpcd3x1qjr3m"
+    },
+    {
+      "id": "team007",
+      "name": "Green Legends",
+      "playerIds": ["mrpcd3x17yo8n", "mrpcd3x1j3gno", "mrpcd3x1d4sot", "mrpcd3x18z73s"],
+      "captainId": "mrpcd3x18z73s"
+    },
+    {
+      "id": "team008",
+      "name": "Masters",
+      "playerIds": ["mrpcd3x1n5jzv", "mrpcd3x1qz56v", "mrpcd3x1lbj3x", "mrpcd3x1jbuvx"],
+      "captainId": "mrpcd3x1n5jzv"
+    },
+    {
+      "id": "team009",
+      "name": "EMJC",
+      "playerIds": ["mrpcd3x1f5kxc", "mrpcd3x1m5e7w", "mrpcd3x1oxz3p", "mrpcd3x1hc60d"],
+      "captainId": "mrpcd3x1hc60d"
+    },
+    {
+      "id": "team010",
+      "name": "Red Hot Chilli Putters",
+      "playerIds": ["mrpcd3x1qg7hm", "mrpcd3x1k5alz", "mrpcd3x1gfgn3", "mrpcd3x1bgfio"],
+      "captainId": "mrpcd3x1qg7hm"
+    },
+    {
+      "id": "team011",
+      "name": "Equipa Eleven",
+      "playerIds": ["mrpcd3x1e5v5s", "mrpcd3x1lkt0z", "mrpcd3x1biqia", "mrpcd3x1qfh0m"],
+      "captainId": "mrpcd3x1biqia"
+    },
+    {
+      "id": "team012",
+      "name": "School",
+      "playerIds": ["mrpcd3x1g8qqk", "mrpcd3x1ov9aj", "mrpcd3x1jj0fn", "mrpcd3x1f4iyw"],
+      "captainId": "mrpcd3x1g8qqk"
+    },
+    {
+      "id": "team013",
+      "name": "4 no Buraco",
+      "playerIds": ["mrpcd3x1mpz3q", "mrpcd3x1nf4dl", "mrpcd3x1i3gvh"],
+      "captainId": "mrpcd3x1mpz3q"
+    },
+    {
+      "id": "team014",
+      "name": "Old Fashion Team",
+      "playerIds": ["mrpcd3x1j7r8q", "mrpcd3x1rkq71", "mrpcd3x1c5qyz", "mrpcd3x1qe0d1"],
+      "captainId": "mrpcd3x1j7r8q"
+    },
+    {
+      "id": "team015",
+      "name": "MMLH",
+      "playerIds": ["mrpcd3x1mhpgw", "mrpcd3x1oibya", "mrpcd3x1d8q0b", "mrpcd3x1kqxpj"],
+      "captainId": "mrpcd3x1mhpgw"
+    },
+    {
+      "id": "team016",
+      "name": "Os Últimos",
+      "playerIds": ["mrpcd3x1p2keb", "mrpcd3x1n0ayz", "mrpcd3x1e5v5s", "mrpcd3x1hmqrl"],
+      "captainId": "mrpcd3x1n0ayz"
+    },
+    {
+      "id": "team017",
+      "name": "Birdies e Boggies",
+      "playerIds": ["mrpcd3x1ec8gr", "mrpcd3x1g2pqk", "mrpcd3x1i6r9b", "mrpcd3x1l8nep"],
+      "captainId": "mrpcd3x1ec8gr"
+    },
+    {
+      "id": "team018",
+      "name": "V.T.F.",
+      "playerIds": ["mrpcd3x1qvhya", "mrpcd3x1jo4yf", "mrpcd3x1fcbvj", "mrpcd3x1pzxcn"],
+      "captainId": "mrpcd3x1qvhya"
+    }
+  ],
+  "strokeIndex": [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 6]
+}
