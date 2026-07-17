@@ -1,0 +1,1335 @@
+﻿'use strict';
+
+// ============================================================
+//  TAÇA MANUEL ANDRÉ 2026 – Lógica da Aplicação
+// ============================================================
+
+const STORAGE_KEY = 'taca-manuel-andre-2026';
+const AUTH_KEY    = 'tma-2026-auth';
+const SALT        = 'egc:tma:2026:estela';
+
+// Stroke Index predefinido - Estela Golf Club
+const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 6];
+
+// ════════════════════════════════════════════════════════════
+//  ESTADO
+// ════════════════════════════════════════════════════════════
+
+let state = {
+    players: [],
+    teams: [],
+    strokeIndex: [...DEFAULT_SI],
+    gameResults: []  // Array de resultados de jogos: { ronda, grupo, homeTeam, awayTeam, result }
+};
+
+let authState = {
+    users:       [],
+    currentUser: null
+};
+
+// ════════════════════════════════════════════════════════════
+//  AUTENTICAÇÃO
+// ════════════════════════════════════════════════════════════
+
+async function hashPassword(password) {
+    const data = new TextEncoder().encode(SALT + password + SALT);
+    const buf  = await crypto.subtle.digest('SHA-256', data);
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function loadAuth() {
+    try {
+        const raw = localStorage.getItem(AUTH_KEY);
+        if (raw) {
+            const p = JSON.parse(raw);
+            authState.users       = Array.isArray(p.users) ? p.users : [];
+            authState.currentUser = p.currentUser || null;
+        }
+    } catch (e) { console.error('loadAuth:', e); }
+}
+
+function saveAuth() {
+    localStorage.setItem(AUTH_KEY, JSON.stringify(authState));
+}
+
+async function ensureDefaultAdmin() {
+    if (!authState.users.length) {
+        authState.users.push({
+            id:           genId(),
+            username:     'admin',
+            displayName:  'Administrador',
+            passwordHash: await hashPassword('estela2026'),
+            role:         'admin',
+            createdAt:    new Date().toISOString()
+        });
+        saveAuth();
+    }
+}
+
+const isLoggedIn = () => !!authState.currentUser;
+const isAdmin    = () => authState.currentUser?.role === 'admin';
+
+async function doLogin(username, password) {
+    const hash = await hashPassword(password);
+    const user = authState.users.find(
+        u => u.username.toLowerCase() === username.toLowerCase() && u.passwordHash === hash
+    );
+    if (!user) return false;
+    authState.currentUser = { id: user.id, username: user.username, displayName: user.displayName || user.username, role: user.role };
+    saveAuth();
+    return true;
+}
+
+function doLogout() {
+    authState.currentUser = null;
+    saveAuth();
+    updateAuthUI();
+    showToast('Sessão terminada.');
+}
+
+// ── UI Auth ──────────────────────────────────────────────────
+
+function updateAuthUI() {
+    const loggedIn = isLoggedIn();
+    const admin    = isAdmin();
+
+    // Nav
+    document.getElementById('btnOpenLogin').classList.toggle('hidden', loggedIn);
+    document.getElementById('navUser').classList.toggle('hidden', !loggedIn);
+    if (loggedIn) {
+        document.getElementById('navUsername').textContent = authState.currentUser.displayName;
+        const badge = document.getElementById('navUserRole');
+        badge.textContent = admin ? 'Admin' : 'User';
+        badge.className   = 'nav-role-badge ' + (admin ? 'badge-admin' : 'badge-user');
+    }
+
+    // Botões de adicionar: só para autenticados
+    const addPlayerBtn = document.getElementById('btnShowPlayerForm');
+    const addTeamBtn   = document.getElementById('btnShowTeamForm');
+    addPlayerBtn.classList.toggle('hidden', !loggedIn);
+    addTeamBtn.classList.toggle('hidden', !loggedIn);
+
+    // Esconder formulários se sessão terminou
+    if (!loggedIn) {
+        document.getElementById('playerForm').classList.add('hidden');
+        document.getElementById('teamForm').classList.add('hidden');
+    }
+
+    // Secções admin-only
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !admin));
+
+    // Secções auth-only (qualquer utilizador autenticado)
+    document.querySelectorAll('.auth-only').forEach(el => el.classList.toggle('hidden', !loggedIn));
+
+    // Re-render listas para actualizar botões editar/apagar
+    renderPlayers();
+    renderTeams();
+
+    // Admin: render utilizadores
+    if (admin) renderUsers();
+}
+
+// ── Modal Login ───────────────────────────────────────────────
+
+function openLoginModal() {
+    document.getElementById('loginModal').classList.remove('hidden');
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').classList.add('hidden');
+    document.getElementById('loginError').textContent = '';
+    setTimeout(() => document.getElementById('loginUsername').focus(), 50);
+}
+
+function closeLoginModal() {
+    document.getElementById('loginModal').classList.add('hidden');
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const username  = document.getElementById('loginUsername').value.trim();
+    const password  = document.getElementById('loginPassword').value;
+    const errEl     = document.getElementById('loginError');
+    const submitBtn = document.getElementById('btnLoginSubmit');
+
+    errEl.classList.add('hidden');
+
+    if (!username || !password) {
+        errEl.textContent = 'Preencha o utilizador e a palavra-passe.';
+        errEl.classList.remove('hidden');
+        return;
+    }
+
+    submitBtn.disabled    = true;
+    submitBtn.textContent = 'A verificar…';
+
+    try {
+        const ok = await doLogin(username, password);
+        if (ok) {
+            closeLoginModal();
+            updateAuthUI();
+            showToast(`Bem-vindo, ${authState.currentUser.displayName}!`);
+        } else {
+            errEl.textContent = 'Utilizador ou palavra-passe incorrectos.';
+            errEl.classList.remove('hidden');
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginPassword').focus();
+        }
+    } finally {
+        submitBtn.disabled    = false;
+        submitBtn.textContent = 'Entrar';
+    }
+}
+
+// ── Gestão de utilizadores (admin) ───────────────────────────
+
+function renderUsers() {
+    const el = document.getElementById('usersList');
+    if (!el) return;
+    if (!authState.users.length) {
+        el.innerHTML = '<p style="font-size:.85rem;color:var(--txt-light);padding:.25rem 0">Nenhum utilizador.</p>';
+        return;
+    }
+    el.innerHTML = authState.users.map(u => `
+        <div class="user-item">
+            <div class="user-info">
+                <span class="user-name">${esc(u.displayName || u.username)}</span>
+                <span class="user-meta">@${esc(u.username)}</span>
+            </div>
+            <span class="nav-role-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role === 'admin' ? 'Admin' : 'User'}</span>
+            <div class="user-actions">
+                ${authState.currentUser?.id === u.id
+                    ? '<span class="current-user-tag">← sessão activa</span>'
+                    : `<button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')">✕</button>`
+                }
+            </div>
+        </div>
+    `).join('');
+}
+
+async function saveNewUser() {
+    const displayName = document.getElementById('inputNewDisplayName').value.trim();
+    const username    = document.getElementById('inputNewUsername').value.trim();
+    const password    = document.getElementById('inputNewPassword').value;
+    const role        = document.getElementById('inputNewRole').value;
+
+    if (!username)          { showToast('Insira o nome de utilizador.', 'error'); return; }
+    if (password.length < 6){ showToast('A palavra-passe deve ter pelo menos 6 caracteres.', 'error'); return; }
+    if (!/^[a-z0-9._-]+$/i.test(username)) { showToast('O nome de utilizador só pode conter letras, números, . _ -', 'error'); return; }
+    if (authState.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        showToast('Esse nome de utilizador já existe.', 'error'); return;
+    }
+
+    const hash = await hashPassword(password);
+    authState.users.push({ id: genId(), username, displayName: displayName || username, passwordHash: hash, role, createdAt: new Date().toISOString() });
+    saveAuth();
+    document.getElementById('newUserForm').classList.add('hidden');
+    document.getElementById('inputNewDisplayName').value = '';
+    document.getElementById('inputNewUsername').value    = '';
+    document.getElementById('inputNewPassword').value    = '';
+    renderUsers();
+    showToast('Utilizador criado.');
+}
+
+function deleteUser(id) {
+    const user = authState.users.find(u => u.id === id);
+    if (!user) return;
+    if (!confirm(`Eliminar o utilizador "${esc(user.displayName || user.username)}"?`)) return;
+    authState.users = authState.users.filter(u => u.id !== id);
+    saveAuth();
+    renderUsers();
+    showToast('Utilizador eliminado.');
+}
+
+async function changeOwnPassword() {
+    const currentPwd = document.getElementById('inputCurrentPwd').value;
+    const newPwd     = document.getElementById('inputNewPwd').value;
+    const confirmPwd = document.getElementById('inputConfirmPwd').value;
+
+    if (!currentPwd || !newPwd || !confirmPwd) { showToast('Preencha todos os campos.', 'error'); return; }
+    if (newPwd !== confirmPwd) { showToast('As palavras-passe não coincidem.', 'error'); return; }
+    if (newPwd.length < 6)    { showToast('A nova palavra-passe deve ter pelo menos 6 caracteres.', 'error'); return; }
+
+    const currentHash = await hashPassword(currentPwd);
+    const idx = authState.users.findIndex(u => u.id === authState.currentUser.id);
+    if (idx === -1 || authState.users[idx].passwordHash !== currentHash) {
+        showToast('Palavra-passe actual incorrecta.', 'error'); return;
+    }
+
+    authState.users[idx].passwordHash = await hashPassword(newPwd);
+    saveAuth();
+    document.getElementById('inputCurrentPwd').value = '';
+    document.getElementById('inputNewPwd').value     = '';
+    document.getElementById('inputConfirmPwd').value = '';
+    showToast('Palavra-passe alterada com sucesso.');
+}
+
+// ════════════════════════════════════════════════════════════
+//  PERSISTÊNCIA (dados do torneio)
+// ════════════════════════════════════════════════════════════
+
+function loadState() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        state.players     = Array.isArray(parsed.players) ? parsed.players : [];
+        state.teams       = Array.isArray(parsed.teams)   ? parsed.teams   : [];
+        state.strokeIndex = Array.isArray(parsed.strokeIndex) && parsed.strokeIndex.length === 18
+            ? parsed.strokeIndex : [...DEFAULT_SI];
+    } catch (e) { console.error('Erro ao carregar dados:', e); }
+}
+
+async function loadDataBackup() {
+    // Tenta carregar dados do arquivo backup.json se localStorage estiver vazio
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return; // Já tem dados no localStorage
+        
+        const response = await fetch('data-backup.json');
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        if (data.players && data.teams) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            state.players = data.players;
+            state.teams = data.teams;
+            state.strokeIndex = data.strokeIndex || [...DEFAULT_SI];
+        }
+    } catch (e) { console.error('Erro ao carregar backup:', e); }
+}
+
+function initializeTestData() {
+    // Cria dados de teste se a aplicação estiver vazia
+    if (state.players.length === 0) {
+        // Dados das 18 equipas do torneio (Jacaré desistiu)
+        const touramentTeams = [
+            { name: 'CGGG', players: ['Charles Mc Donald (C)', 'Guy Xie', 'Gabriel Guerreiro', 'Gabriel Macedo'] },
+            { name: 'Os Craques', players: ['Higino Moreira (C)', 'António Casanova', 'Franquelim Moreira', 'Paulo Cubal'] },
+            { name: 'Os Golfinhos', players: ['José Luís Veloso (C)', 'Amílcar Neiva', 'Adelaide Figueiredo', 'Paulo Pereira'] },
+            { name: 'Estela Birdies', players: ['Alberto Quintas', 'Filipe Quintas', 'Luís Amorim Teixeira (C)', 'Nuno Poiarez'] },
+            { name: 'Piratas', players: ['Isaque Guimarães', 'Alexandre Melo', 'Tiago Rocha', 'Pedro Moutinho (C)'] },
+            { name: 'Golfistas da Madrugada', players: ['Luís Costa (C)', 'Natália Pereira', 'José António Pereira', 'Isaque Guimarães Jr'] },
+            { name: 'Green Legends', players: ['Adelino Caldeira', 'Moura Gonçalves', 'Vasco Costa', 'Jorge Aires (C)'] },
+            { name: 'Masters', players: ['José Correia (C)', 'Carlos Corte-Real', 'José Vale', 'Filipe Costa'] },
+            { name: 'EMJC', players: ['Elisabete Teles', 'Maria do Carmo', 'José Vila', 'Carlos Figueiredo da Silva (C)'] },
+            { name: 'Red Hot Chilli Putters', players: ['Hélder Ferreira (C)', 'José Rui Rodrigues', 'Orlando Leite', 'José Santos'] },
+            { name: 'Equipa Eleven', players: ['Manuel Rodrigues', 'Rui Feijóo', 'Manuel Rodrigues Jr (C)', 'Luís Perez'] },
+            { name: 'School', players: ['Manuel Castro (C)', 'Afonso Poiarez', 'Edgar Gomes', 'André Von Hafe'] },
+            { name: '4 no Buraco', players: ['Afonso Polery (C)', 'Tó Júlio Brito', 'Gabriel Guimarães'] },
+            { name: 'Old Fashion Team', players: ['Carlos Silva Santos (C)', 'Manuel Pereira Mendes', 'Henrique Sampaio', 'José Eduardo Rocha Almeida'] },
+            { name: 'MMLH', players: ['Martim Quintas (C)', 'Miguel Ramos', 'Lourenço Araújo', 'Henrique Araújo'] },
+            { name: 'Os Últimos', players: ['Luís Paupério', 'Jorge Moura (C)', 'Manuel Rodrigues', 'Sérgio Lopes'] },
+            { name: 'Birdies e Boggies', players: ['Luísa Carrilho (C)', 'Maria de Fátima Costa', 'Mário Paiva', 'David Angelis'] },
+            { name: 'V.T.F.', players: ['José Nogueira (C)', 'Alberto Amaral', 'Jorge Martins', 'Ruben Santos'] }
+        ];
+
+        // Extrai todos os jogadores únicos
+        const playerMap = new Map(); // nome -> id
+        touramentTeams.forEach(team => {
+            team.players.forEach(playerStr => {
+                const cleanName = playerStr.replace(' (C)', '').trim();
+                if (!playerMap.has(cleanName)) {
+                    const playerId = genId();
+                    playerMap.set(cleanName, playerId);
+                    // Handicaps aleatórios entre -10 e 30
+                    const hcpWhs = Math.floor(Math.random() * 40) - 10;
+                    const hcpJogo = hcpWhs + Math.floor(Math.random() * 5);
+                    state.players.push({
+                        id: playerId,
+                        name: cleanName,
+                        handicapWhs: hcpWhs,
+                        handicap: hcpJogo
+                    });
+                }
+            });
+        });
+
+        // Cria as equipas
+        state.teams = touramentTeams.map(team => {
+            // Encontra o ID do capitão
+            const captainName = team.players.find(p => p.includes('(C)'))?.replace(' (C)', '').trim();
+            const captainId = captainName ? playerMap.get(captainName) : null;
+            
+            return {
+                id: genId(),
+                name: team.name,
+                playerIds: team.players
+                    .map(playerStr => playerStr.replace(' (C)', '').trim())
+                    .map(cleanName => playerMap.get(cleanName))
+                    .filter(id => id !== undefined),
+                captainId: captainId
+            };
+        });
+
+        saveState();
+    }
+}
+
+function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ════════════════════════════════════════════════════════════
+//  UTILITÁRIOS
+// ════════════════════════════════════════════════════════════
+
+function genId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function esc(str) {
+    return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function getPlayer(id) {
+    return state.players.find(p => p.id === id) || null;
+}
+
+function showToast(msg, type = 'success') {
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+    const t = document.createElement('div');
+    t.className = `toast toast-${type}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2800);
+}
+
+// ════════════════════════════════════════════════════════════
+//  NAVEGAÇÃO POR SEPARADORES
+// ════════════════════════════════════════════════════════════
+
+function initTabs() {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.dataset.tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`tab-${target}`).classList.add('active');
+            if (target === 'calcular') refreshCalcSelects();
+            if (target === 'config')   { renderSIGrids(); if (isAdmin()) renderUsers(); }
+            if (target === 'classificacao') { 
+                const ronda = parseInt(document.getElementById('selRondaClass').value, 10) || 1;
+                renderClassificacao(ronda);
+            }
+        });
+    });
+}
+
+// ════════════════════════════════════════════════════════════
+//  JOGADORES
+// ════════════════════════════════════════════════════════════
+
+function renderPlayers() {
+    const el = document.getElementById('playersList');
+    if (!state.players.length) {
+        el.innerHTML = `<div class="empty-state">
+            <p>Nenhum jogador registado.</p>
+            <p class="empty-hint">${isLoggedIn() ? 'Clique em "+ Adicionar Jogador" para começar.' : 'Entre com a sua conta para adicionar jogadores.'}</p>
+        </div>`;
+        return;
+    }
+    const sorted = [...state.players].sort((a, b) => a.name.localeCompare(b.name, 'pt'));
+    el.innerHTML = sorted.map(p => `
+        <div class="card player-card">
+            <div class="player-info">
+                <span class="player-name">${esc(p.name)}</span>
+                <div class="player-handicaps">
+                    <span class="player-hcp">WHS: <strong>${p.handicapWhs || '—'}</strong></span>
+                    <span class="player-hcp">Jogo: <strong>${p.handicap}</strong></span>
+                </div>
+            </div>
+            ${isLoggedIn() ? `
+            <div class="player-actions">
+                <button class="btn btn-sm btn-ghost" onclick="openEditPlayer('${p.id}')">Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deletePlayer('${p.id}')">✕</button>
+            </div>` : ''}
+        </div>
+    `).join('');
+}
+
+function openAddPlayer() {
+    if (!isLoggedIn()) { openLoginModal(); return; }
+    document.getElementById('playerFormTitle').textContent = 'Novo Jogador';
+    document.getElementById('inputPlayerName').value = '';
+    document.getElementById('inputPlayerHcpWhs').value = '';
+    document.getElementById('inputPlayerHcp').value  = '';
+    document.getElementById('playerEditId').value    = '';
+    document.getElementById('playerForm').classList.remove('hidden');
+    document.getElementById('inputPlayerName').focus();
+}
+
+function openEditPlayer(id) {
+    if (!isLoggedIn()) { openLoginModal(); return; }
+    const p = getPlayer(id);
+    if (!p) return;
+    document.getElementById('playerFormTitle').textContent = 'Editar Jogador';
+    document.getElementById('inputPlayerName').value = p.name;
+    document.getElementById('inputPlayerHcpWhs').value = p.handicapWhs || '';
+    document.getElementById('inputPlayerHcp').value  = p.handicap;
+    document.getElementById('playerEditId').value    = id;
+    document.getElementById('playerForm').classList.remove('hidden');
+    document.getElementById('inputPlayerName').focus();
+}
+
+function savePlayer() {
+    if (!isLoggedIn()) { openLoginModal(); return; }
+    const name      = document.getElementById('inputPlayerName').value.trim();
+    const hcpWhsRaw = document.getElementById('inputPlayerHcpWhs').value;
+    const hcpJogoRaw = document.getElementById('inputPlayerHcp').value;
+    const hcpWhs    = parseInt(hcpWhsRaw, 10);
+    const hcpJogo   = parseInt(hcpJogoRaw, 10);
+    const editId    = document.getElementById('playerEditId').value;
+
+    if (!name)                            { showToast('Insira o nome do jogador.', 'error');              return; }
+    if (hcpWhsRaw === '' || isNaN(hcpWhs))   { showToast('Insira o Handicap WHS válido.', 'error');       return; }
+    if (hcpJogoRaw === '' || isNaN(hcpJogo)) { showToast('Insira o Handicap de Jogo válido.', 'error');    return; }
+    if (hcpWhs < -10 || hcpWhs > 54)     { showToast('Handicap WHS deve estar entre -10 e 54.', 'error'); return; }
+    if (hcpJogo < -10 || hcpJogo > 54)   { showToast('Handicap de Jogo deve estar entre -10 e 54.', 'error'); return; }
+
+    if (editId) {
+        const p = getPlayer(editId);
+        if (p) { p.name = name; p.handicapWhs = hcpWhs; p.handicap = hcpJogo; }
+    } else {
+        state.players.push({ id: genId(), name, handicapWhs: hcpWhs, handicap: hcpJogo });
+    }
+    saveState();
+    document.getElementById('playerForm').classList.add('hidden');
+    renderPlayers();
+    showToast(editId ? 'Jogador actualizado.' : 'Jogador adicionado.');
+}
+
+function deletePlayer(id) {
+    if (!isLoggedIn()) return;
+    if (!confirm('Remover este jogador? Será também removido das equipas.')) return;
+    state.players = state.players.filter(p => p.id !== id);
+    state.teams.forEach(t => { t.playerIds = (t.playerIds || []).filter(pid => pid !== id); });
+    saveState();
+    renderPlayers();
+    renderTeams();
+    showToast('Jogador removido.');
+}
+
+// ════════════════════════════════════════════════════════════
+//  EQUIPAS
+// ════════════════════════════════════════════════════════════
+
+function renderTeams() {
+    const el = document.getElementById('teamsList');
+    if (!state.teams.length) {
+        el.innerHTML = `<div class="empty-state">
+            <p>Nenhuma equipa criada.</p>
+            <p class="empty-hint">${isLoggedIn() ? 'Clique em "+ Nova Equipa" para criar uma equipa.' : 'Entre com a sua conta para criar equipas.'}</p>
+        </div>`;
+        return;
+    }
+    el.innerHTML = state.teams.map(t => {
+        const allPlayers = (t.playerIds || []).map(pid => getPlayer(pid)).filter(Boolean);
+        
+        // Separa o capitão dos outros
+        const captain = allPlayers.find(p => p.id === t.captainId);
+        const otherPlayers = allPlayers.filter(p => p.id !== t.captainId);
+        
+        // Ordena os outros alfabeticamente
+        otherPlayers.sort((a, b) => a.name.localeCompare(b.name, 'pt'));
+        
+        // Coloca o capitão primeiro
+        const sortedPlayers = captain ? [captain, ...otherPlayers] : otherPlayers;
+        
+        const rows = sortedPlayers.length
+            ? sortedPlayers.map(p => {
+                const isCaptain = p.id === t.captainId;
+                return `<li class="team-player-item ${isCaptain ? 'is-captain' : ''}">
+                    <span class="name">${isCaptain ? '⭐ ' : ''}${esc(p.name)}</span>
+                    <span class="hcp">HCP ${p.handicap}</span>
+                </li>`;
+            }).join('')
+            : '<li class="team-player-item"><span style="color:#9ca3af">Sem jogadores associados</span></li>';
+        return `
+            <div class="card team-card">
+                <div class="team-card-header">
+                    <span class="team-name">${esc(t.name)}</span>
+                    ${isLoggedIn() ? `
+                    <div class="team-actions">
+                        <button class="btn btn-sm btn-ghost" onclick="openEditTeam('${t.id}')">Editar</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTeam('${t.id}')">✕</button>
+                    </div>` : ''}
+                </div>
+                <ul class="team-players-list">${rows}</ul>
+            </div>`;
+    }).join('');
+}
+
+function openAddTeam() {
+    if (!isLoggedIn()) { openLoginModal(); return; }
+    if (!state.players.length) { showToast('Adicione jogadores antes de criar equipas.', 'warn'); return; }
+    document.getElementById('teamFormTitle').textContent = 'Nova Equipa';
+    document.getElementById('inputTeamName').value = '';
+    document.getElementById('teamEditId').value    = '';
+    renderTeamPicker([]);
+    document.getElementById('teamForm').classList.remove('hidden');
+}
+
+function openEditTeam(id) {
+    if (!isLoggedIn()) { openLoginModal(); return; }
+    const t = state.teams.find(t => t.id === id);
+    if (!t) return;
+    document.getElementById('teamFormTitle').textContent = 'Editar Equipa';
+    document.getElementById('inputTeamName').value = t.name;
+    document.getElementById('teamEditId').value    = id;
+    renderTeamPicker(t.playerIds || []);
+    document.getElementById('teamForm').classList.remove('hidden');
+}
+
+function renderTeamPicker(selected) {
+    const el     = document.getElementById('teamPlayerPicker');
+    const sorted = [...state.players].sort((a, b) => a.name.localeCompare(b.name, 'pt'));
+    el.innerHTML = sorted.map(p => `
+        <label class="picker-item ${selected.includes(p.id) ? 'selected' : ''}">
+            <input type="checkbox" value="${p.id}" ${selected.includes(p.id) ? 'checked' : ''}>
+            <span>${esc(p.name)}</span>
+            <span class="picker-hcp">HCP ${p.handicap}</span>
+        </label>
+    `).join('');
+    updatePickerHint();
+    el.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', e => {
+            e.target.closest('.picker-item').classList.toggle('selected', e.target.checked);
+            updatePickerHint();
+        });
+    });
+}
+
+function updatePickerHint() {
+    const count = document.querySelectorAll('#teamPlayerPicker input:checked').length;
+    const hint  = document.getElementById('pickerHint');
+    hint.textContent = `${count}/4 jogadores seleccionados`;
+    hint.style.color = count === 4 ? 'var(--green-ok)' : 'var(--txt-light)';
+}
+
+function getCheckedPlayerIds() {
+    return [...document.querySelectorAll('#teamPlayerPicker input:checked')].map(cb => cb.value);
+}
+
+function saveTeam() {
+    if (!isLoggedIn()) { openLoginModal(); return; }
+    const name      = document.getElementById('inputTeamName').value.trim();
+    const playerIds = getCheckedPlayerIds();
+    const editId    = document.getElementById('teamEditId').value;
+    if (!name)                   { showToast('Insira o nome da equipa.', 'error');                return; }
+    if (playerIds.length !== 4)  { showToast('Seleccione exactamente 4 jogadores.', 'error');    return; }
+    if (editId) {
+        const t = state.teams.find(t => t.id === editId);
+        if (t) { t.name = name; t.playerIds = playerIds; }
+    } else {
+        state.teams.push({ id: genId(), name, playerIds });
+    }
+    saveState();
+    document.getElementById('teamForm').classList.add('hidden');
+    renderTeams();
+    showToast(editId ? 'Equipa actualizada.' : 'Equipa criada.');
+}
+
+function deleteTeam(id) {
+    if (!isLoggedIn()) return;
+    if (!confirm('Remover esta equipa?')) return;
+    state.teams = state.teams.filter(t => t.id !== id);
+    saveState();
+    renderTeams();
+    showToast('Equipa removida.');
+}
+
+// ════════════════════════════════════════════════════════════
+//  CALCULAR HANDICAP
+// ════════════════════════════════════════════════════════════
+
+function refreshCalcSelects() {
+    // Preencher e filtrar os selects de equipa
+    updateTeamSelects();
+}
+
+function updateTeamSelects() {
+    // Filtrar equipas para evitar duplicatas
+    const teamAId = document.getElementById('selTeamA').value;
+    const teamBId = document.getElementById('selTeamB').value;
+    
+    // Atualizar selTeamA
+    const optsA = `<option value="">-- Seleccionar Equipa A --</option>` +
+        state.teams.map(t => `<option value="${t.id}" ${teamBId && t.id === teamBId ? 'disabled' : ''}>${esc(t.name)}</option>`).join('');
+    document.getElementById('selTeamA').innerHTML = optsA;
+    if (teamAId && state.teams.some(t => t.id === teamAId)) document.getElementById('selTeamA').value = teamAId;
+    
+    // Atualizar selTeamB
+    const optsB = `<option value="">-- Seleccionar Equipa B --</option>` +
+        state.teams.map(t => `<option value="${t.id}" ${teamAId && t.id === teamAId ? 'disabled' : ''}>${esc(t.name)}</option>`).join('');
+    document.getElementById('selTeamB').innerHTML = optsB;
+    if (teamBId && state.teams.some(t => t.id === teamBId)) document.getElementById('selTeamB').value = teamBId;
+}
+
+function updateCalcPlayerSelects() {
+    // Obter equipa A e equipa B selecionadas
+    const teamAId = document.getElementById('selTeamA').value;
+    const teamBId = document.getElementById('selTeamB').value;
+    const teamA = state.teams.find(t => t.id === teamAId);
+    const teamB = state.teams.find(t => t.id === teamBId);
+    
+    // Atualizar títulos com nomes das equipas
+    document.getElementById('parATitle').textContent = teamA ? `${esc(teamA.name)}` : 'Par A';
+    document.getElementById('parBTitle').textContent = teamB ? `${esc(teamB.name)}` : 'Par B';
+    
+    // Jogadores da equipa A (sem filtro global, apenas com desabilitar duplicatas internas)
+    const playersA = teamA ? (teamA.playerIds || []).map(pid => getPlayer(pid)).filter(Boolean).sort((a,b) => a.name.localeCompare(b.name, 'pt')) : [];
+    
+    // Jogadores da equipa B (sem filtro global, apenas com desabilitar duplicatas internas)
+    const playersB = teamB ? (teamB.playerIds || []).map(pid => getPlayer(pid)).filter(Boolean).sort((a,b) => a.name.localeCompare(b.name, 'pt')) : [];
+    
+    // Construir opções para Par A (remover duplicatas dentro de Par A)
+    const buildPlayerOptionsA = () => {
+        const selA1Val = document.getElementById('selA1').value;
+        const selA2Val = document.getElementById('selA2').value;
+        
+        const optsA1 = '<option value="">-- Seleccionar --</option>' + 
+            playersA.map(p => {
+                const disabled = selA2Val && p.id === selA2Val ? 'disabled' : '';
+                return `<option value="${p.id}" ${disabled}>${esc(p.name)} (HCP ${p.handicap})</option>`;
+            }).join('');
+        
+        const optsA2 = '<option value="">-- Seleccionar --</option>' + 
+            playersA.map(p => {
+                const disabled = selA1Val && p.id === selA1Val ? 'disabled' : '';
+                return `<option value="${p.id}" ${disabled}>${esc(p.name)} (HCP ${p.handicap})</option>`;
+            }).join('');
+        
+        return { optsA1, optsA2 };
+    };
+    
+    // Construir opções para Par B (remover duplicatas dentro de Par B)
+    const buildPlayerOptionsB = () => {
+        const selB1Val = document.getElementById('selB1').value;
+        const selB2Val = document.getElementById('selB2').value;
+        
+        const optsB1 = '<option value="">-- Seleccionar --</option>' + 
+            playersB.map(p => {
+                const disabled = selB2Val && p.id === selB2Val ? 'disabled' : '';
+                return `<option value="${p.id}" ${disabled}>${esc(p.name)} (HCP ${p.handicap})</option>`;
+            }).join('');
+        
+        const optsB2 = '<option value="">-- Seleccionar --</option>' + 
+            playersB.map(p => {
+                const disabled = selB1Val && p.id === selB1Val ? 'disabled' : '';
+                return `<option value="${p.id}" ${disabled}>${esc(p.name)} (HCP ${p.handicap})</option>`;
+            }).join('');
+        
+        return { optsB1, optsB2 };
+    };
+    
+    const { optsA1, optsA2 } = buildPlayerOptionsA();
+    const { optsB1, optsB2 } = buildPlayerOptionsB();
+    
+    // Atualizar selects de Par A (preservar seleção se ainda válida)
+    const selA1 = document.getElementById('selA1');
+    const curA1 = selA1.value;
+    selA1.innerHTML = optsA1;
+    if (playersA.some(p => p.id === curA1)) selA1.value = curA1;
+    
+    const selA2 = document.getElementById('selA2');
+    const curA2 = selA2.value;
+    selA2.innerHTML = optsA2;
+    if (playersA.some(p => p.id === curA2)) selA2.value = curA2;
+    
+    // Atualizar selects de Par B (preservar seleção se ainda válida)
+    const selB1 = document.getElementById('selB1');
+    const curB1 = selB1.value;
+    selB1.innerHTML = optsB1;
+    if (playersB.some(p => p.id === curB1)) selB1.value = curB1;
+    
+    const selB2 = document.getElementById('selB2');
+    const curB2 = selB2.value;
+    selB2.innerHTML = optsB2;
+    if (playersB.some(p => p.id === curB2)) selB2.value = curB2;
+    
+    updateParTotals();
+}
+
+function updateParTotals() {
+    updateOnePar('selA1', 'selA2', 'parATotal');
+    updateOnePar('selB1', 'selB2', 'parBTotal');
+}
+
+function updateOnePar(id1, id2, totalId) {
+    const p1 = getPlayer(document.getElementById(id1).value);
+    const p2 = getPlayer(document.getElementById(id2).value);
+    document.getElementById(totalId).querySelector('strong').textContent = (p1 && p2) ? (p1.handicap + p2.handicap) : '—';
+}
+
+function calculate() {
+    const teamAId = document.getElementById('selTeamA').value;
+    const teamBId = document.getElementById('selTeamB').value;
+    const teamA = state.teams.find(t => t.id === teamAId);
+    const teamB = state.teams.find(t => t.id === teamBId);
+    
+    if (!teamAId || !teamBId) { showToast('Seleccione as duas equipas.', 'error'); return; }
+    if (teamAId === teamBId) { showToast('Seleccione duas equipas diferentes.', 'error'); return; }
+    
+    const pA1 = getPlayer(document.getElementById('selA1').value);
+    const pA2 = getPlayer(document.getElementById('selA2').value);
+    const pB1 = getPlayer(document.getElementById('selB1').value);
+    const pB2 = getPlayer(document.getElementById('selB2').value);
+    if (!pA1 || !pA2 || !pB1 || !pB2) { showToast('Seleccione todos os jogadores nos dois pares.', 'error'); return; }
+    const ids = [pA1.id, pA2.id, pB1.id, pB2.id];
+    if (new Set(ids).size < 4) { showToast('Um jogador não pode pertencer a dois pares em simultâneo.', 'error'); return; }
+    const totalA  = pA1.handicap + pA2.handicap;
+    const totalB  = pB1.handicap + pB2.handicap;
+    const diff    = Math.abs(totalA - totalB);
+    const strokes = Math.round(diff * 0.75);
+    const higherPar = totalA > totalB ? 'A' : (totalB > totalA ? 'B' : null);
+    document.getElementById('parATotal').querySelector('strong').textContent = totalA;
+    document.getElementById('parBTotal').querySelector('strong').textContent = totalB;
+    renderResultSummary(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar);
+    renderStrokeTable(strokes, higherPar, teamA?.name, teamB?.name);
+    document.getElementById('calcResult').classList.remove('hidden');
+    setTimeout(() => document.getElementById('calcResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+function renderResultSummary(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar) {
+    const el = document.getElementById('resultSummary');
+    if (!higherPar) {
+        el.innerHTML = `<div class="result-equal">⚖️ Os dois pares têm o mesmo handicap total (${totalA}).<br>Nenhum par recebe pancadas de abono — jogo a zero.</div>`;
+        return;
+    }
+    const wLabel = `Par ${higherPar}`;
+    const lLabel = higherPar === 'A' ? 'Par B' : 'Par A';
+    const wPlayers = higherPar === 'A' ? `${esc(pA1.name)} &amp; ${esc(pA2.name)}` : `${esc(pB1.name)} &amp; ${esc(pB2.name)}`;
+    el.innerHTML = `
+        <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} &amp; ${esc(pA2.name)}</span><span class="val" style="color:var(--blue)">Total: <strong>${totalA}</strong></span></div>
+        <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} &amp; ${esc(pB2.name)}</span><span class="val" style="color:var(--red)">Total: <strong>${totalB}</strong></span></div>
+        <div class="result-row"><span class="lbl">Diferença de handicap</span><span class="val">${diff}</span></div>
+        <div class="result-row"><span class="lbl">¾ da diferença <span style="font-size:.78rem;color:var(--txt-light)">(arredondado)</span></span><span class="val">${strokes} pancada${strokes !== 1 ? 's' : ''}</span></div>
+        <div class="result-winner">
+            <span>➡️ <span class="winner-name">${wLabel}</span> recebe ${strokes} pancada${strokes !== 1 ? 's' : ''} de abono<br><small style="font-weight:400;color:var(--txt-light)">${wPlayers}</small></span>
+            <span class="winner-val">+${strokes}</span>
+        </div>
+        <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} joga sem pancadas de abono</span><span>0</span></div>`;
+}
+
+function renderStrokeTable(strokes, higherPar, teamAName, teamBName) {
+    // Criar um mapa de quantas pancadas cada buraco recebe
+    const strokeMap = {};
+    for (let i = 1; i <= 18; i++) strokeMap[i] = 0;
+    
+    // Distribuir as pancadas aos buracos com menor SI (mais fáceis)
+    const holesWithSI = state.strokeIndex.map((si, i) => ({ hole: i + 1, si }));
+    const sortedByEasiness = [...holesWithSI].sort((a, b) => a.si - b.si);
+    
+    for (let i = 0; i < strokes; i++) {
+        const hole = sortedByEasiness[i % 18].hole;
+        strokeMap[hole]++;
+    }
+    
+    const front = [1,2,3,4,5,6,7,8,9];
+    const back  = [10,11,12,13,14,15,16,17,18];
+    const thead = document.querySelector('#strokeTable thead');
+    const tbody = document.querySelector('#strokeTable tbody');
+    
+    thead.innerHTML = `<tr><th class="col-label">Buraco</th>${front.map(h=>`<th>${h}</th>`).join('')}<th class="col-divider">OUT</th>${back.map(h=>`<th>${h}</th>`).join('')}<th class="col-divider">IN</th><th class="col-divider">TOT</th></tr>`;
+    
+    // SI row
+    const siCells = front.map(h=>`<td>${state.strokeIndex[h-1]}</td>`).join('') + `<td class="col-divider">—</td>` + back.map(h=>`<td>${state.strokeIndex[h-1]}</td>`).join('') + `<td class="col-divider">—</td><td class="col-divider">—</td>`;
+    
+    let fc=0, bc=0;
+    
+    // Abono row - mostrar múltiplos pontos se necessário
+    const fCells = front.map(h => { 
+        const strk = strokeMap[h];
+        if (strk > 0) { 
+            fc += strk; 
+            return `<td class="cell-stroke">${'●'.repeat(strk)}</td>`;
+        }
+        return `<td class="cell-empty">—</td>`;
+    }).join('');
+    
+    const bCells = back.map(h => { 
+        const strk = strokeMap[h];
+        if (strk > 0) { 
+            bc += strk; 
+            return `<td class="cell-stroke">${'●'.repeat(strk)}</td>`;
+        }
+        return `<td class="cell-empty">—</td>`;
+    }).join('');
+    
+    // Usar o nome da equipa em vez de "Par A" ou "Par B"
+    let label = 'Abono';
+    if (higherPar === 'A' && teamAName) {
+        label = `Abono ${esc(teamAName)}`;
+    } else if (higherPar === 'B' && teamBName) {
+        label = `Abono ${esc(teamBName)}`;
+    }
+    
+    tbody.innerHTML = `<tr><td class="row-label">SI</td>${siCells}</tr><tr><td class="row-label">${label}</td>${fCells}<td class="col-divider"><strong>${fc}</strong></td>${bCells}<td class="col-divider"><strong>${bc}</strong></td><td class="col-divider"><strong>${strokes}</strong></td></tr>`;
+}
+
+function printStrokeTable() {
+    const table = document.querySelector('#strokeTable');
+    if (!table) { showToast('Tabela não encontrada.', 'error'); return; }
+    
+    // Clonar a tabela para não modificar a original
+    const tableClone = table.cloneNode(true);
+    
+    // Criar uma nova janela
+    const printWindow = window.open('', '', 'width=1000,height=600');
+    
+    // Escrever o conteúdo HTML para impressão
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Distribuição por Buracos - Taça Manuel André 2026</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: Montserrat, Arial, sans-serif; padding: 20px; background: white; }
+                h1 { text-align: center; margin-bottom: 20px; color: #2d5016; font-size: 24px; }
+                .print-info { text-align: center; color: #666; font-size: 12px; margin-bottom: 15px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #999; padding: 8px; text-align: center; font-size: 12px; }
+                th { background-color: #e8f5e9; font-weight: bold; color: #2d5016; }
+                td { background-color: white; }
+                .row-label { font-weight: bold; background-color: #f0f0f0; text-align: left; padding-left: 12px; }
+                .col-divider { background-color: #f5f5f5; font-weight: bold; }
+                .cell-stroke { background-color: #c8e6c9; }
+                .cell-empty { background-color: #fafafa; }
+                @media print {
+                    body { padding: 0; }
+                    table { margin-top: 10px; }
+                    th, td { padding: 6px; font-size: 11px; }
+                }
+            </style>
+        </head>
+        <body>
+            <h1>⛳ Distribuição por Buracos</h1>
+            <div class="print-info">Taça Manuel André 2026 · Estela Golf Club</div>
+    `);
+    
+    // Adicionar a tabela
+    printWindow.document.write(tableClone.outerHTML);
+    
+    printWindow.document.write(`
+            <p style="margin-top: 20px; font-size: 11px; color: #666;">
+                <strong>Legenda:</strong> Os buracos a verde (●) recebem pancada(s) de abono. Múltiplos pontos (●●) indicam múltiplas pancadas no mesmo buraco.
+            </p>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Abrir a caixa de diálogo de impressão após um pequeno delay
+    setTimeout(() => {
+        printWindow.print();
+    }, 250);
+}
+
+// ════════════════════════════════════════════════════════════
+//  CONFIGURAÇÕES — SI (admin only)
+// ════════════════════════════════════════════════════════════
+
+function renderSIGrids() {
+    document.getElementById('siGridFront').innerHTML = Array.from({length:9},(_,i)=>siCell(i)).join('');
+    document.getElementById('siGridBack').innerHTML  = Array.from({length:9},(_,i)=>siCell(i+9)).join('');
+}
+
+function siCell(idx) {
+    return `<div class="si-cell"><span class="hole-num">B${idx+1}</span><input type="number" id="si-${idx}" value="${state.strokeIndex[idx]}" min="1" max="18"></div>`;
+}
+
+function saveSI() {
+    if (!isAdmin()) return;
+    const vals = [];
+    for (let i = 0; i < 18; i++) {
+        const v = parseInt(document.getElementById(`si-${i}`).value, 10);
+        if (isNaN(v) || v < 1 || v > 18) { showToast(`Valor inválido no buraco ${i+1}. Use 1 a 18.`, 'error'); return; }
+        vals.push(v);
+    }
+    if (new Set(vals).size !== 18) { showToast('Os valores de SI devem ser todos diferentes (1 a 18).', 'error'); return; }
+    state.strokeIndex = vals;
+    saveState();
+    showToast('Stroke Index guardado.');
+}
+
+function resetSI() {
+    if (!isAdmin()) return;
+    if (!confirm('Repor o Stroke Index para os valores predefinidos?')) return;
+    state.strokeIndex = [...DEFAULT_SI];
+    saveState();
+    renderSIGrids();
+    showToast('Stroke Index reposto.');
+}
+
+// ════════════════════════════════════════════════════════════
+//  EXPORTAR / IMPORTAR / LIMPAR (admin only)
+// ════════════════════════════════════════════════════════════
+
+function exportData() {
+    if (!isAdmin()) return;
+    const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), {href:url, download:'taca-manuel-andre-2026.json'});
+    a.click(); URL.revokeObjectURL(url);
+    showToast('Dados exportados.');
+}
+
+function importData(file) {
+    if (!isAdmin() || !file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const p = JSON.parse(e.target.result);
+            if (p.players)     state.players     = p.players;
+            if (p.teams)       state.teams       = p.teams;
+            if (p.strokeIndex) state.strokeIndex = p.strokeIndex;
+            saveState(); renderPlayers(); renderTeams(); renderSIGrids();
+            showToast('Dados importados com sucesso.');
+        } catch { showToast('Ficheiro inválido ou corrompido.', 'error'); }
+    };
+    reader.readAsText(file);
+}
+
+function clearAll() {
+    if (!isAdmin()) return;
+    if (!confirm('Apagar todos os dados do torneio?\nEsta acção não pode ser desfeita.')) return;
+    state = { players:[], teams:[], strokeIndex:[...DEFAULT_SI], gameResults:[] };
+    saveState(); renderPlayers(); renderTeams(); renderSIGrids();
+    document.getElementById('calcResult').classList.add('hidden');
+    showToast('Todos os dados foram apagados.');
+}
+
+// ════════════════════════════════════════════════════════════
+//  CLASSIFICAÇÃO
+// ════════════════════════════════════════════════════════════
+
+// Definição dos jogos (ronda, grupo, equipas)
+const CALENDAR_DATA = [
+    // Ronda 1
+    { ronda: 1, grupo: 'A', home: 'Os Craques', away: 'LJMS' },
+    { ronda: 1, grupo: 'A', home: 'Os 4 no Buraco', away: 'Estela Birdies' },
+    { ronda: 1, grupo: 'B', home: 'AMVJ', away: 'V.T.F.' },
+    { ronda: 1, grupo: 'B', home: 'Equipa Eleven', away: 'EMJC' },
+    { ronda: 1, grupo: 'C', home: 'Birdies e Boggies', away: 'Jacaré' },
+    { ronda: 1, grupo: 'C', home: 'Os Golfinhos', away: 'Piratas' },
+    { ronda: 1, grupo: 'D', home: 'MMLH', away: 'School' },
+    { ronda: 1, grupo: 'D', home: 'Golfistas da Madrugada', away: 'Old Fashion Team' },
+    // Ronda 2
+    { ronda: 2, grupo: 'A', home: 'Os Craques', away: 'Os 4 no Buraco' },
+    { ronda: 2, grupo: 'A', home: 'CGGG', away: 'LJMS' },
+    { ronda: 2, grupo: 'B', home: 'AMVJ', away: 'Equipa Eleven' },
+    { ronda: 2, grupo: 'B', home: 'V.T.F.', away: 'Red Hot Chilli Putters' },
+    { ronda: 2, grupo: 'C', home: 'Birdies e Boggies', away: 'Os Golfinhos' },
+    { ronda: 2, grupo: 'C', home: 'Masters', away: 'Jacaré' },
+    { ronda: 2, grupo: 'D', home: 'MMLH', away: 'Golfistas da Madrugada' },
+    { ronda: 2, grupo: 'D', home: 'School', away: 'Old Fashion Team' },
+    // Ronda 3
+    { ronda: 3, grupo: 'A', home: 'Os Craques', away: 'Estela Birdies' },
+    { ronda: 3, grupo: 'A', home: 'Os 4 no Buraco', away: 'CGGG' },
+    { ronda: 3, grupo: 'B', home: 'AMVJ', away: 'EMJC' },
+    { ronda: 3, grupo: 'B', home: 'Equipa Eleven', away: 'Red Hot Chilli Putters' },
+    { ronda: 3, grupo: 'C', home: 'Birdies e Boggies', away: 'Piratas' },
+    { ronda: 3, grupo: 'C', home: 'Masters', away: 'Os Golfinhos' },
+    { ronda: 3, grupo: 'D', home: 'MMLH', away: 'Old Fashion Team' },
+    { ronda: 3, grupo: 'D', home: 'School', away: 'Golfistas da Madrugada' },
+    // Ronda 4
+    { ronda: 4, grupo: 'A', home: 'Os Craques', away: 'CGGG' },
+    { ronda: 4, grupo: 'A', home: 'LJMS', away: 'Estela Birdies' },
+    { ronda: 4, grupo: 'B', home: 'AMVJ', away: 'Red Hot Chilli Putters' },
+    { ronda: 4, grupo: 'B', home: 'V.T.F.', away: 'EMJC' },
+    { ronda: 4, grupo: 'C', home: 'Birdies e Boggies', away: 'Masters' },
+    { ronda: 4, grupo: 'C', home: 'Jacaré', away: 'Piratas' },
+    // Ronda 5
+    { ronda: 5, grupo: 'A', home: 'LJMS', away: 'Os 4 no Buraco' },
+    { ronda: 5, grupo: 'A', home: 'Estela Birdies', away: 'CGGG' },
+    { ronda: 5, grupo: 'B', home: 'V.T.F.', away: 'Equipa Eleven' },
+    { ronda: 5, grupo: 'B', home: 'EMJC', away: 'Red Hot Chilli Putters' },
+    { ronda: 5, grupo: 'C', home: 'Jacaré', away: 'Os Golfinhos' },
+    { ronda: 5, grupo: 'C', home: 'Piratas', away: 'Masters' }
+];
+
+function saveGameResults() {
+    localStorage.setItem(STORAGE_KEY + '-results', JSON.stringify(state.gameResults));
+}
+
+function loadGameResults() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY + '-results');
+        if (raw) state.gameResults = JSON.parse(raw);
+    } catch (e) { console.error('loadGameResults:', e); }
+}
+
+function getGameResult(ronda, home, away) {
+    return state.gameResults.find(r => r.ronda === ronda && r.home === home && r.away === away);
+}
+
+function setGameResult(ronda, home, away, result) {
+    const existing = getGameResult(ronda, home, away);
+    if (existing) {
+        existing.result = result;
+    } else {
+        state.gameResults.push({ ronda, home, away, result });
+    }
+    saveGameResults();
+}
+
+function calculateStandings(ronda) {
+    // Retorna objeto: { grupoA: [...], grupoB: [...], etc }
+    // Cada equipa tem { name, points, played, wins, draws, losses }
+    
+    // Primeiro, obter todas as equipas em cada grupo
+    const groupTeams = { A: new Set(), B: new Set(), C: new Set(), D: new Set() };
+    const games = CALENDAR_DATA.filter(g => g.ronda <= ronda);
+    
+    games.forEach(g => {
+        groupTeams[g.grupo].add(g.home);
+        groupTeams[g.grupo].add(g.away);
+    });
+    
+    const standings = {};
+    Object.keys(groupTeams).forEach(grupo => {
+        standings[grupo] = Array.from(groupTeams[grupo]).map(teamName => ({
+            name: teamName,
+            points: 0,
+            played: 0,
+            wins: 0,
+            draws: 0,
+            losses: 0
+        }));
+    });
+    
+    // Calcular pontos baseado nos resultados
+    games.forEach(game => {
+        const gameResult = getGameResult(game.ronda, game.home, game.away);
+        const homeTeam = standings[game.grupo].find(t => t.name === game.home);
+        const awayTeam = standings[game.grupo].find(t => t.name === game.away);
+        
+        if (homeTeam && awayTeam) {
+            homeTeam.played++;
+            awayTeam.played++;
+            
+            if (gameResult && gameResult.result) {
+                const result = gameResult.result;
+                if (result === 'home') {
+                    homeTeam.wins++;
+                    homeTeam.points += 2;
+                    awayTeam.losses++;
+                } else if (result === 'away') {
+                    awayTeam.wins++;
+                    awayTeam.points += 2;
+                    homeTeam.losses++;
+                } else if (result === 'draw') {
+                    homeTeam.draws++;
+                    homeTeam.points += 1;
+                    awayTeam.draws++;
+                    awayTeam.points += 1;
+                }
+            }
+        }
+    });
+    
+    // Ordenar por pontos (decrescente)
+    Object.keys(standings).forEach(grupo => {
+        standings[grupo].sort((a, b) => b.points - a.points);
+    });
+    
+    return standings;
+}
+
+function renderClassificacao(ronda) {
+    // Recarregar resultados do localStorage
+    loadGameResults();
+    
+    const standings = calculateStandings(ronda);
+    let html = '';
+    
+    // Se não é admin, mostrar aviso
+    if (!isAdmin()) {
+        html += `<div class="class-admin-notice">ℹ️ Apenas o administrador pode registar os resultados dos jogos.</div>`;
+    }
+    
+    Object.keys(standings).sort().forEach(grupo => {
+        const teams = standings[grupo];
+        const groupGames = CALENDAR_DATA.filter(g => g.ronda <= ronda && g.grupo === grupo);
+        
+        html += `
+        <div class="class-group">
+            <h3 class="class-title">Grupo ${grupo}</h3>
+            <table class="class-table">
+                <thead>
+                    <tr>
+                        <th style="width:5%">Pos</th>
+                        <th style="width:40%">Equipa</th>
+                        <th style="width:15%">Jogos</th>
+                        <th style="width:12%">V</th>
+                        <th style="width:12%">E</th>
+                        <th style="width:12%">D</th>
+                        <th style="width:10%">Pts</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        teams.forEach((team, idx) => {
+            html += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td><strong>${esc(team.name)}</strong></td>
+                        <td>${team.played}</td>
+                        <td>${team.wins}</td>
+                        <td>${team.draws}</td>
+                        <td>${team.losses}</td>
+                        <td><strong>${team.points}</strong></td>
+                    </tr>
+            `;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+        `;
+        
+        // Mostrar secção de edição de resultados apenas para administrador
+        if (isAdmin()) {
+            html += `
+            <div class="games-input" style="margin-top:1.5rem;">
+                <h4 style="margin-bottom:0.75rem; color:var(--primary);">Registar Resultados dos Jogos:</h4>
+            `;
+            
+            groupGames.forEach(game => {
+                const result = getGameResult(game.ronda, game.home, game.away);
+                const resultHtml = `
+                <div class="game-result-row">
+                    <span class="team-name">${esc(game.home)}</span>
+                    <div class="result-buttons">
+                        <button class="btn-result ${result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
+                        <button class="btn-result ${result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="draw">Empate</button>
+                        <button class="btn-result ${result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
+                    </div>
+                    <span class="team-name">${esc(game.away)}</span>
+                </div>
+                `;
+                html += resultHtml;
+            });
+            
+            html += `
+            </div>
+            `;
+        }
+        
+        html += `
+        </div>
+        `;
+    });
+    
+    document.getElementById('classificacaoContainer').innerHTML = html;
+    
+    // Adicionar listeners aos botões de resultado (apenas se admin)
+    if (isAdmin()) {
+        document.querySelectorAll('.btn-result').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const ronda = parseInt(e.target.dataset.ronda, 10);
+                const home = e.target.dataset.home;
+                const away = e.target.dataset.away;
+                const result = e.target.dataset.result;
+                
+                setGameResult(ronda, home, away, result);
+                renderClassificacao(ronda);
+                showToast(`Resultado registado: ${home} vs ${away}`);
+            });
+        });
+    }
+}
+
+// ════════════════════════════════════════════════════════════
+//  INICIALIZAÇÃO
+// ════════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', async () => {
+    loadState();
+    loadGameResults();
+    await loadDataBackup();
+    loadAuth();
+    initializeTestData();
+    await ensureDefaultAdmin();
+
+    initTabs();
+
+    // Menu burger
+    const burger   = document.getElementById('navBurger');
+    const navLinks = document.getElementById('navLinks');
+    burger.addEventListener('click', () => navLinks.classList.toggle('open'));
+    navLinks.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => navLinks.classList.remove('open')));
+
+    // Auth
+    document.getElementById('btnOpenLogin').addEventListener('click', openLoginModal);
+    document.getElementById('btnCloseLogin').addEventListener('click', closeLoginModal);
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    document.getElementById('btnLogout').addEventListener('click', doLogout);
+
+    // Mostrar/ocultar palavra-passe no modal
+    document.getElementById('btnTogglePwd').addEventListener('click', () => {
+        const inp = document.getElementById('loginPassword');
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+    });
+
+    // Fechar modal ao clicar no overlay
+    document.getElementById('loginModal').addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeLoginModal();
+    });
+
+    // Jogadores
+    document.getElementById('btnShowPlayerForm').addEventListener('click', openAddPlayer);
+    document.getElementById('btnCancelPlayer').addEventListener('click', () => document.getElementById('playerForm').classList.add('hidden'));
+    document.getElementById('btnSavePlayer').addEventListener('click', savePlayer);
+    document.getElementById('inputPlayerName').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('inputPlayerHcpWhs').focus(); });
+    document.getElementById('inputPlayerHcpWhs').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('inputPlayerHcp').focus(); });
+    document.getElementById('inputPlayerHcp').addEventListener('keydown',  e => { if (e.key==='Enter') savePlayer(); });
+
+    // Equipas
+    document.getElementById('btnShowTeamForm').addEventListener('click', openAddTeam);
+    document.getElementById('btnCancelTeam').addEventListener('click', () => document.getElementById('teamForm').classList.add('hidden'));
+    document.getElementById('btnSaveTeam').addEventListener('click', saveTeam);
+
+    // Calcular
+    document.getElementById('selTeamA').addEventListener('change', () => { updateTeamSelects(); updateCalcPlayerSelects(); });
+    document.getElementById('selTeamB').addEventListener('change', () => { updateTeamSelects(); updateCalcPlayerSelects(); });
+    ['selA1','selA2','selB1','selB2'].forEach(id => document.getElementById(id).addEventListener('change', () => { updateCalcPlayerSelects(); updateParTotals(); }));
+    document.getElementById('btnCalculate').addEventListener('click', calculate);
+    document.getElementById('btnPrintStroke').addEventListener('click', printStrokeTable);
+
+    // Classificação
+    document.getElementById('selRondaClass').addEventListener('change', (e) => {
+        renderClassificacao(parseInt(e.target.value, 10));
+    });
+
+    // Configurações
+    document.getElementById('btnSaveSI').addEventListener('click', saveSI);
+    document.getElementById('btnResetSI').addEventListener('click', resetSI);
+    document.getElementById('btnExport').addEventListener('click', exportData);
+    document.getElementById('btnImport').addEventListener('click', () => document.getElementById('importFile').click());
+    document.getElementById('importFile').addEventListener('change', e => { importData(e.target.files[0]); e.target.value=''; });
+    document.getElementById('btnClearAll').addEventListener('click', clearAll);
+
+    // Gestão utilizadores (admin)
+    document.getElementById('btnShowNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.remove('hidden'));
+    document.getElementById('btnCancelNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.add('hidden'));
+    document.getElementById('btnSaveNewUser').addEventListener('click', saveNewUser);
+
+    // Alterar palavra-passe
+    document.getElementById('btnChangePwd').addEventListener('click', changeOwnPassword);
+
+    // Render inicial
+    renderPlayers();
+    renderTeams();
+    renderSIGrids();
+    refreshCalcSelects();
+    updateAuthUI();
+});
