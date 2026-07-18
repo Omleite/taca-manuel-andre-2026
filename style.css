@@ -923,6 +923,21 @@ select#inputPlayerGenero {
     cursor: pointer;
 }
 
+/* ── Display HCP de Jogo (calculado) ── */
+.hcp-display {
+    padding: 0.5rem;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--r-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* ══════════════════════════════════════════════════════════════════════════════
    GRUPOS VIEW MODE (NON-ADMIN)
 ══════════════════════════════════════════════════════════════════════════════ */

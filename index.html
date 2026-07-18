@@ -103,20 +103,9 @@
                     <input type="number" id="inputPlayerHcpWhs" placeholder="Ex: 12" step="1" min="-10" max="54">
                 </div>
                 <div class="form-field">
-                    <label for="inputPlayerHcp">Handicap de Jogo</label>
-                    <input type="number" id="inputPlayerHcp" placeholder="Ex: 12" step="1" min="-10" max="54" style="margin-bottom:.5rem">
-                    <div class="fpg-btn-row">
-                        <a href="https://scoring.fpg.pt/lists/1PreparePage.aspx?user=admin&amp;page=fedsearch&amp;ccode=All"
-                           target="_blank" rel="noopener" class="fpg-inline-btn">
-                            🔍 Pesquisar WHS
-                        </a>
-                        <a href="https://portal.fpg.pt/handicaps-course-rating/calculo-de-handicap-de-campo/"
-                           target="_blank" rel="noopener" class="fpg-inline-btn">
-                            ⛳ Handicap de Campo
-                        </a>
-                    </div>
-                    <span class="field-hint">Introduza o handicap de <strong>jogo</strong> (já calculado para as amarelas do Estela).
-                        Use os botões acima para consultar o WHS e converter para handicap de campo.</span>
+                    <label>Handicap de Jogo (Calculado)</label>
+                    <div id="displayPlayerHcp" class="hcp-display">—</div>
+                    <span class="field-hint">Calculado automaticamente com base no WHS de acordo com a tabela FPG. Máximo: 36</span>
                 </div>
                 <div class="form-field">
                     <label for="inputPlayerGenero">Gênero</label>
