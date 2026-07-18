@@ -56,23 +56,54 @@ const HANDICAP_CONVERSION_TABLE = [
     { min100: 29.5, max100: 30.2, min95: 29.2, max95: 29.9, hcpGame: 36 }
 ];
 
-// Função para calcular HCP de Jogo com base no WHS
-function calculateGameHandicap(whs) {
+// ════════════════════════════════════════════════════════════
+//  TABELA DE CONVERSÃO SENHORAS (VERMELHAS) CR: 73,7 SR: 126 PAR: 72
+// ════════════════════════════════════════════════════════════
+// Gerada pela fórmula: HCP Jogo = round(WHS × 126/113 + (73.7 - 72))
+// A coluna 100% usa o WHS direto; a 95% usa 0.95 × WHS.
+// Máximo do torneio: 36
+const HANDICAP_CONVERSION_TABLE_WOMEN = (function () {
+    const SR = 126, CR = 73.7, PAR = 72;
+    const slope = SR / 113;           // ≈ 1.11504
+    const offset = CR - PAR;          // = 1.7
+    const inv100 = 113 / SR;          // ≈ 0.89683  (WHS = (PH - offset) × inv100)
+    const inv95  = inv100 / 0.95;     // ≈ 0.94404  (WHS = (PH - offset) × inv95  para 95%)
+    const rows = [];
+    for (let ph = -3; ph <= 36; ph++) {
+        // Limites do intervalo 100% (metade-aberta para evitar sobreposição)
+        const min100 = parseFloat(((ph - 0.5 - offset) * inv100).toFixed(1));
+        const max100 = parseFloat(((ph + 0.4999 - offset) * inv100).toFixed(1));
+        // Limites do intervalo 95%: o valor 0.95×WHS que origina este PH
+        const min95  = parseFloat(((ph - 0.5 - offset) * inv100 * 0.95).toFixed(1));
+        const max95  = parseFloat(((ph + 0.4999 - offset) * inv100 * 0.95).toFixed(1));
+        rows.push({ min100, max100, min95, max95, hcpGame: ph });
+    }
+    return rows;
+})();
+
+// Função para calcular HCP de Jogo com base no WHS e género
+function calculateGameHandicap(whs, genero) {
     if (whs === null || whs === undefined || isNaN(whs)) return 0;
     const whsNum = parseFloat(whs);
-    
-    for (const row of HANDICAP_CONVERSION_TABLE) {
-        // Verificar intervalo 100%
-        if (whsNum >= row.min100 && whsNum <= row.max100) {
-            return Math.min(row.hcpGame, 36); // Máximo 36 neste torneio
+
+    // Senhoras: tabela vermelhas (CR 73,7 / SR 126 / Par 72)
+    if (genero === 'F') {
+        const table = HANDICAP_CONVERSION_TABLE_WOMEN;
+        for (const row of table) {
+            if (whsNum >= row.min100 && whsNum <= row.max100) return Math.min(row.hcpGame, 36);
+            const whs95 = whsNum * 0.95;
+            if (whs95 >= row.min95 && whs95 <= row.max95) return Math.min(row.hcpGame, 36);
         }
-        // Verificar intervalo 95%
-        const whs95 = whsNum * 0.95;
-        if (whs95 >= row.min95 && whs95 <= row.max95) {
-            return Math.min(row.hcpGame, 36);
-        }
+        // Fallback fórmula direta
+        return Math.min(Math.round(whsNum * (126 / 113) + (73.7 - 72)), 36);
     }
-    // Se não encontrar, retornar baseado em proporção (fallback)
+
+    // Homens: tabela amarelas (HANDICAP_CONVERSION_TABLE)
+    for (const row of HANDICAP_CONVERSION_TABLE) {
+        if (whsNum >= row.min100 && whsNum <= row.max100) return Math.min(row.hcpGame, 36);
+        const whs95 = whsNum * 0.95;
+        if (whs95 >= row.min95 && whs95 <= row.max95) return Math.min(row.hcpGame, 36);
+    }
     return Math.min(Math.round(whsNum), 36);
 }
 
@@ -541,8 +572,9 @@ function openEditPlayer(id) {
     document.getElementById('playerFormTitle').textContent = 'Editar Jogador';
     document.getElementById('inputPlayerName').value = p.name;
     document.getElementById('inputPlayerHcpWhs').value = p.handicapWhs || '';
-    const calculatedHcp = calculateGameHandicap(p.handicapWhs);
-    document.getElementById('displayPlayerHcp').textContent = calculatedHcp;
+    document.getElementById('inputPlayerGenero').value = p.genero || '';
+    const calculatedHcp = calculateGameHandicap(p.handicapWhs, p.genero);
+    document.getElementById('displayPlayerHcp').textContent = calculatedHcp !== 0 || p.handicapWhs == 0 ? calculatedHcp : '—';
     document.getElementById('inputPlayerGenero').value = p.genero || '';
     document.getElementById('playerEditId').value    = id;
     document.getElementById('playerForm').classList.remove('hidden');
@@ -563,7 +595,7 @@ function savePlayer() {
     if (hcpWhs < -10 || hcpWhs > 54)     { showToast('Handicap WHS deve estar entre -10 e 54.', 'error'); return; }
 
     // Calcular HCP de Jogo automaticamente
-    const hcpJogo = calculateGameHandicap(hcpWhs);
+    const hcpJogo = calculateGameHandicap(hcpWhs, genero);
 
     if (editId) {
         const p = getPlayer(editId);
@@ -1685,13 +1717,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btnSavePlayer').addEventListener('click', savePlayer);
     document.getElementById('inputPlayerName').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('inputPlayerHcpWhs').focus(); });
     
-    // Recalcular HCP de Jogo quando WHS muda
-    document.getElementById('inputPlayerHcpWhs').addEventListener('input', () => {
-        const whsVal = parseFloat(document.getElementById('inputPlayerHcpWhs').value) || 0;
-        const calculatedHcp = calculateGameHandicap(whsVal);
+    // Recalcular HCP de Jogo quando WHS ou Gênero muda
+    function recalcHcp() {
+        const whsRaw = document.getElementById('inputPlayerHcpWhs').value;
+        const generoVal = document.getElementById('inputPlayerGenero').value;
+        if (whsRaw === '' || isNaN(parseFloat(whsRaw))) {
+            document.getElementById('displayPlayerHcp').textContent = '—';
+            return;
+        }
+        const calculatedHcp = calculateGameHandicap(parseFloat(whsRaw), generoVal);
         document.getElementById('displayPlayerHcp').textContent = calculatedHcp;
-    });
-    
+    }
+    document.getElementById('inputPlayerHcpWhs').addEventListener('input', recalcHcp);
+    document.getElementById('inputPlayerGenero').addEventListener('change', recalcHcp);
     document.getElementById('inputPlayerHcpWhs').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('inputPlayerGenero').focus(); });
     document.getElementById('inputPlayerGenero').addEventListener('keydown',  e => { if (e.key==='Enter') savePlayer(); });
 
