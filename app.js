@@ -12,99 +12,25 @@ const SALT        = 'egc:tma:2026:estela';
 const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 6];
 
 // ════════════════════════════════════════════════════════════
-//  TABELA DE CONVERSÃO DE HANDICAP PARA HCP JOGO (MEN)
+//  CÁLCULO DE HCP DE JOGO (fórmula WHS oficial)
 // ════════════════════════════════════════════════════════════
-// Tabela FPG: converte WHS para Handicap de Jogo
-// Máximo permitido neste torneio: 36
-const HANDICAP_CONVERSION_TABLE = [
-    { min100: 0.0, max100: 0.7, min95: 0.0, max95: 0.3, hcpGame: 0 },
-    { min100: 0.8, max100: 1.5, min95: 0.4, max95: 1.1, hcpGame: 1 },
-    { min100: 1.6, max100: 2.3, min95: 1.2, max95: 1.9, hcpGame: 2 },
-    { min100: 2.4, max100: 3.2, min95: 2.0, max95: 2.8, hcpGame: 3 },
-    { min100: 3.3, max100: 4.0, min95: 2.9, max95: 3.6, hcpGame: 4 },
-    { min100: 4.1, max100: 4.8, min95: 3.7, max95: 4.4, hcpGame: 5 },
-    { min100: 4.9, max100: 5.6, min95: 4.5, max95: 5.2, hcpGame: 6 },
-    { min100: 5.7, max100: 6.4, min95: 5.3, max95: 6.0, hcpGame: 7 },
-    { min100: 6.5, max100: 7.2, min95: 6.1, max95: 6.8, hcpGame: 8 },
-    { min100: 7.3, max100: 8.1, min95: 6.9, max95: 7.7, hcpGame: 9 },
-    { min100: 8.2, max100: 8.9, min95: 7.8, max95: 8.5, hcpGame: 10 },
-    { min100: 9.0, max100: 9.7, min95: 8.6, max95: 9.3, hcpGame: 11 },
-    { min100: 9.8, max100: 10.5, min95: 9.4, max95: 10.1, hcpGame: 12 },
-    { min100: 10.6, max100: 11.3, min95: 10.2, max95: 11.0, hcpGame: 13 },
-    { min100: 11.4, max100: 12.2, min95: 11.1, max95: 11.8, hcpGame: 14 },
-    { min100: 12.3, max100: 13.0, min95: 11.9, max95: 12.6, hcpGame: 15 },
-    { min100: 13.1, max100: 13.8, min95: 12.7, max95: 13.4, hcpGame: 16 },
-    { min100: 13.9, max100: 14.6, min95: 13.5, max95: 14.2, hcpGame: 17 },
-    { min100: 14.7, max100: 15.4, min95: 14.3, max95: 15.0, hcpGame: 18 },
-    { min100: 15.5, max100: 16.2, min95: 15.1, max95: 15.9, hcpGame: 19 },
-    { min100: 16.3, max100: 17.1, min95: 16.0, max95: 16.7, hcpGame: 20 },
-    { min100: 17.2, max100: 17.9, min95: 16.8, max95: 17.5, hcpGame: 21 },
-    { min100: 18.0, max100: 18.7, min95: 17.6, max95: 18.4, hcpGame: 22 },
-    { min100: 18.8, max100: 19.5, min95: 18.5, max95: 19.2, hcpGame: 23 },
-    { min100: 19.6, max100: 20.3, min95: 19.3, max95: 20.0, hcpGame: 24 },
-    { min100: 20.4, max100: 21.2, min95: 20.1, max95: 20.8, hcpGame: 25 },
-    { min100: 21.3, max100: 22.0, min95: 20.9, max95: 21.7, hcpGame: 26 },
-    { min100: 22.1, max100: 22.8, min95: 21.8, max95: 22.5, hcpGame: 27 },
-    { min100: 22.9, max100: 23.6, min95: 22.6, max95: 23.3, hcpGame: 28 },
-    { min100: 23.7, max100: 24.4, min95: 23.4, max95: 24.1, hcpGame: 29 },
-    { min100: 24.5, max100: 25.3, min95: 24.2, max95: 25.0, hcpGame: 30 },
-    { min100: 25.4, max100: 26.1, min95: 25.1, max95: 25.8, hcpGame: 31 },
-    { min100: 26.2, max100: 26.9, min95: 25.9, max95: 26.6, hcpGame: 32 },
-    { min100: 27.0, max100: 27.7, min95: 26.7, max95: 27.4, hcpGame: 33 },
-    { min100: 27.8, max100: 28.6, min95: 27.5, max95: 28.3, hcpGame: 34 },
-    { min100: 28.7, max100: 29.4, min95: 28.4, max95: 29.1, hcpGame: 35 },
-    { min100: 29.5, max100: 30.2, min95: 29.2, max95: 29.9, hcpGame: 36 }
-];
+//  HCP Jogo = round(WHS × SR/113 + (CR − Par))  — capped a 36
+//
+//  Estela · Homens  · Amarelas  CR: 71,2  SR: 128  Par: 72
+//  Estela · Senhoras· Vermelhas CR: 73,7  SR: 126  Par: 72
 
-// ════════════════════════════════════════════════════════════
-//  TABELA DE CONVERSÃO SENHORAS (VERMELHAS) CR: 73,7 SR: 126 PAR: 72
-// ════════════════════════════════════════════════════════════
-// Gerada pela fórmula: HCP Jogo = round(WHS × 126/113 + (73.7 - 72))
-// A coluna 100% usa o WHS direto; a 95% usa 0.95 × WHS.
-// Máximo do torneio: 36
-const HANDICAP_CONVERSION_TABLE_WOMEN = (function () {
-    const SR = 126, CR = 73.7, PAR = 72;
-    const slope = SR / 113;           // ≈ 1.11504
-    const offset = CR - PAR;          // = 1.7
-    const inv100 = 113 / SR;          // ≈ 0.89683  (WHS = (PH - offset) × inv100)
-    const inv95  = inv100 / 0.95;     // ≈ 0.94404  (WHS = (PH - offset) × inv95  para 95%)
-    const rows = [];
-    for (let ph = -3; ph <= 36; ph++) {
-        // Limites do intervalo 100% (metade-aberta para evitar sobreposição)
-        const min100 = parseFloat(((ph - 0.5 - offset) * inv100).toFixed(1));
-        const max100 = parseFloat(((ph + 0.4999 - offset) * inv100).toFixed(1));
-        // Limites do intervalo 95%: o valor 0.95×WHS que origina este PH
-        const min95  = parseFloat(((ph - 0.5 - offset) * inv100 * 0.95).toFixed(1));
-        const max95  = parseFloat(((ph + 0.4999 - offset) * inv100 * 0.95).toFixed(1));
-        rows.push({ min100, max100, min95, max95, hcpGame: ph });
-    }
-    return rows;
-})();
-
-// Função para calcular HCP de Jogo com base no WHS e género
 function calculateGameHandicap(whs, genero) {
     if (whs === null || whs === undefined || isNaN(whs)) return 0;
     const whsNum = parseFloat(whs);
-
-    // Senhoras: tabela vermelhas (CR 73,7 / SR 126 / Par 72)
+    let ph;
     if (genero === 'F') {
-        const table = HANDICAP_CONVERSION_TABLE_WOMEN;
-        for (const row of table) {
-            if (whsNum >= row.min100 && whsNum <= row.max100) return Math.min(row.hcpGame, 36);
-            const whs95 = whsNum * 0.95;
-            if (whs95 >= row.min95 && whs95 <= row.max95) return Math.min(row.hcpGame, 36);
-        }
-        // Fallback fórmula direta
-        return Math.min(Math.round(whsNum * (126 / 113) + (73.7 - 72)), 36);
+        // Vermelhas: CR 73,7 / SR 126 / Par 72
+        ph = Math.round(whsNum * (126 / 113) + (73.7 - 72));
+    } else {
+        // Amarelas: CR 71,2 / SR 128 / Par 72
+        ph = Math.round(whsNum * (128 / 113) + (71.2 - 72));
     }
-
-    // Homens: tabela amarelas (HANDICAP_CONVERSION_TABLE)
-    for (const row of HANDICAP_CONVERSION_TABLE) {
-        if (whsNum >= row.min100 && whsNum <= row.max100) return Math.min(row.hcpGame, 36);
-        const whs95 = whsNum * 0.95;
-        if (whs95 >= row.min95 && whs95 <= row.max95) return Math.min(row.hcpGame, 36);
-    }
-    return Math.min(Math.round(whsNum), 36);
+    return Math.min(ph, 36); // Máximo 36 neste torneio
 }
 
 // ════════════════════════════════════════════════════════════
