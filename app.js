@@ -1037,7 +1037,21 @@ function resetSI() {
 
 function exportData() {
     if (!isAdmin()) return;
-    const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    // Sincroniza o state com localStorage antes de exportar
+    saveState();
+    saveGameResults();
+    saveCalendar();
+    
+    // Exporta o state completo incluindo calendar e gameResults
+    const dataToExport = {
+        players: state.players,
+        teams: state.teams,
+        strokeIndex: state.strokeIndex,
+        gameResults: state.gameResults,
+        calendar: state.calendar
+    };
+    
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {type:'application/json'});
     const url  = URL.createObjectURL(blob);
     const a    = Object.assign(document.createElement('a'), {href:url, download:'taca-manuel-andre-2026.json'});
     a.click(); URL.revokeObjectURL(url);
