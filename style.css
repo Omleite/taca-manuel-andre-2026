@@ -896,3 +896,59 @@ body {
     .team-name { flex: 1; width: 100%; }
     .result-buttons { width: 100%; justify-content: space-around; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   PLAYER GENDER
+══════════════════════════════════════════════════════════════════════════════ */
+.player-genero {
+    margin: 0.4rem 0;
+}
+
+.player-gender-badge {
+    display: inline-block;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+    background: #f3f4f6;
+    border-radius: var(--r-sm);
+    color: #666;
+    font-weight: 500;
+}
+
+select#inputPlayerGenero {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color, var(--border));
+    border-radius: var(--r-sm);
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   GRUPOS VIEW MODE (NON-ADMIN)
+══════════════════════════════════════════════════════════════════════════════ */
+.grupo-view-card {
+    background: var(--card-bg);
+    padding: 1rem;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    margin-bottom: 1rem;
+}
+
+.grupo-view-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+}
+
+.grupo-team-item.view-only {
+    padding: 0.5rem 0.75rem;
+    background: #f9f8f6;
+    border-radius: var(--r-sm);
+    margin-bottom: 0.5rem;
+}
+
+.grupo-team-item.view-only .grupo-team-name {
+    font-size: 0.9rem;
+    color: #333;
+}
