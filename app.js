@@ -1261,11 +1261,11 @@ function calculateStandings(ronda) {
                 const result = gameResult.result;
                 if (result === 'home') {
                     homeTeam.wins++;
-                    homeTeam.points += 2;
+                    homeTeam.points += 3;
                     awayTeam.losses++;
                 } else if (result === 'away') {
                     awayTeam.wins++;
-                    awayTeam.points += 2;
+                    awayTeam.points += 3;
                     homeTeam.losses++;
                 } else if (result === 'draw') {
                     homeTeam.draws++;
