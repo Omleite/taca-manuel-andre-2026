@@ -412,7 +412,7 @@ function initTabs() {
             document.getElementById(`tab-${target}`).classList.add('active');
             if (target === 'calcular') refreshCalcSelects();
             if (target === 'config')   { renderSIGrids(); if (isAdmin()) renderUsers(); }
-            if (target === 'grupos')   { if (isAdmin()) renderGrupos(); }
+            if (target === 'grupos')   { renderGrupos(); }
             if (target === 'calendario') renderCalendario();
             if (target === 'classificacao') { 
                 const ronda = parseInt(document.getElementById('selRondaClass').value, 10) || 1;
@@ -440,6 +440,9 @@ function renderPlayers() {
         <div class="card player-card">
             <div class="player-info">
                 <span class="player-name">${esc(p.name)}</span>
+                <div class="player-genero">
+                    <span class="player-gender-badge">${p.genero === 'M' ? '♂ Masculino' : p.genero === 'F' ? '♀ Feminino' : '—'}</span>
+                </div>
                 <div class="player-handicaps">
                     <span class="player-hcp">WHS: <strong>${p.handicapWhs || '—'}</strong></span>
                     <span class="player-hcp">Jogo: <strong>${p.handicap}</strong></span>
@@ -460,6 +463,7 @@ function openAddPlayer() {
     document.getElementById('inputPlayerName').value = '';
     document.getElementById('inputPlayerHcpWhs').value = '';
     document.getElementById('inputPlayerHcp').value  = '';
+    document.getElementById('inputPlayerGenero').value = '';
     document.getElementById('playerEditId').value    = '';
     document.getElementById('playerForm').classList.remove('hidden');
     document.getElementById('inputPlayerName').focus();
@@ -473,6 +477,7 @@ function openEditPlayer(id) {
     document.getElementById('inputPlayerName').value = p.name;
     document.getElementById('inputPlayerHcpWhs').value = p.handicapWhs || '';
     document.getElementById('inputPlayerHcp').value  = p.handicap;
+    document.getElementById('inputPlayerGenero').value = p.genero || '';
     document.getElementById('playerEditId').value    = id;
     document.getElementById('playerForm').classList.remove('hidden');
     document.getElementById('inputPlayerName').focus();
@@ -483,6 +488,7 @@ function savePlayer() {
     const name      = document.getElementById('inputPlayerName').value.trim();
     const hcpWhsRaw = document.getElementById('inputPlayerHcpWhs').value;
     const hcpJogoRaw = document.getElementById('inputPlayerHcp').value;
+    const genero    = document.getElementById('inputPlayerGenero').value;
     const hcpWhs    = parseInt(hcpWhsRaw, 10);
     const hcpJogo   = parseInt(hcpJogoRaw, 10);
     const editId    = document.getElementById('playerEditId').value;
@@ -490,14 +496,15 @@ function savePlayer() {
     if (!name)                            { showToast('Insira o nome do jogador.', 'error');              return; }
     if (hcpWhsRaw === '' || isNaN(hcpWhs))   { showToast('Insira o Handicap WHS válido.', 'error');       return; }
     if (hcpJogoRaw === '' || isNaN(hcpJogo)) { showToast('Insira o Handicap de Jogo válido.', 'error');    return; }
+    if (!genero)                         { showToast('Selecione o gênero do jogador.', 'error');       return; }
     if (hcpWhs < -10 || hcpWhs > 54)     { showToast('Handicap WHS deve estar entre -10 e 54.', 'error'); return; }
     if (hcpJogo < -10 || hcpJogo > 54)   { showToast('Handicap de Jogo deve estar entre -10 e 54.', 'error'); return; }
 
     if (editId) {
         const p = getPlayer(editId);
-        if (p) { p.name = name; p.handicapWhs = hcpWhs; p.handicap = hcpJogo; }
+        if (p) { p.name = name; p.handicapWhs = hcpWhs; p.handicap = hcpJogo; p.genero = genero; }
     } else {
-        state.players.push({ id: genId(), name, handicapWhs: hcpWhs, handicap: hcpJogo });
+        state.players.push({ id: genId(), name, handicapWhs: hcpWhs, handicap: hcpJogo, genero });
     }
     saveState();
     document.getElementById('playerForm').classList.add('hidden');
@@ -1338,78 +1345,102 @@ function renderClassificacao(ronda) {
 // ════════════════════════════════════════════════════════════
 
 function renderGrupos() {
-    if (!isAdmin()) return;
-    
     const container = document.getElementById('gruposContainer');
     const grupos = ['A', 'B', 'C', 'D'];
+    const isAdminUser = isAdmin();
     
     let html = '';
     grupos.forEach(g => {
         const teamsInGrupo = state.teams.filter(t => t.grupo === g);
         
-        html += `<div class="grupo-edit-card">
-            <div class="grupo-edit-title">Grupo ${g}</div>`;
-        
-        if (teamsInGrupo.length > 0) {
-            html += `<div class="grupo-teams-list">`;
-            teamsInGrupo.forEach(team => {
-                html += `<div class="grupo-team-item" data-team-id="${team.id}">
-                    <span class="grupo-team-name">${team.name}</span>
-                    <div class="grupo-team-actions">
-                        <button class="btn-grupo-remove" data-team-id="${team.id}" data-grupo="${g}">Remover</button>
-                    </div>
-                </div>`;
+        // MODO ADMIN: Com controles de edição
+        if (isAdminUser) {
+            html += `<div class="grupo-edit-card">
+                <div class="grupo-edit-title">Grupo ${g}</div>`;
+            
+            if (teamsInGrupo.length > 0) {
+                html += `<div class="grupo-teams-list">`;
+                teamsInGrupo.forEach(team => {
+                    html += `<div class="grupo-team-item" data-team-id="${team.id}">
+                        <span class="grupo-team-name">${team.name}</span>
+                        <div class="grupo-team-actions">
+                            <button class="btn-grupo-remove" data-team-id="${team.id}" data-grupo="${g}">Remover</button>
+                        </div>
+                    </div>`;
+                });
+                html += `</div>`;
+            } else {
+                html += `<div class="grupo-empty-msg">Nenhuma equipa neste grupo</div>`;
+            }
+            
+            // Dropdown para adicionar
+            html += `<div class="grupo-add-team">
+                <select class="sel-add-team" data-grupo="${g}">
+                    <option value="">+ Adicionar Equipa</option>`;
+            
+            const teamsSemGrupo = state.teams.filter(t => t.grupo !== g);
+            teamsSemGrupo.forEach(team => {
+                html += `<option value="${team.id}">${team.name}</option>`;
             });
+            
+            html += `</select></div></div>`;
+        } 
+        // MODO VISUALIZAÇÃO: Apenas mostrar (sem edição)
+        else {
+            html += `<div class="grupo-view-card">
+                <div class="grupo-view-title">Grupo ${g}</div>`;
+            
+            if (teamsInGrupo.length > 0) {
+                html += `<div class="grupo-teams-list">`;
+                teamsInGrupo.forEach(team => {
+                    html += `<div class="grupo-team-item view-only">
+                        <span class="grupo-team-name">${team.name}</span>
+                    </div>`;
+                });
+                html += `</div>`;
+            } else {
+                html += `<div class="grupo-empty-msg">Nenhuma equipa neste grupo</div>`;
+            }
+            
             html += `</div>`;
-        } else {
-            html += `<div class="grupo-empty-msg">Nenhuma equipa neste grupo</div>`;
         }
-        
-        // Dropdown para adicionar
-        html += `<div class="grupo-add-team">
-            <select class="sel-add-team" data-grupo="${g}">
-                <option value="">+ Adicionar Equipa</option>`;
-        
-        const teamsSemGrupo = state.teams.filter(t => t.grupo !== g);
-        teamsSemGrupo.forEach(team => {
-            html += `<option value="${team.id}">${team.name}</option>`;
-        });
-        
-        html += `</select></div></div>`;
     });
     
     container.innerHTML = html;
     
-    // Event listeners para remover
-    container.querySelectorAll('.btn-grupo-remove').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const teamId = btn.dataset.teamId;
-            const team = state.teams.find(t => t.id === teamId);
-            if (team) {
-                team.grupo = '';
-                saveState();
-                renderGrupos();
-                showToast(`${team.name} removida do grupo`);
-            }
-        });
-    });
-    
-    // Event listeners para adicionar
-    container.querySelectorAll('.sel-add-team').forEach(sel => {
-        sel.addEventListener('change', () => {
-            const teamId = sel.value;
-            const grupo = sel.dataset.grupo;
-            if (teamId) {
+    // Event listeners APENAS se for admin
+    if (isAdminUser) {
+        // Event listeners para remover
+        container.querySelectorAll('.btn-grupo-remove').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const teamId = btn.dataset.teamId;
                 const team = state.teams.find(t => t.id === teamId);
                 if (team) {
-                    team.grupo = grupo;
+                    team.grupo = '';
                     saveState();
                     renderGrupos();
-                    showToast(`${team.name} adicionada ao Grupo ${grupo}`);
+                    showToast(`${team.name} removida do grupo`);
                 }
-            }
+            });
         });
-    });
+        
+        // Event listeners para adicionar
+        container.querySelectorAll('.sel-add-team').forEach(sel => {
+            sel.addEventListener('change', () => {
+                const teamId = sel.value;
+                const grupo = sel.dataset.grupo;
+                if (teamId) {
+                    const team = state.teams.find(t => t.id === teamId);
+                    if (team) {
+                        team.grupo = grupo;
+                        saveState();
+                        renderGrupos();
+                        showToast(`${team.name} adicionada ao Grupo ${grupo}`);
+                    }
+                }
+            });
+        });
+    }
 }
 
 // ════════════════════════════════════════════════════════════
