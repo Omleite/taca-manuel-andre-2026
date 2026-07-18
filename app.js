@@ -601,8 +601,9 @@ function openAddTeam() {
     if (!state.players.length) { showToast('Adicione jogadores antes de criar equipas.', 'warn'); return; }
     document.getElementById('teamFormTitle').textContent = 'Nova Equipa';
     document.getElementById('inputTeamName').value = '';
+    document.getElementById('inputTeamCaptain').value = '';
     document.getElementById('teamEditId').value    = '';
-    renderTeamPicker([]);
+    renderTeamPicker([], null);
     document.getElementById('teamForm').classList.remove('hidden');
 }
 
@@ -612,23 +613,49 @@ function openEditTeam(id) {
     if (!t) return;
     document.getElementById('teamFormTitle').textContent = 'Editar Equipa';
     document.getElementById('inputTeamName').value = t.name;
+    document.getElementById('inputTeamCaptain').value = t.captainId || '';
     document.getElementById('teamEditId').value    = id;
-    renderTeamPicker(t.playerIds || []);
+    renderTeamPicker(t.playerIds || [], t.captainId || null);
     document.getElementById('teamForm').classList.remove('hidden');
 }
 
-function renderTeamPicker(selected) {
-    const el     = document.getElementById('teamPlayerPicker');
+function renderTeamPicker(selected, captainId) {
+    const editId = document.getElementById('teamEditId').value;
+    const editingTeam = editId ? state.teams.find(t => t.id === editId) : null;
+    
+    // Jogadores que já estão em outras equipas (exceto a equipa que estamos a editar)
+    const occupiedPlayerIds = new Set();
+    state.teams.forEach(t => {
+        if (!editingTeam || t.id !== editingTeam.id) {
+            (t.playerIds || []).forEach(pid => occupiedPlayerIds.add(pid));
+        }
+    });
+    
+    // Renderizar select de capitão com todos os jogadores disponíveis
     const sorted = [...state.players].sort((a, b) => a.name.localeCompare(b.name, 'pt'));
-    el.innerHTML = sorted.map(p => `
-        <label class="picker-item ${selected.includes(p.id) ? 'selected' : ''}">
-            <input type="checkbox" value="${p.id}" ${selected.includes(p.id) ? 'checked' : ''}>
-            <span>${esc(p.name)}</span>
-            <span class="picker-hcp">HCP ${p.handicap}</span>
-        </label>
-    `).join('');
+    const captainSelect = document.getElementById('inputTeamCaptain');
+    captainSelect.innerHTML = '<option value="">— Sem capitão —</option>' + sorted.map(p => 
+        `<option value="${p.id}" ${captainId === p.id ? 'selected' : ''}>${esc(p.name)}</option>`
+    ).join('');
+    
+    // Renderizar picker de jogadores (apenas os não ocupados)
+    const el = document.getElementById('teamPlayerPicker');
+    el.innerHTML = sorted.map(p => {
+        const isOccupied = occupiedPlayerIds.has(p.id);
+        const isSelected = selected.includes(p.id);
+        const isDisabled = isOccupied && !isSelected; // Desabilitar apenas se não estiver selecionado
+        
+        return `
+            <label class="picker-item ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}">
+                <input type="checkbox" value="${p.id}" ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
+                <span>${esc(p.name)}</span>
+                <span class="picker-hcp">HCP ${p.handicap}</span>
+            </label>
+        `;
+    }).join('');
+    
     updatePickerHint();
-    el.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    el.querySelectorAll('input[type="checkbox"]:not(:disabled)').forEach(cb => {
         cb.addEventListener('change', e => {
             e.target.closest('.picker-item').classList.toggle('selected', e.target.checked);
             updatePickerHint();
@@ -651,14 +678,17 @@ function saveTeam() {
     if (!isLoggedIn()) { openLoginModal(); return; }
     const name      = document.getElementById('inputTeamName').value.trim();
     const playerIds = getCheckedPlayerIds();
+    const captainId = document.getElementById('inputTeamCaptain').value || null;
     const editId    = document.getElementById('teamEditId').value;
+    
     if (!name)                   { showToast('Insira o nome da equipa.', 'error');                return; }
     if (playerIds.length !== 4)  { showToast('Seleccione exactamente 4 jogadores.', 'error');    return; }
+    
     if (editId) {
         const t = state.teams.find(t => t.id === editId);
-        if (t) { t.name = name; t.playerIds = playerIds; }
+        if (t) { t.name = name; t.playerIds = playerIds; t.captainId = captainId; }
     } else {
-        state.teams.push({ id: genId(), name, playerIds });
+        state.teams.push({ id: genId(), name, playerIds, captainId });
     }
     saveState();
     document.getElementById('teamForm').classList.add('hidden');
