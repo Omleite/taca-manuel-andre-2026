@@ -55,8 +55,8 @@ try {
     Write-Host ""
     Write-Host "✅ CONCLUÍDO! Dados sincronizados com GitHub." -ForegroundColor Green
     Write-Host ""
-    Write-Host "O Netlify vai atualizar o site em 1-2 minutos." -ForegroundColor Cyan
-    Write-Host "URL: https://taca-manuel-andre.netlify.app" -ForegroundColor Cyan
+    Write-Host "O GitHub Pages vai atualizar o site em 1-3 minutos." -ForegroundColor Cyan
+    Write-Host "URL: https://omleite.github.io/taca-manuel-andre-2026/" -ForegroundColor Cyan
 }
 catch {
     Write-Host ""
