@@ -1346,6 +1346,7 @@ function calculateStandings(ronda, accumulate) {
 function renderClassificacao(ronda) {
     // Recarregar resultados do localStorage
     loadGameResults();
+    const showScheduledGamesColumn = isAdmin();
     
     // Se ronda === 'total', calcular soma das 5 rondas (acumulado)
     // Convert ronda to number for comparison (dropdown sends strings like '1', '2', etc.)
@@ -1367,7 +1368,7 @@ function renderClassificacao(ronda) {
                     <tr>
                         <th style="width:5%">Pos</th>
                         <th style="width:40%">Equipa</th>
-                        <th style="width:15%">Jogos</th>
+                        ${showScheduledGamesColumn ? '<th style="width:15%">Jogos Agendados</th>' : ''}
                         <th style="width:12%">V</th>
                         <th style="width:12%">E</th>
                         <th style="width:12%">D</th>
@@ -1382,7 +1383,7 @@ function renderClassificacao(ronda) {
                     <tr>
                         <td>${idx + 1}</td>
                         <td><strong>${esc(team.name)}</strong></td>
-                        <td>${team.played}</td>
+                        ${showScheduledGamesColumn ? `<td>${team.played}</td>` : ''}
                         <td>${team.wins}</td>
                         <td>${team.draws}</td>
                         <td>${team.losses}</td>
