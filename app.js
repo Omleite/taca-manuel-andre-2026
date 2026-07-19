@@ -1717,21 +1717,39 @@ function renderCalendario() {
 
                 const hasAnyResult = results.some(r => r.result);
 
-                // Badges por par
+                // Calcular score total (nº pares ganhos por cada equipa)
+                let homeScore = 0, awayScore = 0, drawCount = 0;
+                results.forEach(r => {
+                    if (r.result === 'home') homeScore++;
+                    else if (r.result === 'away') awayScore++;
+                    else if (r.result === 'draw') drawCount++;
+                });
+                const isDraw = hasAnyResult && homeScore === awayScore;
+                const homeWins = homeScore > awayScore;
+                const awayWins = awayScore > homeScore;
+
+                // Badges por par (lado esquerdo = home, lado direito = away)
                 const parBadges = games.sort((a, b) => a.par - b.par).map(g => {
                     const res = state.gameResults.find(r => r.ronda === ronda && r.par === g.par && r.home === home && r.away === away);
-                    if (!res || !res.result) return `<span class="par-badge par-pending">Par ${g.par}: por jogar</span>`;
-                    if (res.result === 'home') return `<span class="par-badge par-home-win">Par ${g.par}: <strong>${esc(home)}</strong> venceu</span>`;
-                    if (res.result === 'away') return `<span class="par-badge par-away-win">Par ${g.par}: <strong>${esc(away)}</strong> venceu</span>`;
-                    if (res.result === 'draw')  return `<span class="par-badge par-draw">Par ${g.par}: Empate</span>`;
+                    if (!res || !res.result) return `<span class="par-badge par-pending">Par ${g.par}</span><span class="par-badge par-pending">Par ${g.par}</span>`;
+                    if (res.result === 'home') return `<span class="par-badge par-home-win">✓ Par ${g.par}</span><span class="par-badge par-pending">Par ${g.par}</span>`;
+                    if (res.result === 'away') return `<span class="par-badge par-pending">Par ${g.par}</span><span class="par-badge par-away-win">✓ Par ${g.par}</span>`;
+                    if (res.result === 'draw')  return `<span class="par-badge par-draw">= Par ${g.par}</span><span class="par-badge par-draw">= Par ${g.par}</span>`;
                     return '';
                 }).join('');
 
+                const scoreLabel = hasAnyResult
+                    ? `<span class="jogo-score${isDraw ? ' score-draw' : ''}">${homeScore}–${awayScore}</span>`
+                    : `<span class="jogo-vs">VS</span>`;
+
+                const homeClass = hasAnyResult ? (homeWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
+                const awayClass = hasAnyResult ? (awayWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
+
                 html += `<li class="jogo${invalid ? ' jogo-invalid' : ''}${hasAnyResult ? ' jogo-done' : ''}">
                     <div class="jogo-teams">
-                        <span class="team-home">${esc(home)}</span>
-                        <span class="jogo-vs">VS</span>
-                        <span class="team-away">${esc(away)}</span>
+                        <span class="team-home${homeClass}">${esc(home)}</span>
+                        ${scoreLabel}
+                        <span class="team-away${awayClass}">${esc(away)}</span>
                         ${invalid ? '<span class="jogo-warning" title="Uma ou ambas as equipas não existem">⚠️</span>' : ''}
                         ${isAdmin() ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
                     </div>
