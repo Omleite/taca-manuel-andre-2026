@@ -33,6 +33,13 @@ function calculateGameHandicap(whs, genero) {
     return Math.min(ph, 36); // Máximo 36 neste torneio
 }
 
+// Recalcular todos os HCP de Jogo baseado no WHS
+function recalculateAllGameHandicaps() {
+    state.players.forEach(p => {
+        p.handicap = calculateGameHandicap(p.handicapWhs, p.genero);
+    });
+}
+
 // ════════════════════════════════════════════════════════════
 //  ESTADO
 // ════════════════════════════════════════════════════════════
@@ -1738,6 +1745,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadGameResults();
         loadCalendar();
     }
+    // Recalcular todos os handicaps de jogo baseado no WHS
+    recalculateAllGameHandicaps();
     loadAuth();
     initializeTestData();
     initializeCalendar();
