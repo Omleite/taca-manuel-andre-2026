@@ -843,6 +843,18 @@ body {
 .jogo.jogo-invalid .team-away {
     color: #b45309;
 }
+.jogo.jogo-done {
+    background: #f0fdf4;
+    border-left: 3px solid #22c55e;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+}
+.jogo-result-badge {
+    color: #16a34a;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-left: 0.25rem;
+}
 .jogo-warning {
     font-size: 0.85rem;
     margin-left: 0.25rem;
