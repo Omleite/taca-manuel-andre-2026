@@ -79,12 +79,12 @@
         <button class="modal-close" id="btnCloseGithubSync" aria-label="Fechar">×</button>
         <h2 id="githubSyncTitle" style="margin: 0 0 1rem 0; font-size: 1.3rem; color: var(--txt-head);">Sincronizar com GitHub</h2>
         <div style="background: #f5f5f5; padding: 0.8rem; border-radius: 0.4rem; margin-bottom: 1rem; font-size: 0.85rem; color: var(--txt-light);">
-            <strong>Passos para criar o token:</strong>
+            <strong>Passos para criar o token (fine-grained):</strong>
             <ol style="margin: 0.5rem 0 0 1.2rem; padding: 0;">
-                <li>Aceda a <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">https://github.com/settings/tokens</a></li>
-                <li>Clique em "Generate new token"</li>
+                <li>Aceda a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com → Settings → Fine-grained tokens</a></li>
                 <li>Nome: <code>taca-manuel-andre-2026</code></li>
-                <li>Scopes necessários: <strong>✓ repo</strong> (acesso completo)</li>
+                <li>Repository access: <strong>Only select repositories</strong> → <code>taca-manuel-andre-2026</code></li>
+                <li>Permissions → Contents: <strong>Read and write</strong></li>
                 <li>Clique em "Generate token" e copie o código</li>
             </ol>
         </div>

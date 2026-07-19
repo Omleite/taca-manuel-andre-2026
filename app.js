@@ -245,9 +245,16 @@ async function handleGithubSync(e) {
     submitBtn.textContent = 'A sincronizar…';
 
     try {
+        // Suporta tokens clássicos (ghp_) e fine-grained (github_pat_)
+        // GitHub aceita tanto "token" como "Bearer" mas fine-grained requer "Bearer"
+        const authHeader = `Bearer ${token}`;
+
         // Verificar se o token é válido
         const validRes = await fetch('https://api.github.com/user', {
-            headers: { Authorization: `token ${token}` }
+            headers: { 
+                'Authorization': authHeader,
+                'Accept': 'application/vnd.github.v3+json'
+            }
         });
 
         if (!validRes.ok) {
@@ -278,31 +285,27 @@ async function handleGithubSync(e) {
         const filePath = 'data-backup.json';
         const branch = 'master';
 
-        // Obter SHA do ficheiro atual - método simples
+        // Obter SHA do ficheiro atual - forçar sem cache
         let sha = null;
-        try {
-            const response = await fetch(
-                `https://api.github.com/repos/${repo}/contents/${filePath}`,
-                {
-                    headers: { 
-                        'Authorization': `token ${token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
+        const shaRes = await fetch(
+            `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}&t=${Date.now()}`,
+            {
+                headers: { 
+                    'Authorization': authHeader,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Cache-Control': 'no-cache'
                 }
-            );
-
-            if (response.status === 200) {
-                const data = await response.json();
-                sha = data.sha;
-            } else if (response.status === 404) {
-                // Ficheiro não existe, será criado novo
-                sha = null;
-            } else {
-                throw new Error(`Erro ao obter SHA: ${response.status}`);
             }
-        } catch (err) {
-            console.warn('Erro ao obter SHA:', err);
-            // Continuar sem SHA - deixar GitHub gerar erro se necessário
+        );
+
+        if (shaRes.status === 200) {
+            const shaData = await shaRes.json();
+            sha = shaData.sha;
+        } else if (shaRes.status === 404) {
+            sha = null; // Ficheiro não existe, será criado
+        } else {
+            const shaErr = await shaRes.json().catch(() => ({}));
+            throw new Error(`Erro ao obter SHA do ficheiro (${shaRes.status}): ${shaErr.message || ''}`);
         }
 
         // Preparar body do commit
@@ -311,11 +314,7 @@ async function handleGithubSync(e) {
             content: encoded,
             branch: branch
         };
-
-        // Adicionar SHA se disponível
-        if (sha) {
-            body.sha = sha;
-        }
+        if (sha) body.sha = sha;
 
         // Fazer commit
         const commitRes = await fetch(
@@ -323,7 +322,7 @@ async function handleGithubSync(e) {
             {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `token ${token}`,
+                    'Authorization': authHeader,
                     'Content-Type': 'application/json',
                     'Accept': 'application/vnd.github.v3+json'
                 },
@@ -332,17 +331,17 @@ async function handleGithubSync(e) {
         );
 
         if (!commitRes.ok) {
-            const error = await commitRes.json();
+            const error = await commitRes.json().catch(() => ({}));
             let msg = error.message || 'Erro desconhecido';
             
-            if (msg.includes('not accessible')) {
-                throw new Error('Token sem permissões. Crie um novo com scopes: repo');
+            if (msg.includes('not accessible') || commitRes.status === 403) {
+                throw new Error('Token sem permissões. Selecione "Contents: Read and write" ao criar o token.');
             }
-            if (msg.includes('sha')) {
-                throw new Error('Erro ao sincronizar - tente novamente em alguns segundos');
+            if (msg.includes('sha') || msg.includes('does not match')) {
+                throw new Error('Conflito de versão. Tente novamente - o ficheiro foi alterado entretanto.');
             }
             
-            throw new Error(msg);
+            throw new Error(`GitHub API (${commitRes.status}): ${msg}`);
         }
 
         closeGithubSyncModal();
