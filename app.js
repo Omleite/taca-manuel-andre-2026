@@ -1862,13 +1862,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('importFile').addEventListener('change', e => { importData(e.target.files[0]); e.target.value=''; });
     document.getElementById('btnClearAll').addEventListener('click', clearAll);
 
-    // Gestão utilizadores (admin)
-    document.getElementById('btnShowNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.remove('hidden'));
-    document.getElementById('btnCancelNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.add('hidden'));
-    document.getElementById('btnSaveNewUser').addEventListener('click', saveNewUser);
+    // Gestão utilizadores (admin) - REMOVED: saveNewUser not implemented
+    // document.getElementById('btnShowNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.remove('hidden'));
+    // document.getElementById('btnCancelNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.add('hidden'));
+    // document.getElementById('btnSaveNewUser').addEventListener('click', saveNewUser);
 
-    // Alterar palavra-passe
-    document.getElementById('btnChangePwd').addEventListener('click', changeOwnPassword);
+    // Alterar palavra-passe - REMOVED: changeOwnPassword not implemented
+    // document.getElementById('btnChangePwd').addEventListener('click', changeOwnPassword);
 
     // Render inicial
     renderPlayers();
