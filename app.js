@@ -203,6 +203,105 @@ async function handleLogin(e) {
     }
 }
 
+// ── Modal Sincronização GitHub ────────────────────────────────
+
+function openGithubSyncModal() {
+    document.getElementById('githubSyncModal').classList.remove('hidden');
+    document.getElementById('githubToken').value = localStorage.getItem('gh-token') || '';
+    document.getElementById('githubSyncError').classList.add('hidden');
+    document.getElementById('githubSyncError').textContent = '';
+    setTimeout(() => document.getElementById('githubToken').focus(), 50);
+}
+
+function closeGithubSyncModal() {
+    document.getElementById('githubSyncModal').classList.add('hidden');
+}
+
+async function handleGithubSync(e) {
+    e.preventDefault();
+    const token = document.getElementById('githubToken').value.trim();
+    const errEl = document.getElementById('githubSyncError');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+
+    errEl.classList.add('hidden');
+
+    if (!token) {
+        errEl.textContent = 'Introduza um GitHub Personal Access Token.';
+        errEl.classList.remove('hidden');
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'A sincronizar…';
+
+    try {
+        // Guardar token no localStorage
+        localStorage.setItem('gh-token', token);
+
+        // Sincronizar dados
+        saveState();
+        saveGameResults();
+        saveCalendar();
+
+        const dataToExport = {
+            players: state.players,
+            teams: state.teams,
+            strokeIndex: state.strokeIndex,
+            gameResults: state.gameResults,
+            calendar: state.calendar
+        };
+
+        const content = JSON.stringify(dataToExport, null, 2);
+        const encoded = btoa(content); // Base64 encode
+
+        // GitHub API - actualizar ficheiro
+        const repo = 'Omleite/taca-manuel-andre-2026';
+        const filePath = 'data-backup.json';
+        const branch = 'master';
+
+        // Obter SHA do ficheiro atual
+        const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`, {
+            headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3.raw' }
+        });
+
+        let sha = null;
+        if (getRes.ok) {
+            const blob = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`, {
+                headers: { Authorization: `token ${token}` }
+            });
+            const data = await blob.json();
+            sha = data.sha;
+        }
+
+        // Fazer commit
+        const commitRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
+            method: 'PUT',
+            headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: `Sincronizar dados: ${new Date().toLocaleString('pt-PT')}`,
+                content: encoded,
+                sha: sha,
+                branch: branch
+            })
+        });
+
+        if (!commitRes.ok) {
+            const error = await commitRes.json();
+            throw new Error(error.message || 'Erro ao sincronizar com GitHub');
+        }
+
+        closeGithubSyncModal();
+        showToast('✅ Dados sincronizados com sucesso!');
+    } catch (err) {
+        errEl.textContent = `Erro: ${err.message}`;
+        errEl.classList.remove('hidden');
+        console.error('GitHub sync error:', err);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sincronizar';
+    }
+}
+
 // ── Gestão de utilizadores (admin) ───────────────────────────
 
 function renderUsers() {
@@ -1679,6 +1778,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Fechar modal ao clicar no overlay
     document.getElementById('loginModal').addEventListener('click', e => {
         if (e.target === e.currentTarget) closeLoginModal();
+    });
+
+    // GitHub Sync
+    document.getElementById('btnSyncGithub').addEventListener('click', openGithubSyncModal);
+    document.getElementById('btnCloseGithubSync').addEventListener('click', closeGithubSyncModal);
+    document.getElementById('btnCancelGithubSync').addEventListener('click', closeGithubSyncModal);
+    document.getElementById('githubSyncForm').addEventListener('submit', handleGithubSync);
+    document.getElementById('githubSyncModal').addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeGithubSyncModal();
     });
 
     // Jogadores
