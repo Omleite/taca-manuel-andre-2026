@@ -1256,7 +1256,6 @@ function setGameResult(ronda, par, home, away, result) {
 
 function calculateStandings(ronda, accumulate) {
     // ronda: número da ronda; accumulate: true = soma todas as rondas até ronda
-    console.log(`calculateStandings called: ronda=${ronda} (type: ${typeof ronda}), accumulate=${accumulate}`);
     
     const standings = { A: [], B: [], C: [], D: [] };
     
@@ -1326,7 +1325,8 @@ function renderClassificacao(ronda) {
     loadGameResults();
     
     // Se ronda === 'total', calcular soma das 5 rondas (acumulado)
-    const standings = ronda === 'total' ? calculateStandings(5, true) : calculateStandings(ronda, false);
+    // Convert ronda to number for comparison (dropdown sends strings like '1', '2', etc.)
+    const standings = ronda === 'total' ? calculateStandings(5, true) : calculateStandings(parseInt(ronda), false);
     let html = '';
     
     Object.keys(standings).sort().forEach(grupo => {
@@ -1370,7 +1370,6 @@ function renderClassificacao(ronda) {
         
         // Mostrar equipas em folga (0 jogos nesta ronda/total)
         const teamsResting = teams.filter(t => t.played === 0);
-        console.log(`DEBUG Grupo ${grupo} Ronda ${ronda}: teamsResting =`, teamsResting.map(t => t.name));
         
         html += `
                 </tbody>
