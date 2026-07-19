@@ -38,8 +38,8 @@
     {
       "id": "mrpcd3x1l481y",
       "name": "António Casanova",
-      "handicapWhs": -1,
-      "handicap": -1,
+      "handicapWhs": 26.9,
+      "handicap": 30,
       "genero": "M"
     },
     {
@@ -66,15 +66,15 @@
     {
       "id": "mrpcd3x1eky1j",
       "name": "Amílcar Neiva",
-      "handicapWhs": 19,
-      "handicap": 19,
+      "handicapWhs": 24.6,
+      "handicap": 27,
       "genero": "M"
     },
     {
       "id": "mrpcd3x1m7cke",
       "name": "Adelaide Figueiredo",
-      "handicapWhs": -10,
-      "handicap": -10,
+      "handicapWhs": 19,
+      "handicap": 23,
       "genero": "F"
     },
     {
@@ -87,8 +87,8 @@
     {
       "id": "mrpcd3x1dm2ug",
       "name": "Alberto Quintas",
-      "handicapWhs": 29,
-      "handicap": 29,
+      "handicapWhs": 20.3,
+      "handicap": 22,
       "genero": "M"
     },
     {
@@ -108,8 +108,8 @@
     {
       "id": "mrpcd3x1im42z",
       "name": "Nuno Poiarez",
-      "handicapWhs": 0,
-      "handicap": 3,
+      "handicapWhs": 17.4,
+      "handicap": 19,
       "genero": "M"
     },
     {
@@ -122,8 +122,8 @@
     {
       "id": "mrpcd3x1hjgrw",
       "name": "Alexandre Melo",
-      "handicapWhs": 12,
-      "handicap": 16,
+      "handicapWhs": 12.2,
+      "handicap": 13,
       "genero": "M"
     },
     {
@@ -171,8 +171,8 @@
     {
       "id": "mrpcd3x17yo8n",
       "name": "Adelino Caldeira",
-      "handicapWhs": 5,
-      "handicap": 8,
+      "handicapWhs": 30,
+      "handicap": 33,
       "genero": "M"
     },
     {
@@ -318,8 +318,8 @@
     {
       "id": "mrpcd3x1ov9aj",
       "name": "Afonso Poiarez",
-      "handicapWhs": 14,
-      "handicap": 16,
+      "handicapWhs": 11,
+      "handicap": 12,
       "genero": "M"
     },
     {
@@ -332,15 +332,15 @@
     {
       "id": "mrpcd3x1f4iyw",
       "name": "André Von Hafe",
-      "handicapWhs": -5,
-      "handicap": -2,
+      "handicapWhs": 10,
+      "handicap": 11,
       "genero": "M"
     },
     {
       "id": "mrpcd3x1mpz3q",
       "name": "Afonso Polery",
-      "handicapWhs": 28,
-      "handicap": 30,
+      "handicapWhs": 10.6,
+      "handicap": 11,
       "genero": "M"
     },
     {
@@ -472,7 +472,7 @@
     {
       "id": "mrpcd3x1jo4yf",
       "name": "Alberto Amaral",
-      "handicapWhs": 35,
+      "handicapWhs": 35.2,
       "handicap": 36,
       "genero": "M"
     },
