@@ -46,26 +46,19 @@ let state = {
 };
 
 let authState = {
-    users:       [],
-    currentUser: null
+    currentUser: null,
+    adminPassword: 'estela2026'  // Password fixo para admin
 };
 
 // ════════════════════════════════════════════════════════════
 //  AUTENTICAÇÃO
 // ════════════════════════════════════════════════════════════
 
-async function hashPassword(password) {
-    const data = new TextEncoder().encode(SALT + password + SALT);
-    const buf  = await crypto.subtle.digest('SHA-256', data);
-    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 function loadAuth() {
     try {
         const raw = localStorage.getItem(AUTH_KEY);
         if (raw) {
             const p = JSON.parse(raw);
-            authState.users       = Array.isArray(p.users) ? p.users : [];
             authState.currentUser = p.currentUser || null;
         }
     } catch (e) { console.error('loadAuth:', e); }
@@ -75,32 +68,16 @@ function saveAuth() {
     localStorage.setItem(AUTH_KEY, JSON.stringify(authState));
 }
 
-async function ensureDefaultAdmin() {
-    if (!authState.users.length) {
-        authState.users.push({
-            id:           genId(),
-            username:     'admin',
-            displayName:  'Administrador',
-            passwordHash: await hashPassword('estela2026'),
-            role:         'admin',
-            createdAt:    new Date().toISOString()
-        });
-        saveAuth();
-    }
-}
-
 const isLoggedIn = () => !!authState.currentUser;
-const isAdmin    = () => authState.currentUser?.role === 'admin';
+const isAdmin    = () => isLoggedIn();
 
-async function doLogin(username, password) {
-    const hash = await hashPassword(password);
-    const user = authState.users.find(
-        u => u.username.toLowerCase() === username.toLowerCase() && u.passwordHash === hash
-    );
-    if (!user) return false;
-    authState.currentUser = { id: user.id, username: user.username, displayName: user.displayName || user.username, role: user.role };
-    saveAuth();
-    return true;
+function doLogin(username, password) {
+    if (username === 'admin' && password === authState.adminPassword) {
+        authState.currentUser = { username: 'admin', displayName: 'Administrador', role: 'admin' };
+        saveAuth();
+        return true;
+    }
+    return false;
 }
 
 function doLogout() {
@@ -113,27 +90,23 @@ function doLogout() {
 // ── UI Auth ──────────────────────────────────────────────────
 
 function updateAuthUI() {
-    const loggedIn = isLoggedIn();
-    const admin    = isAdmin();
+    const admin = isAdmin();
 
     // Nav
-    document.getElementById('btnOpenLogin').classList.toggle('hidden', loggedIn);
-    document.getElementById('navUser').classList.toggle('hidden', !loggedIn);
-    if (loggedIn) {
+    document.getElementById('btnOpenLogin').classList.toggle('hidden', admin);
+    document.getElementById('navUser').classList.toggle('hidden', !admin);
+    if (admin) {
         document.getElementById('navUsername').textContent = authState.currentUser.displayName;
-        const badge = document.getElementById('navUserRole');
-        badge.textContent = admin ? 'Admin' : 'User';
-        badge.className   = 'nav-role-badge ' + (admin ? 'badge-admin' : 'badge-user');
     }
 
-    // Botões de adicionar: só para autenticados
+    // Botões de adicionar: só para admin
     const addPlayerBtn = document.getElementById('btnShowPlayerForm');
     const addTeamBtn   = document.getElementById('btnShowTeamForm');
-    addPlayerBtn.classList.toggle('hidden', !loggedIn);
-    addTeamBtn.classList.toggle('hidden', !loggedIn);
+    addPlayerBtn.classList.toggle('hidden', !admin);
+    addTeamBtn.classList.toggle('hidden', !admin);
 
-    // Esconder formulários se sessão terminou
-    if (!loggedIn) {
+    // Esconder formulários se logout
+    if (!admin) {
         document.getElementById('playerForm').classList.add('hidden');
         document.getElementById('teamForm').classList.add('hidden');
     }
@@ -141,25 +114,9 @@ function updateAuthUI() {
     // Secções admin-only
     document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !admin));
 
-    // Tab Jogadores: apenas admin
-    document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.toggle('hidden', !admin));
-    // Se não é admin e tab activo é Jogadores, redirecionar para Classificação
-    if (!admin) {
-        const jogadoresTab = document.getElementById('tab-jogadores');
-        if (jogadoresTab && jogadoresTab.classList.contains('active')) {
-            document.querySelector('[data-tab="classificacao"]')?.click();
-        }
-    }
-
-    // Secções auth-only (qualquer utilizador autenticado)
-    document.querySelectorAll('.auth-only').forEach(el => el.classList.toggle('hidden', !loggedIn));
-
     // Re-render listas para actualizar botões editar/apagar
     renderPlayers();
     renderTeams();
-
-    // Admin: render utilizadores
-    if (admin) renderUsers();
 }
 
 // ── Modal Login ───────────────────────────────────────────────
@@ -177,7 +134,7 @@ function closeLoginModal() {
     document.getElementById('loginModal').classList.add('hidden');
 }
 
-async function handleLogin(e) {
+function handleLogin(e) {
     e.preventDefault();
     const username  = document.getElementById('loginUsername').value.trim();
     const password  = document.getElementById('loginPassword').value;
@@ -196,7 +153,7 @@ async function handleLogin(e) {
     submitBtn.textContent = 'A verificar…';
 
     try {
-        const ok = await doLogin(username, password);
+        const ok = doLogin(username, password);
         if (ok) {
             closeLoginModal();
             updateAuthUI();
@@ -358,86 +315,7 @@ async function handleGithubSync(e) {
 
 // ── Gestão de utilizadores (admin) ───────────────────────────
 
-function renderUsers() {
-    const el = document.getElementById('usersList');
-    if (!el) return;
-    if (!authState.users.length) {
-        el.innerHTML = '<p style="font-size:.85rem;color:var(--txt-light);padding:.25rem 0">Nenhum utilizador.</p>';
-        return;
-    }
-    el.innerHTML = authState.users.map(u => `
-        <div class="user-item">
-            <div class="user-info">
-                <span class="user-name">${esc(u.displayName || u.username)}</span>
-                <span class="user-meta">@${esc(u.username)}</span>
-            </div>
-            <span class="nav-role-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role === 'admin' ? 'Admin' : 'User'}</span>
-            <div class="user-actions">
-                ${authState.currentUser?.id === u.id
-                    ? '<span class="current-user-tag">← sessão activa</span>'
-                    : `<button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')">✕</button>`
-                }
-            </div>
-        </div>
-    `).join('');
-}
-
-async function saveNewUser() {
-    const displayName = document.getElementById('inputNewDisplayName').value.trim();
-    const username    = document.getElementById('inputNewUsername').value.trim();
-    const password    = document.getElementById('inputNewPassword').value;
-    const role        = document.getElementById('inputNewRole').value;
-
-    if (!username)          { showToast('Insira o nome de utilizador.', 'error'); return; }
-    if (password.length < 6){ showToast('A palavra-passe deve ter pelo menos 6 caracteres.', 'error'); return; }
-    if (!/^[a-z0-9._-]+$/i.test(username)) { showToast('O nome de utilizador só pode conter letras, números, . _ -', 'error'); return; }
-    if (authState.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-        showToast('Esse nome de utilizador já existe.', 'error'); return;
-    }
-
-    const hash = await hashPassword(password);
-    authState.users.push({ id: genId(), username, displayName: displayName || username, passwordHash: hash, role, createdAt: new Date().toISOString() });
-    saveAuth();
-    document.getElementById('newUserForm').classList.add('hidden');
-    document.getElementById('inputNewDisplayName').value = '';
-    document.getElementById('inputNewUsername').value    = '';
-    document.getElementById('inputNewPassword').value    = '';
-    renderUsers();
-    showToast('Utilizador criado.');
-}
-
-function deleteUser(id) {
-    const user = authState.users.find(u => u.id === id);
-    if (!user) return;
-    if (!confirm(`Eliminar o utilizador "${esc(user.displayName || user.username)}"?`)) return;
-    authState.users = authState.users.filter(u => u.id !== id);
-    saveAuth();
-    renderUsers();
-    showToast('Utilizador eliminado.');
-}
-
-async function changeOwnPassword() {
-    const currentPwd = document.getElementById('inputCurrentPwd').value;
-    const newPwd     = document.getElementById('inputNewPwd').value;
-    const confirmPwd = document.getElementById('inputConfirmPwd').value;
-
-    if (!currentPwd || !newPwd || !confirmPwd) { showToast('Preencha todos os campos.', 'error'); return; }
-    if (newPwd !== confirmPwd) { showToast('As palavras-passe não coincidem.', 'error'); return; }
-    if (newPwd.length < 6)    { showToast('A nova palavra-passe deve ter pelo menos 6 caracteres.', 'error'); return; }
-
-    const currentHash = await hashPassword(currentPwd);
-    const idx = authState.users.findIndex(u => u.id === authState.currentUser.id);
-    if (idx === -1 || authState.users[idx].passwordHash !== currentHash) {
-        showToast('Palavra-passe actual incorrecta.', 'error'); return;
-    }
-
-    authState.users[idx].passwordHash = await hashPassword(newPwd);
-    saveAuth();
-    document.getElementById('inputCurrentPwd').value = '';
-    document.getElementById('inputNewPwd').value     = '';
-    document.getElementById('inputConfirmPwd').value = '';
-    showToast('Palavra-passe alterada com sucesso.');
-}
+// (Gestão de users removida - apenas admin fixo)
 
 // ════════════════════════════════════════════════════════════
 //  PERSISTÊNCIA (dados do torneio)
@@ -1489,10 +1367,19 @@ function renderClassificacao(ronda) {
             `;
         });
         
+        // Mostrar equipas em folga (0 jogos nesta ronda/total)
+        const teamsResting = teams.filter(t => t.played === 0);
+        
         html += `
                 </tbody>
             </table>
         `;
+        
+        if (teamsResting.length > 0) {
+            html += `<div style="margin-top:0.75rem; padding:0.75rem; background:#fef3c7; border-left:3px solid #f59e0b; font-size:0.9rem; color:#78350f;">
+                <strong>Folga:</strong> ${teamsResting.map(t => esc(t.name)).join(', ')}
+            </div>`;
+        }
         
         // Mostrar secção de edição de resultados apenas para administrador
         if (isAdmin()) {
