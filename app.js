@@ -447,22 +447,27 @@ function loadState() {
 }
 
 async function loadDataBackup() {
-    // Tenta carregar dados do arquivo backup.json se localStorage estiver vazio
+    // Sempre tenta carregar o backup mais recente do servidor
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) return; // Já tem dados no localStorage
-        
-        const response = await fetch('data-backup.json');
+        const response = await fetch('data-backup.json?t=' + Date.now()); // Cache busting
         if (!response.ok) return;
         
         const data = await response.json();
         if (data.players && data.teams) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            state.players = data.players;
-            state.teams = data.teams;
-            state.strokeIndex = data.strokeIndex || [...DEFAULT_SI];
-            state.gameResults = data.gameResults || [];
-            state.calendar = data.calendar || [];
+            // Comparar versions: se o backup tem mais dados, usar ele
+            const localRaw = localStorage.getItem(STORAGE_KEY);
+            const localData = localRaw ? JSON.parse(localRaw) : null;
+            
+            // Se não temos dados locais, ou o backup é mais recente/completo, usar o backup
+            if (!localData || !localData.teams?.length || data.teams.length > localData.teams.length) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                state.players = data.players;
+                state.teams = data.teams;
+                state.strokeIndex = data.strokeIndex || [...DEFAULT_SI];
+                state.gameResults = data.gameResults || [];
+                state.calendar = data.calendar || [];
+                console.log('Dados carregados do backup no servidor.');
+            }
         }
     } catch (e) { console.error('Erro ao carregar backup:', e); }
 }
