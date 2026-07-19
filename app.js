@@ -1369,6 +1369,7 @@ function renderClassificacao(ronda) {
         
         // Mostrar equipas em folga (0 jogos nesta ronda/total)
         const teamsResting = teams.filter(t => t.played === 0);
+        console.log(`DEBUG Grupo ${grupo} Ronda ${ronda}: teamsResting =`, teamsResting.map(t => t.name));
         
         html += `
                 </tbody>
