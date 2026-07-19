@@ -416,6 +416,8 @@ async function loadDataBackup() {
             state.players = data.players;
             state.teams = data.teams;
             state.strokeIndex = data.strokeIndex || [...DEFAULT_SI];
+            state.gameResults = data.gameResults || [];
+            state.calendar = data.calendar || [];
         }
     } catch (e) { console.error('Erro ao carregar backup:', e); }
 }
