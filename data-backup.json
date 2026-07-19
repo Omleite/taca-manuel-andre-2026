@@ -1,744 +1,1364 @@
 {
-    "players":  [
-                    {
-                        "id":  "mrpcd3x1pn305",
-                        "name":  "Charles Mc Donald",
-                        "handicapWhs":  -4,
-                        "handicap":  -1,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1nnj2q",
-                        "name":  "Guy Xie",
-                        "handicapWhs":  2,
-                        "handicap":  5,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1h0l18",
-                        "name":  "Gabriel Guerreiro",
-                        "handicapWhs":  -2,
-                        "handicap":  -1,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1ha3vw",
-                        "name":  "Gabriel Macedo",
-                        "handicapWhs":  21,
-                        "handicap":  23,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1efzv0",
-                        "name":  "Higino Moreira",
-                        "handicapWhs":  -3,
-                        "handicap":  -3,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1l481y",
-                        "name":  "António Casanova",
-                        "handicapWhs":  -1,
-                        "handicap":  -1,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x18281c",
-                        "name":  "Franquelim Moreira",
-                        "handicapWhs":  -8,
-                        "handicap":  -7,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1cjcgn",
-                        "name":  "Paulo Cubal",
-                        "handicapWhs":  5,
-                        "handicap":  9,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x180mbt",
-                        "name":  "José Luís Veloso",
-                        "handicapWhs":  12,
-                        "handicap":  16,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1eky1j",
-                        "name":  "Amílcar Neiva",
-                        "handicapWhs":  19,
-                        "handicap":  19,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1m7cke",
-                        "name":  "Adelaide Figueiredo",
-                        "handicapWhs":  -10,
-                        "handicap":  -10,
-                        "genero":  "F"
-                    },
-                    {
-                        "id":  "mrpcd3x180cuf",
-                        "name":  "Paulo Pereira",
-                        "handicapWhs":  -7,
-                        "handicap":  -7,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1dm2ug",
-                        "name":  "Alberto Quintas",
-                        "handicapWhs":  29,
-                        "handicap":  29,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1nqirr",
-                        "name":  "Filipe Quintas",
-                        "handicapWhs":  2,
-                        "handicap":  5,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1h2cl0",
-                        "name":  "Luís Amorim Teixeira",
-                        "handicapWhs":  25,
-                        "handicap":  28,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1im42z",
-                        "name":  "Nuno Poiarez",
-                        "handicapWhs":  0,
-                        "handicap":  3,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1m77y6",
-                        "name":  "Isaque Guimarães",
-                        "handicapWhs":  4,
-                        "handicap":  4,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1hjgrw",
-                        "name":  "Alexandre Melo",
-                        "handicapWhs":  12,
-                        "handicap":  16,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1b5bqt",
-                        "name":  "Tiago Rocha",
-                        "handicapWhs":  19,
-                        "handicap":  19,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x154b2v",
-                        "name":  "Pedro Moutinho",
-                        "handicapWhs":  2,
-                        "handicap":  2,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1qjr3m",
-                        "name":  "Luís Costa",
-                        "handicapWhs":  -5,
-                        "handicap":  -3,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1bewgf",
-                        "name":  "Natália Pereira",
-                        "handicapWhs":  -6,
-                        "handicap":  -4,
-                        "genero":  "F"
-                    },
-                    {
-                        "id":  "mrpcd3x1ielq0",
-                        "name":  "José António Pereira",
-                        "handicapWhs":  2,
-                        "handicap":  5,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1e9c8y",
-                        "name":  "Isaque Guimarães Jr",
-                        "handicapWhs":  18,
-                        "handicap":  18,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x17yo8n",
-                        "name":  "Adelino Caldeira",
-                        "handicapWhs":  5,
-                        "handicap":  8,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1j3gno",
-                        "name":  "Moura Gonçalves",
-                        "handicapWhs":  -2,
-                        "handicap":  0,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1d4sot",
-                        "name":  "Vasco Costa",
-                        "handicapWhs":  -9,
-                        "handicap":  -9,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x18z73s",
-                        "name":  "Jorge Aires",
-                        "handicapWhs":  11,
-                        "handicap":  13,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1n5jzv",
-                        "name":  "José Correia",
-                        "handicapWhs":  -2,
-                        "handicap":  1,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1qz56v",
-                        "name":  "Carlos Corte-Real",
-                        "handicapWhs":  1,
-                        "handicap":  3,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1lbj3x",
-                        "name":  "José Vale",
-                        "handicapWhs":  -8,
-                        "handicap":  -7,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1jbuvx",
-                        "name":  "Filipe Costa",
-                        "handicapWhs":  0,
-                        "handicap":  4,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1f5kxc",
-                        "name":  "Elisabete Teles",
-                        "handicapWhs":  -5,
-                        "handicap":  -3,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1m5e7w",
-                        "name":  "Maria do Carmo",
-                        "handicapWhs":  0,
-                        "handicap":  2,
-                        "genero":  "F"
-                    },
-                    {
-                        "id":  "mrpcd3x1oxz3p",
-                        "name":  "José Vila",
-                        "handicapWhs":  10,
-                        "handicap":  14,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1hc60d",
-                        "name":  "Carlos Figueiredo da Silva",
-                        "handicapWhs":  7,
-                        "handicap":  9,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1qg7hm",
-                        "name":  "Hélder Ferreira",
-                        "handicapWhs":  22,
-                        "handicap":  22,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1k5alz",
-                        "name":  "José Rui Rodrigues",
-                        "handicapWhs":  21,
-                        "handicap":  24,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1gfgn3",
-                        "name":  "Orlando Leite",
-                        "handicapWhs":  -8,
-                        "handicap":  -6,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1bgfio",
-                        "name":  "José Santos",
-                        "handicapWhs":  8,
-                        "handicap":  11,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1e5v5s",
-                        "name":  "Manuel Rodrigues",
-                        "handicapWhs":  24,
-                        "handicap":  25,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1lkt0z",
-                        "name":  "Rui Feijóo",
-                        "handicapWhs":  -10,
-                        "handicap":  -10,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1biqia",
-                        "name":  "Manuel Rodrigues Jr",
-                        "handicapWhs":  16,
-                        "handicap":  19,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1qfh0m",
-                        "name":  "Luís Perez",
-                        "handicapWhs":  -9,
-                        "handicap":  -8,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1g8qqk",
-                        "name":  "Manuel Castro",
-                        "handicapWhs":  26,
-                        "handicap":  28,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1ov9aj",
-                        "name":  "Afonso Poiarez",
-                        "handicapWhs":  14,
-                        "handicap":  16,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1jj0fn",
-                        "name":  "Edgar Gomes",
-                        "handicapWhs":  18,
-                        "handicap":  21,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1f4iyw",
-                        "name":  "André Von Hafe",
-                        "handicapWhs":  -5,
-                        "handicap":  -2,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1mpz3q",
-                        "name":  "Afonso Polery",
-                        "handicapWhs":  28,
-                        "handicap":  30,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1nf4dl",
-                        "name":  "Tó Júlio Brito",
-                        "handicapWhs":  -6,
-                        "handicap":  -5,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1i3gvh",
-                        "name":  "Gabriel Guimarães",
-                        "handicapWhs":  23,
-                        "handicap":  26,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1j7r8q",
-                        "name":  "Carlos Silva Santos",
-                        "handicapWhs":  3,
-                        "handicap":  5,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1rkq71",
-                        "name":  "Manuel Pereira Mendes",
-                        "handicapWhs":  15,
-                        "handicap":  18,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1c5qyz",
-                        "name":  "Henrique Sampaio",
-                        "handicapWhs":  6,
-                        "handicap":  10,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1qe0d1",
-                        "name":  "José Eduardo Rocha Almeida",
-                        "handicapWhs":  17,
-                        "handicap":  19,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1mhpgw",
-                        "name":  "Martim Quintas",
-                        "handicapWhs":  -7,
-                        "handicap":  -5,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1oibya",
-                        "name":  "Miguel Ramos",
-                        "handicapWhs":  11,
-                        "handicap":  13,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1d8q0b",
-                        "name":  "Lourenço Araújo",
-                        "handicapWhs":  9,
-                        "handicap":  13,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1kqxpj",
-                        "name":  "Henrique Araújo",
-                        "handicapWhs":  28,
-                        "handicap":  31,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1p2keb",
-                        "name":  "Luís Paupério",
-                        "handicapWhs":  2,
-                        "handicap":  2,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1n0ayz",
-                        "name":  "Jorge Moura",
-                        "handicapWhs":  4,
-                        "handicap":  8,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1hmqrl",
-                        "name":  "Sérgio Lopes",
-                        "handicapWhs":  20,
-                        "handicap":  23,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1ec8gr",
-                        "name":  "Luísa Carrilho",
-                        "handicapWhs":  -3,
-                        "handicap":  -1,
-                        "genero":  "F"
-                    },
-                    {
-                        "id":  "mrpcd3x1g2pqk",
-                        "name":  "Maria de Fátima Costa",
-                        "handicapWhs":  6,
-                        "handicap":  9,
-                        "genero":  "F"
-                    },
-                    {
-                        "id":  "mrpcd3x1i6r9b",
-                        "name":  "Mário Paiva",
-                        "handicapWhs":  21,
-                        "handicap":  25,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1l8nep",
-                        "name":  "David Angelis",
-                        "handicapWhs":  10,
-                        "handicap":  13,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1qvhya",
-                        "name":  "José Nogueira",
-                        "handicapWhs":  13,
-                        "handicap":  16,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1jo4yf",
-                        "name":  "Alberto Amaral",
-                        "handicapWhs":  -4,
-                        "handicap":  -2,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1fcbvj",
-                        "name":  "Jorge Martins",
-                        "handicapWhs":  0,
-                        "handicap":  2,
-                        "genero":  "M"
-                    },
-                    {
-                        "id":  "mrpcd3x1pzxcn",
-                        "name":  "Ruben Santos",
-                        "handicapWhs":  25,
-                        "handicap":  28,
-                        "genero":  "M"
-                    }
-                ],
-    "teams":  [
-                  {
-                      "id":  "team001",
-                      "name":  "CGGG",
-                      "grupo":  "A",
-                      "playerIds":  [
-                                        "mrpcd3x1pn305",
-                                        "mrpcd3x1nnj2q",
-                                        "mrpcd3x1h0l18",
-                                        "mrpcd3x1ha3vw"
-                                    ],
-                      "captainId":  "mrpcd3x1pn305"
-                  },
-                  {
-                      "id":  "team002",
-                      "name":  "Os Craques",
-                      "grupo":  "A",
-                      "playerIds":  [
-                                        "mrpcd3x1efzv0",
-                                        "mrpcd3x1l481y",
-                                        "mrpcd3x18281c",
-                                        "mrpcd3x1cjcgn"
-                                    ],
-                      "captainId":  "mrpcd3x1efzv0"
-                  },
-                  {
-                      "id":  "team003",
-                      "name":  "Os Golfinhos",
-                      "grupo":  "C",
-                      "playerIds":  [
-                                        "mrpcd3x180mbt",
-                                        "mrpcd3x1eky1j",
-                                        "mrpcd3x1m7cke",
-                                        "mrpcd3x180cuf"
-                                    ],
-                      "captainId":  "mrpcd3x180mbt"
-                  },
-                  {
-                      "id":  "team004",
-                      "name":  "Estela Birdies",
-                      "grupo":  "A",
-                      "playerIds":  [
-                                        "mrpcd3x1dm2ug",
-                                        "mrpcd3x1nqirr",
-                                        "mrpcd3x1h2cl0",
-                                        "mrpcd3x1im42z"
-                                    ],
-                      "captainId":  "mrpcd3x1h2cl0"
-                  },
-                  {
-                      "id":  "team005",
-                      "name":  "Piratas",
-                      "grupo":  "C",
-                      "playerIds":  [
-                                        "mrpcd3x1m77y6",
-                                        "mrpcd3x1hjgrw",
-                                        "mrpcd3x1b5bqt",
-                                        "mrpcd3x154b2v"
-                                    ],
-                      "captainId":  "mrpcd3x154b2v"
-                  },
-                  {
-                      "id":  "team006",
-                      "name":  "Golfistas da Madrugada",
-                      "grupo":  "D",
-                      "playerIds":  [
-                                        "mrpcd3x1qjr3m",
-                                        "mrpcd3x1bewgf",
-                                        "mrpcd3x1ielq0",
-                                        "mrpcd3x1e9c8y"
-                                    ],
-                      "captainId":  "mrpcd3x1qjr3m"
-                  },
-                  {
-                      "id":  "team007",
-                      "name":  "Green Legends",
-                      "grupo":  "",
-                      "playerIds":  [
-                                        "mrpcd3x17yo8n",
-                                        "mrpcd3x1j3gno",
-                                        "mrpcd3x1d4sot",
-                                        "mrpcd3x18z73s"
-                                    ],
-                      "captainId":  "mrpcd3x18z73s"
-                  },
-                  {
-                      "id":  "team008",
-                      "name":  "Masters",
-                      "grupo":  "C",
-                      "playerIds":  [
-                                        "mrpcd3x1n5jzv",
-                                        "mrpcd3x1qz56v",
-                                        "mrpcd3x1lbj3x",
-                                        "mrpcd3x1jbuvx"
-                                    ],
-                      "captainId":  "mrpcd3x1n5jzv"
-                  },
-                  {
-                      "id":  "team009",
-                      "name":  "EMJC",
-                      "grupo":  "B",
-                      "playerIds":  [
-                                        "mrpcd3x1f5kxc",
-                                        "mrpcd3x1m5e7w",
-                                        "mrpcd3x1oxz3p",
-                                        "mrpcd3x1hc60d"
-                                    ],
-                      "captainId":  "mrpcd3x1hc60d"
-                  },
-                  {
-                      "id":  "team010",
-                      "name":  "Red Hot Chilli Putters",
-                      "grupo":  "B",
-                      "playerIds":  [
-                                        "mrpcd3x1qg7hm",
-                                        "mrpcd3x1k5alz",
-                                        "mrpcd3x1gfgn3",
-                                        "mrpcd3x1bgfio"
-                                    ],
-                      "captainId":  "mrpcd3x1qg7hm"
-                  },
-                  {
-                      "id":  "team011",
-                      "name":  "Equipa Eleven",
-                      "grupo":  "B",
-                      "playerIds":  [
-                                        "mrpcd3x1e5v5s",
-                                        "mrpcd3x1lkt0z",
-                                        "mrpcd3x1biqia",
-                                        "mrpcd3x1qfh0m"
-                                    ],
-                      "captainId":  "mrpcd3x1biqia"
-                  },
-                  {
-                      "id":  "team012",
-                      "name":  "School",
-                      "grupo":  "D",
-                      "playerIds":  [
-                                        "mrpcd3x1g8qqk",
-                                        "mrpcd3x1ov9aj",
-                                        "mrpcd3x1jj0fn",
-                                        "mrpcd3x1f4iyw"
-                                    ],
-                      "captainId":  "mrpcd3x1g8qqk"
-                  },
-                  {
-                      "id":  "team013",
-                      "name":  "Os 4 no Buraco",
-                      "grupo":  "A",
-                      "playerIds":  [
-                                        "mrpcd3x1mpz3q",
-                                        "mrpcd3x1nf4dl",
-                                        "mrpcd3x1i3gvh",
-                                        "mrpcd3x1dxxxx"
-                                    ],
-                      "captainId":  "mrpcd3x1mpz3q"
-                  },
-                  {
-                      "id":  "team014",
-                      "name":  "Old Fashion Team",
-                      "grupo":  "D",
-                      "playerIds":  [
-                                        "mrpcd3x1j7r8q",
-                                        "mrpcd3x1rkq71",
-                                        "mrpcd3x1c5qyz",
-                                        "mrpcd3x1qe0d1"
-                                    ],
-                      "captainId":  "mrpcd3x1j7r8q"
-                  },
-                  {
-                      "id":  "team015",
-                      "name":  "MMLH",
-                      "grupo":  "D",
-                      "playerIds":  [
-                                        "mrpcd3x1mhpgw",
-                                        "mrpcd3x1oibya",
-                                        "mrpcd3x1d8q0b",
-                                        "mrpcd3x1kqxpj"
-                                    ],
-                      "captainId":  "mrpcd3x1mhpgw"
-                  },
-                  {
-                      "id":  "team016",
-                      "name":  "LJMS",
-                      "grupo":  "A",
-                      "playerIds":  [
-                                        "mrpcd3x1p2keb",
-                                        "mrpcd3x1n0ayz",
-                                        "mrpcd3x1hmqrl",
-                                        "mrpcd3x1hmqrl"
-                                    ],
-                      "captainId":  "mrpcd3x1p2keb"
-                  },
-                  {
-                      "id":  "team017",
-                      "name":  "Birdies e Boggies",
-                      "grupo":  "C",
-                      "playerIds":  [
-                                        "mrpcd3x1ec8gr",
-                                        "mrpcd3x1g2pqk",
-                                        "mrpcd3x1i6r9b",
-                                        "mrpcd3x1l8nep"
-                                    ],
-                      "captainId":  "mrpcd3x1ec8gr"
-                  },
-                  {
-                      "id":  "team018",
-                      "name":  "V.T.F.",
-                      "grupo":  "B",
-                      "playerIds":  [
-                                        "mrpcd3x1qvhya",
-                                        "mrpcd3x1jo4yf",
-                                        "mrpcd3x1fcbvj",
-                                        "mrpcd3x1pzxcn"
-                                    ],
-                      "captainId":  "mrpcd3x1qvhya"
-                  },
-                  {
-                      "id":  "team019",
-                      "name":  "AMVJ",
-                      "grupo":  "B",
-                      "playerIds":  [
-                                        "mrpcd3x1xxxx1",
-                                        "mrpcd3x1xxxx2",
-                                        "mrpcd3x1xxxx3",
-                                        "mrpcd3x1xxxx4"
-                                    ],
-                      "captainId":  "mrpcd3x1xxxx1"
-                  }
-              ],
-    "strokeIndex":  [
-                        13,
-                        17,
-                        1,
-                        7,
-                        4,
-                        2,
-                        11,
-                        15,
-                        12,
-                        5,
-                        16,
-                        10,
-                        14,
-                        9,
-                        3,
-                        8,
-                        18,
-                        6
-                    ]
+  "players": [
+    {
+      "id": "mrpcd3x1pn305",
+      "name": "Charles Mc Donald",
+      "handicapWhs": -4,
+      "handicap": -1,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1nnj2q",
+      "name": "Guy Xie",
+      "handicapWhs": 2,
+      "handicap": 5,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1h0l18",
+      "name": "Gabriel Guerreiro",
+      "handicapWhs": -2,
+      "handicap": -1,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1ha3vw",
+      "name": "Gabriel Macedo",
+      "handicapWhs": 21,
+      "handicap": 23,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1efzv0",
+      "name": "Higino Moreira",
+      "handicapWhs": -3,
+      "handicap": -3,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1l481y",
+      "name": "António Casanova",
+      "handicapWhs": -1,
+      "handicap": -1,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x18281c",
+      "name": "Franquelim Moreira",
+      "handicapWhs": -8,
+      "handicap": -7,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1cjcgn",
+      "name": "Paulo Cubal",
+      "handicapWhs": 5,
+      "handicap": 9,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x180mbt",
+      "name": "José Luís Veloso",
+      "handicapWhs": 12,
+      "handicap": 16,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1eky1j",
+      "name": "Amílcar Neiva",
+      "handicapWhs": 19,
+      "handicap": 19,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1m7cke",
+      "name": "Adelaide Figueiredo",
+      "handicapWhs": -10,
+      "handicap": -10,
+      "genero": "F"
+    },
+    {
+      "id": "mrpcd3x180cuf",
+      "name": "Paulo Pereira",
+      "handicapWhs": -7,
+      "handicap": -7,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1dm2ug",
+      "name": "Alberto Quintas",
+      "handicapWhs": 29,
+      "handicap": 29,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1nqirr",
+      "name": "Filipe Quintas",
+      "handicapWhs": 2,
+      "handicap": 5,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1h2cl0",
+      "name": "Luís Amorim Teixeira",
+      "handicapWhs": 25,
+      "handicap": 28,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1im42z",
+      "name": "Nuno Poiarez",
+      "handicapWhs": 0,
+      "handicap": 3,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1m77y6",
+      "name": "Isaque Guimarães",
+      "handicapWhs": 4,
+      "handicap": 4,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1hjgrw",
+      "name": "Alexandre Melo",
+      "handicapWhs": 12,
+      "handicap": 16,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1b5bqt",
+      "name": "Tiago Rocha",
+      "handicapWhs": 19,
+      "handicap": 19,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x154b2v",
+      "name": "Pedro Moutinho",
+      "handicapWhs": 2,
+      "handicap": 2,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1qjr3m",
+      "name": "Luís Costa",
+      "handicapWhs": -5,
+      "handicap": -3,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1bewgf",
+      "name": "Natália Pereira",
+      "handicapWhs": -6,
+      "handicap": -4,
+      "genero": "F"
+    },
+    {
+      "id": "mrpcd3x1ielq0",
+      "name": "José António Pereira",
+      "handicapWhs": 2,
+      "handicap": 5,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1e9c8y",
+      "name": "Isaque Guimarães Jr",
+      "handicapWhs": 18,
+      "handicap": 18,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x17yo8n",
+      "name": "Adelino Caldeira",
+      "handicapWhs": 5,
+      "handicap": 8,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1j3gno",
+      "name": "Moura Gonçalves",
+      "handicapWhs": -2,
+      "handicap": 0,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1d4sot",
+      "name": "Vasco Costa",
+      "handicapWhs": -9,
+      "handicap": -9,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x18z73s",
+      "name": "Jorge Aires",
+      "handicapWhs": 11,
+      "handicap": 13,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1n5jzv",
+      "name": "José Correia",
+      "handicapWhs": -2,
+      "handicap": 1,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1qz56v",
+      "name": "Carlos Corte-Real",
+      "handicapWhs": 1,
+      "handicap": 3,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1lbj3x",
+      "name": "José Vale",
+      "handicapWhs": -8,
+      "handicap": -7,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1jbuvx",
+      "name": "Filipe Costa",
+      "handicapWhs": 0,
+      "handicap": 4,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1f5kxc",
+      "name": "Elisabete Teles",
+      "handicapWhs": -5,
+      "handicap": -3,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1m5e7w",
+      "name": "Maria do Carmo",
+      "handicapWhs": 0,
+      "handicap": 2,
+      "genero": "F"
+    },
+    {
+      "id": "mrpcd3x1oxz3p",
+      "name": "José Vila",
+      "handicapWhs": 10,
+      "handicap": 14,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1hc60d",
+      "name": "Carlos Figueiredo da Silva",
+      "handicapWhs": 7,
+      "handicap": 9,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1qg7hm",
+      "name": "Hélder Ferreira",
+      "handicapWhs": 22,
+      "handicap": 22,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1k5alz",
+      "name": "José Rui Rodrigues",
+      "handicapWhs": 21,
+      "handicap": 24,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1gfgn3",
+      "name": "Orlando Leite",
+      "handicapWhs": 22,
+      "handicap": 24,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1bgfio",
+      "name": "José Santos",
+      "handicapWhs": 8,
+      "handicap": 11,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1e5v5s",
+      "name": "Manuel Rodrigues",
+      "handicapWhs": 24,
+      "handicap": 25,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1lkt0z",
+      "name": "Rui Feijóo",
+      "handicapWhs": -10,
+      "handicap": -10,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1biqia",
+      "name": "Manuel Rodrigues Jr",
+      "handicapWhs": 16,
+      "handicap": 19,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1qfh0m",
+      "name": "Luís Perez",
+      "handicapWhs": -9,
+      "handicap": -8,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1g8qqk",
+      "name": "Manuel Castro",
+      "handicapWhs": 26,
+      "handicap": 28,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1ov9aj",
+      "name": "Afonso Poiarez",
+      "handicapWhs": 14,
+      "handicap": 16,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1jj0fn",
+      "name": "Edgar Gomes",
+      "handicapWhs": 18,
+      "handicap": 21,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1f4iyw",
+      "name": "André Von Hafe",
+      "handicapWhs": -5,
+      "handicap": -2,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1mpz3q",
+      "name": "Afonso Polery",
+      "handicapWhs": 28,
+      "handicap": 30,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1nf4dl",
+      "name": "Tó",
+      "handicapWhs": -6,
+      "handicap": -8,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1i3gvh",
+      "name": "Gabriel Guimarães",
+      "handicapWhs": 23,
+      "handicap": 26,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1j7r8q",
+      "name": "Carlos Silva Santos",
+      "handicapWhs": 3,
+      "handicap": 5,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1rkq71",
+      "name": "Manuel Pereira Mendes",
+      "handicapWhs": 15,
+      "handicap": 18,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1c5qyz",
+      "name": "Henrique Sampaio",
+      "handicapWhs": 6,
+      "handicap": 10,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1qe0d1",
+      "name": "José Eduardo Rocha Almeida",
+      "handicapWhs": 17,
+      "handicap": 19,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1mhpgw",
+      "name": "Martim Quintas",
+      "handicapWhs": -7,
+      "handicap": -5,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1oibya",
+      "name": "Miguel Ramos",
+      "handicapWhs": 11,
+      "handicap": 13,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1d8q0b",
+      "name": "Lourenço Araújo",
+      "handicapWhs": 9,
+      "handicap": 13,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1kqxpj",
+      "name": "Henrique Araújo",
+      "handicapWhs": 28,
+      "handicap": 31,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1p2keb",
+      "name": "Luís Paupério",
+      "handicapWhs": 2,
+      "handicap": 2,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1n0ayz",
+      "name": "Jorge Moura",
+      "handicapWhs": 4,
+      "handicap": 8,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1hmqrl",
+      "name": "Sérgio Lopes",
+      "handicapWhs": 20,
+      "handicap": 23,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1ec8gr",
+      "name": "Luísa Carrilho",
+      "handicapWhs": -3,
+      "handicap": -1,
+      "genero": "F"
+    },
+    {
+      "id": "mrpcd3x1g2pqk",
+      "name": "Maria de Fátima Costa",
+      "handicapWhs": 6,
+      "handicap": 9,
+      "genero": "F"
+    },
+    {
+      "id": "mrpcd3x1i6r9b",
+      "name": "Mário Paiva",
+      "handicapWhs": 21,
+      "handicap": 25,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1l8nep",
+      "name": "David Angelis",
+      "handicapWhs": 10,
+      "handicap": 13,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1qvhya",
+      "name": "José Nogueira",
+      "handicapWhs": 32,
+      "handicap": 35,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1jo4yf",
+      "name": "Alberto Amaral",
+      "handicapWhs": 35,
+      "handicap": 36,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1fcbvj",
+      "name": "Jorge Martins",
+      "handicapWhs": 0,
+      "handicap": 2,
+      "genero": "M"
+    },
+    {
+      "id": "mrpcd3x1pzxcn",
+      "name": "Ruben Santos",
+      "handicapWhs": 25,
+      "handicap": 28,
+      "genero": "M"
+    },
+    {
+      "id": "mrqtbdhsnvidl",
+      "name": "Júlio Brito",
+      "handicapWhs": 12,
+      "handicap": 13,
+      "genero": "M"
+    },
+    {
+      "id": "mrqtl1gb1gx7r",
+      "name": "Manel Maia",
+      "handicapWhs": 12,
+      "handicap": 13,
+      "genero": "M"
+    },
+    {
+      "id": "mrqtlvqo8pawb",
+      "name": "Bruno Portela",
+      "handicapWhs": 13,
+      "handicap": 14,
+      "genero": "M"
+    },
+    {
+      "id": "mrqtmeey6jrrt",
+      "name": "José Barroso",
+      "handicapWhs": 14,
+      "handicap": 15,
+      "genero": "M"
+    },
+    {
+      "id": "mrqtmsrzooood",
+      "name": "Francisco Falcão",
+      "handicapWhs": 9,
+      "handicap": 9,
+      "genero": "M"
+    }
+  ],
+  "teams": [
+    {
+      "id": "team001",
+      "name": "CGGG",
+      "grupo": "A",
+      "playerIds": [
+        "mrpcd3x1pn305",
+        "mrpcd3x1nnj2q",
+        "mrpcd3x1h0l18",
+        "mrpcd3x1ha3vw"
+      ],
+      "captainId": "mrpcd3x1pn305"
+    },
+    {
+      "id": "team002",
+      "name": "Os Craques",
+      "grupo": "A",
+      "playerIds": [
+        "mrpcd3x1efzv0",
+        "mrpcd3x1l481y",
+        "mrpcd3x18281c",
+        "mrpcd3x1cjcgn"
+      ],
+      "captainId": "mrpcd3x1efzv0"
+    },
+    {
+      "id": "team003",
+      "name": "Os Golfinhos",
+      "grupo": "C",
+      "playerIds": [
+        "mrpcd3x180mbt",
+        "mrpcd3x1eky1j",
+        "mrpcd3x1m7cke",
+        "mrpcd3x180cuf"
+      ],
+      "captainId": "mrpcd3x180mbt"
+    },
+    {
+      "id": "team004",
+      "name": "Estela Birdies",
+      "grupo": "A",
+      "playerIds": [
+        "mrpcd3x1dm2ug",
+        "mrpcd3x1nqirr",
+        "mrpcd3x1h2cl0",
+        "mrpcd3x1im42z"
+      ],
+      "captainId": "mrpcd3x1h2cl0"
+    },
+    {
+      "id": "team005",
+      "name": "Piratas",
+      "grupo": "C",
+      "playerIds": [
+        "mrpcd3x1m77y6",
+        "mrpcd3x1hjgrw",
+        "mrpcd3x1b5bqt",
+        "mrpcd3x154b2v"
+      ],
+      "captainId": "mrpcd3x154b2v"
+    },
+    {
+      "id": "team006",
+      "name": "Golfistas da Madrugada",
+      "grupo": "D",
+      "playerIds": [
+        "mrpcd3x1qjr3m",
+        "mrpcd3x1bewgf",
+        "mrpcd3x1ielq0",
+        "mrpcd3x1e9c8y"
+      ],
+      "captainId": "mrpcd3x1qjr3m"
+    },
+    {
+      "id": "team007",
+      "name": "Green Legends",
+      "grupo": "B",
+      "playerIds": [
+        "mrpcd3x17yo8n",
+        "mrpcd3x1j3gno",
+        "mrpcd3x1d4sot",
+        "mrpcd3x18z73s"
+      ],
+      "captainId": "mrpcd3x18z73s"
+    },
+    {
+      "id": "team008",
+      "name": "Masters",
+      "grupo": "C",
+      "playerIds": [
+        "mrpcd3x1n5jzv",
+        "mrpcd3x1qz56v",
+        "mrpcd3x1lbj3x",
+        "mrpcd3x1jbuvx"
+      ],
+      "captainId": "mrpcd3x1n5jzv"
+    },
+    {
+      "id": "team009",
+      "name": "EMJC",
+      "grupo": "B",
+      "playerIds": [
+        "mrpcd3x1f5kxc",
+        "mrpcd3x1m5e7w",
+        "mrpcd3x1oxz3p",
+        "mrpcd3x1hc60d"
+      ],
+      "captainId": "mrpcd3x1hc60d"
+    },
+    {
+      "id": "team010",
+      "name": "Red Hot Chilli Putters",
+      "grupo": "B",
+      "playerIds": [
+        "mrpcd3x1qg7hm",
+        "mrpcd3x1k5alz",
+        "mrpcd3x1gfgn3",
+        "mrpcd3x1bgfio"
+      ],
+      "captainId": "mrpcd3x1qg7hm"
+    },
+    {
+      "id": "team011",
+      "name": "Equipa Eleven",
+      "grupo": "B",
+      "playerIds": [
+        "mrpcd3x1e5v5s",
+        "mrpcd3x1lkt0z",
+        "mrpcd3x1biqia",
+        "mrpcd3x1qfh0m"
+      ],
+      "captainId": "mrpcd3x1biqia"
+    },
+    {
+      "id": "team012",
+      "name": "School",
+      "grupo": "D",
+      "playerIds": [
+        "mrpcd3x1g8qqk",
+        "mrpcd3x1ov9aj",
+        "mrpcd3x1jj0fn",
+        "mrpcd3x1f4iyw"
+      ],
+      "captainId": "mrpcd3x1g8qqk"
+    },
+    {
+      "id": "team013",
+      "name": "Os 4 no Buraco",
+      "grupo": "A",
+      "playerIds": [
+        "mrpcd3x1mpz3q",
+        "mrpcd3x1i3gvh",
+        "mrqtbdhsnvidl",
+        "mrpcd3x1nf4dl"
+      ],
+      "captainId": "mrpcd3x1mpz3q"
+    },
+    {
+      "id": "team014",
+      "name": "Old Fashion Team",
+      "grupo": "D",
+      "playerIds": [
+        "mrpcd3x1j7r8q",
+        "mrpcd3x1rkq71",
+        "mrpcd3x1c5qyz",
+        "mrpcd3x1qe0d1"
+      ],
+      "captainId": "mrpcd3x1j7r8q"
+    },
+    {
+      "id": "team015",
+      "name": "MMLH",
+      "grupo": "D",
+      "playerIds": [
+        "mrpcd3x1mhpgw",
+        "mrpcd3x1oibya",
+        "mrpcd3x1d8q0b",
+        "mrpcd3x1kqxpj"
+      ],
+      "captainId": "mrpcd3x1mhpgw"
+    },
+    {
+      "id": "team016",
+      "name": "Os Últimos",
+      "grupo": "A",
+      "playerIds": [
+        "mrpcd3x1n0ayz",
+        "mrpcd3x1p2keb",
+        "mrpcd3x1e5v5s",
+        "mrpcd3x1hmqrl"
+      ],
+      "captainId": "mrpcd3x1p2keb"
+    },
+    {
+      "id": "team017",
+      "name": "Birdies e Boggies",
+      "grupo": "C",
+      "playerIds": [
+        "mrpcd3x1ec8gr",
+        "mrpcd3x1g2pqk",
+        "mrpcd3x1i6r9b",
+        "mrpcd3x1l8nep"
+      ],
+      "captainId": "mrpcd3x1ec8gr"
+    },
+    {
+      "id": "team018",
+      "name": "V.T.F.",
+      "grupo": "B",
+      "playerIds": [
+        "mrpcd3x1qvhya",
+        "mrpcd3x1jo4yf",
+        "mrpcd3x1fcbvj",
+        "mrpcd3x1pzxcn"
+      ],
+      "captainId": "mrpcd3x1qvhya"
+    },
+    {
+      "id": "mrqto89whovdg",
+      "name": "Jacaré",
+      "playerIds": [
+        "mrqtlvqo8pawb",
+        "mrqtmsrzooood",
+        "mrqtmeey6jrrt",
+        "mrqtl1gb1gx7r"
+      ],
+      "captainId": "mrqtlvqo8pawb",
+      "grupo": "C"
+    }
+  ],
+  "strokeIndex": [
+    13,
+    17,
+    1,
+    7,
+    4,
+    2,
+    11,
+    15,
+    12,
+    5,
+    16,
+    10,
+    14,
+    9,
+    3,
+    8,
+    18,
+    6
+  ],
+  "gameResults": [
+    {
+      "ronda": 1,
+      "par": 1,
+      "home": "Equipa Eleven",
+      "away": "EMJC",
+      "result": "away"
+    },
+    {
+      "ronda": 1,
+      "par": 2,
+      "home": "Equipa Eleven",
+      "away": "EMJC",
+      "result": "away"
+    },
+    {
+      "ronda": 1,
+      "par": 1,
+      "home": "Green Legends",
+      "away": "V.T.F.",
+      "result": "away"
+    },
+    {
+      "ronda": 1,
+      "par": 2,
+      "home": "Green Legends",
+      "away": "V.T.F.",
+      "result": "away"
+    },
+    {
+      "ronda": 2,
+      "par": 1,
+      "home": "V.T.F.",
+      "away": "Red Hot Chilli Putters",
+      "result": "home"
+    },
+    {
+      "ronda": 1,
+      "par": 1,
+      "home": "Birdies e Boggies",
+      "away": "Jacaré",
+      "result": "home"
+    },
+    {
+      "ronda": 1,
+      "par": 2,
+      "home": "Birdies e Boggies",
+      "away": "Jacaré",
+      "result": "home"
+    },
+    {
+      "ronda": 1,
+      "par": 1,
+      "home": "Os Golfinhos",
+      "away": "Piratas",
+      "result": null
+    },
+    {
+      "ronda": 1,
+      "par": 2,
+      "home": "Os Golfinhos",
+      "away": "Piratas",
+      "result": null
+    },
+    {
+      "ronda": 4,
+      "par": 1,
+      "home": "Jacaré",
+      "away": "Piratas",
+      "result": "away"
+    },
+    {
+      "ronda": 4,
+      "par": 2,
+      "home": "Jacaré",
+      "away": "Piratas",
+      "result": "away"
+    }
+  ],
+  "calendar": [
+    {
+      "ronda": 1,
+      "grupo": "A",
+      "par": 1,
+      "home": "Os 4 no Buraco",
+      "away": "Estela Birdies"
+    },
+    {
+      "ronda": 1,
+      "grupo": "A",
+      "par": 2,
+      "home": "Os 4 no Buraco",
+      "away": "Estela Birdies"
+    },
+    {
+      "ronda": 1,
+      "grupo": "B",
+      "par": 1,
+      "home": "Equipa Eleven",
+      "away": "EMJC"
+    },
+    {
+      "ronda": 1,
+      "grupo": "B",
+      "par": 2,
+      "home": "Equipa Eleven",
+      "away": "EMJC"
+    },
+    {
+      "ronda": 1,
+      "grupo": "C",
+      "par": 1,
+      "home": "Birdies e Boggies",
+      "away": "Jacaré"
+    },
+    {
+      "ronda": 1,
+      "grupo": "C",
+      "par": 2,
+      "home": "Birdies e Boggies",
+      "away": "Jacaré"
+    },
+    {
+      "ronda": 1,
+      "grupo": "C",
+      "par": 1,
+      "home": "Os Golfinhos",
+      "away": "Piratas"
+    },
+    {
+      "ronda": 1,
+      "grupo": "C",
+      "par": 2,
+      "home": "Os Golfinhos",
+      "away": "Piratas"
+    },
+    {
+      "ronda": 1,
+      "grupo": "D",
+      "par": 1,
+      "home": "MMLH",
+      "away": "School"
+    },
+    {
+      "ronda": 1,
+      "grupo": "D",
+      "par": 2,
+      "home": "MMLH",
+      "away": "School"
+    },
+    {
+      "ronda": 1,
+      "grupo": "D",
+      "par": 1,
+      "home": "Golfistas da Madrugada",
+      "away": "Old Fashion Team"
+    },
+    {
+      "ronda": 1,
+      "grupo": "D",
+      "par": 2,
+      "home": "Golfistas da Madrugada",
+      "away": "Old Fashion Team"
+    },
+    {
+      "ronda": 2,
+      "grupo": "A",
+      "par": 1,
+      "home": "Os Craques",
+      "away": "Os 4 no Buraco"
+    },
+    {
+      "ronda": 2,
+      "grupo": "A",
+      "par": 2,
+      "home": "Os Craques",
+      "away": "Os 4 no Buraco"
+    },
+    {
+      "ronda": 2,
+      "grupo": "B",
+      "par": 1,
+      "home": "V.T.F.",
+      "away": "Red Hot Chilli Putters"
+    },
+    {
+      "ronda": 2,
+      "grupo": "B",
+      "par": 2,
+      "home": "V.T.F.",
+      "away": "Red Hot Chilli Putters"
+    },
+    {
+      "ronda": 2,
+      "grupo": "C",
+      "par": 1,
+      "home": "Birdies e Boggies",
+      "away": "Os Golfinhos"
+    },
+    {
+      "ronda": 2,
+      "grupo": "C",
+      "par": 2,
+      "home": "Birdies e Boggies",
+      "away": "Os Golfinhos"
+    },
+    {
+      "ronda": 2,
+      "grupo": "D",
+      "par": 1,
+      "home": "MMLH",
+      "away": "Golfistas da Madrugada"
+    },
+    {
+      "ronda": 2,
+      "grupo": "D",
+      "par": 2,
+      "home": "MMLH",
+      "away": "Golfistas da Madrugada"
+    },
+    {
+      "ronda": 2,
+      "grupo": "D",
+      "par": 1,
+      "home": "School",
+      "away": "Old Fashion Team"
+    },
+    {
+      "ronda": 2,
+      "grupo": "D",
+      "par": 2,
+      "home": "School",
+      "away": "Old Fashion Team"
+    },
+    {
+      "ronda": 3,
+      "grupo": "A",
+      "par": 1,
+      "home": "Os Craques",
+      "away": "Estela Birdies"
+    },
+    {
+      "ronda": 3,
+      "grupo": "A",
+      "par": 2,
+      "home": "Os Craques",
+      "away": "Estela Birdies"
+    },
+    {
+      "ronda": 3,
+      "grupo": "A",
+      "par": 1,
+      "home": "Os 4 no Buraco",
+      "away": "CGGG"
+    },
+    {
+      "ronda": 3,
+      "grupo": "A",
+      "par": 2,
+      "home": "Os 4 no Buraco",
+      "away": "CGGG"
+    },
+    {
+      "ronda": 3,
+      "grupo": "B",
+      "par": 1,
+      "home": "Equipa Eleven",
+      "away": "Red Hot Chilli Putters"
+    },
+    {
+      "ronda": 3,
+      "grupo": "B",
+      "par": 2,
+      "home": "Equipa Eleven",
+      "away": "Red Hot Chilli Putters"
+    },
+    {
+      "ronda": 3,
+      "grupo": "C",
+      "par": 1,
+      "home": "Masters",
+      "away": "Os Golfinhos"
+    },
+    {
+      "ronda": 3,
+      "grupo": "C",
+      "par": 2,
+      "home": "Masters",
+      "away": "Os Golfinhos"
+    },
+    {
+      "ronda": 3,
+      "grupo": "D",
+      "par": 1,
+      "home": "MMLH",
+      "away": "Old Fashion Team"
+    },
+    {
+      "ronda": 3,
+      "grupo": "D",
+      "par": 2,
+      "home": "MMLH",
+      "away": "Old Fashion Team"
+    },
+    {
+      "ronda": 3,
+      "grupo": "D",
+      "par": 1,
+      "home": "School",
+      "away": "Golfistas da Madrugada"
+    },
+    {
+      "ronda": 3,
+      "grupo": "D",
+      "par": 2,
+      "home": "School",
+      "away": "Golfistas da Madrugada"
+    },
+    {
+      "ronda": 4,
+      "grupo": "A",
+      "par": 1,
+      "home": "Os Craques",
+      "away": "CGGG"
+    },
+    {
+      "ronda": 4,
+      "grupo": "A",
+      "par": 2,
+      "home": "Os Craques",
+      "away": "CGGG"
+    },
+    {
+      "ronda": 4,
+      "grupo": "B",
+      "par": 1,
+      "home": "V.T.F.",
+      "away": "EMJC"
+    },
+    {
+      "ronda": 4,
+      "grupo": "B",
+      "par": 2,
+      "home": "V.T.F.",
+      "away": "EMJC"
+    },
+    {
+      "ronda": 4,
+      "grupo": "C",
+      "par": 1,
+      "home": "Birdies e Boggies",
+      "away": "Masters"
+    },
+    {
+      "ronda": 4,
+      "grupo": "C",
+      "par": 2,
+      "home": "Birdies e Boggies",
+      "away": "Masters"
+    },
+    {
+      "ronda": 4,
+      "grupo": "C",
+      "par": 1,
+      "home": "Jacaré",
+      "away": "Piratas"
+    },
+    {
+      "ronda": 4,
+      "grupo": "C",
+      "par": 2,
+      "home": "Jacaré",
+      "away": "Piratas"
+    },
+    {
+      "ronda": 1,
+      "grupo": "B",
+      "par": 1,
+      "home": "Green Legends",
+      "away": "V.T.F."
+    },
+    {
+      "ronda": 1,
+      "grupo": "B",
+      "par": 2,
+      "home": "Green Legends",
+      "away": "V.T.F."
+    },
+    {
+      "ronda": 1,
+      "grupo": "A",
+      "par": 1,
+      "home": "Os Últimos",
+      "away": "Os Craques"
+    },
+    {
+      "ronda": 1,
+      "grupo": "A",
+      "par": 2,
+      "home": "Os Últimos",
+      "away": "Os Craques"
+    },
+    {
+      "ronda": 2,
+      "grupo": "A",
+      "par": 1,
+      "home": "CGGG",
+      "away": "Os Últimos"
+    },
+    {
+      "ronda": 2,
+      "grupo": "A",
+      "par": 2,
+      "home": "CGGG",
+      "away": "Os Últimos"
+    },
+    {
+      "ronda": 2,
+      "grupo": "C",
+      "par": 1,
+      "home": "Masters",
+      "away": "Piratas"
+    },
+    {
+      "ronda": 2,
+      "grupo": "C",
+      "par": 2,
+      "home": "Masters",
+      "away": "Piratas"
+    },
+    {
+      "ronda": 3,
+      "grupo": "B",
+      "par": 1,
+      "home": "EMJC",
+      "away": "Green Legends"
+    },
+    {
+      "ronda": 3,
+      "grupo": "B",
+      "par": 2,
+      "home": "EMJC",
+      "away": "Green Legends"
+    },
+    {
+      "ronda": 2,
+      "grupo": "B",
+      "par": 1,
+      "home": "Equipa Eleven",
+      "away": "Green Legends"
+    },
+    {
+      "ronda": 2,
+      "grupo": "B",
+      "par": 2,
+      "home": "Equipa Eleven",
+      "away": "Green Legends"
+    },
+    {
+      "ronda": 4,
+      "grupo": "B",
+      "par": 1,
+      "home": "Green Legends",
+      "away": "Red Hot Chilli Putters"
+    },
+    {
+      "ronda": 4,
+      "grupo": "B",
+      "par": 2,
+      "home": "Green Legends",
+      "away": "Red Hot Chilli Putters"
+    },
+    {
+      "ronda": 4,
+      "grupo": "A",
+      "par": 1,
+      "home": "Os Últimos",
+      "away": "Estela Birdies"
+    },
+    {
+      "ronda": 4,
+      "grupo": "A",
+      "par": 2,
+      "home": "Os Últimos",
+      "away": "Estela Birdies"
+    },
+    {
+      "ronda": 5,
+      "grupo": "A",
+      "par": 1,
+      "home": "Os Últimos",
+      "away": "Os 4 no Buraco"
+    },
+    {
+      "ronda": 5,
+      "grupo": "A",
+      "par": 2,
+      "home": "Os Últimos",
+      "away": "Os 4 no Buraco"
+    },
+    {
+      "ronda": 5,
+      "grupo": "A",
+      "par": 1,
+      "home": "Estela Birdies",
+      "away": "CGGG"
+    },
+    {
+      "ronda": 5,
+      "grupo": "A",
+      "par": 2,
+      "home": "Estela Birdies",
+      "away": "CGGG"
+    },
+    {
+      "ronda": 5,
+      "grupo": "B",
+      "par": 1,
+      "home": "V.T.F.",
+      "away": "Equipa Eleven"
+    },
+    {
+      "ronda": 5,
+      "grupo": "B",
+      "par": 2,
+      "home": "V.T.F.",
+      "away": "Equipa Eleven"
+    },
+    {
+      "ronda": 5,
+      "grupo": "B",
+      "par": 1,
+      "home": "EMJC",
+      "away": "Red Hot Chilli Putters"
+    },
+    {
+      "ronda": 5,
+      "grupo": "B",
+      "par": 2,
+      "home": "EMJC",
+      "away": "Red Hot Chilli Putters"
+    },
+    {
+      "ronda": 5,
+      "grupo": "C",
+      "par": 1,
+      "home": "Jacaré",
+      "away": "Os Golfinhos"
+    },
+    {
+      "ronda": 5,
+      "grupo": "C",
+      "par": 2,
+      "home": "Jacaré",
+      "away": "Os Golfinhos"
+    },
+    {
+      "ronda": 5,
+      "grupo": "C",
+      "par": 1,
+      "home": "Piratas",
+      "away": "Masters"
+    },
+    {
+      "ronda": 5,
+      "grupo": "C",
+      "par": 2,
+      "home": "Piratas",
+      "away": "Masters"
+    },
+    {
+      "ronda": 3,
+      "grupo": "C",
+      "par": 1,
+      "home": "Birdies e Boggies",
+      "away": "Jacaré"
+    },
+    {
+      "ronda": 3,
+      "grupo": "C",
+      "par": 2,
+      "home": "Birdies e Boggies",
+      "away": "Jacaré"
+    }
+  ]
 }
