@@ -1798,10 +1798,12 @@ function addCalendarMatch() {
 // ════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Sempre carregar o backup do servidor PRIMEIRO (tem prioridade)
+    await loadDataBackup();
+    // Depois carregar dados locais (sobrescreve se existir no localStorage)
     loadState();
     loadGameResults();
     loadCalendar();
-    await loadDataBackup();
     loadAuth();
     initializeTestData();
     initializeCalendar();
