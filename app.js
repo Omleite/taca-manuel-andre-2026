@@ -268,55 +268,70 @@ async function handleGithubSync(e) {
         const filePath = 'data-backup.json';
         const branch = 'master';
 
-        // Obter SHA do ficheiro atual
+        // Obter SHA do ficheiro atual - método simples
         let sha = null;
         try {
-            const getShaRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-                headers: { 
-                    Authorization: `token ${token}`, 
-                    Accept: 'application/vnd.github.v3+json'
+            const response = await fetch(
+                `https://api.github.com/repos/${repo}/contents/${filePath}`,
+                {
+                    headers: { 
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
                 }
-            });
+            );
 
-            if (getShaRes.ok) {
-                const shaData = await getShaRes.json();
-                sha = shaData.sha;
-                console.log('SHA obtido:', sha);
-            } else if (getShaRes.status !== 404) {
-                console.warn('Aviso ao obter SHA:', getShaRes.status);
+            if (response.status === 200) {
+                const data = await response.json();
+                sha = data.sha;
+            } else if (response.status === 404) {
+                // Ficheiro não existe, será criado novo
+                sha = null;
+            } else {
+                throw new Error(`Erro ao obter SHA: ${response.status}`);
             }
         } catch (err) {
-            console.log('Ficheiro não existe ainda, será criado novo.');
+            console.warn('Erro ao obter SHA:', err);
+            // Continuar sem SHA - deixar GitHub gerar erro se necessário
         }
 
-        // Fazer commit
-        const commitBody = {
+        // Preparar body do commit
+        const body = {
             message: `Sincronizar dados: ${new Date().toLocaleString('pt-PT')}`,
             content: encoded,
             branch: branch
         };
 
-        // Adicionar SHA apenas se existir
+        // Adicionar SHA se disponível
         if (sha) {
-            commitBody.sha = sha;
+            body.sha = sha;
         }
 
-        const commitRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-            method: 'PUT',
-            headers: {
-                Authorization: `token ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/vnd.github.v3+json'
-            },
-            body: JSON.stringify(commitBody)
-        });
+        // Fazer commit
+        const commitRes = await fetch(
+            `https://api.github.com/repos/${repo}/contents/${filePath}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                body: JSON.stringify(body)
+            }
+        );
 
         if (!commitRes.ok) {
             const error = await commitRes.json();
-            const msg = error.message || 'Erro desconhecido';
+            let msg = error.message || 'Erro desconhecido';
+            
             if (msg.includes('not accessible')) {
                 throw new Error('Token sem permissões. Crie um novo com scopes: repo');
             }
+            if (msg.includes('sha')) {
+                throw new Error('Erro ao sincronizar - tente novamente em alguns segundos');
+            }
+            
             throw new Error(msg);
         }
 
