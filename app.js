@@ -1741,7 +1741,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadAuth();
     initializeTestData();
     initializeCalendar();
-    await ensureDefaultAdmin();
+    // ensureDefaultAdmin() removed - using fixed admin credentials
 
     initTabs();
     // Renderizar classificação na página inicial (tab por defeito)
