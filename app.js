@@ -271,19 +271,36 @@ async function handleGithubSync(e) {
         // Obter SHA do ficheiro atual
         let sha = null;
         try {
-            const getShaRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`, {
-                headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
+            const getShaRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
+                headers: { 
+                    Authorization: `token ${token}`, 
+                    Accept: 'application/vnd.github.v3+json'
+                }
             });
 
             if (getShaRes.ok) {
                 const shaData = await getShaRes.json();
                 sha = shaData.sha;
+                console.log('SHA obtido:', sha);
+            } else if (getShaRes.status !== 404) {
+                console.warn('Aviso ao obter SHA:', getShaRes.status);
             }
         } catch (err) {
             console.log('Ficheiro não existe ainda, será criado novo.');
         }
 
         // Fazer commit
+        const commitBody = {
+            message: `Sincronizar dados: ${new Date().toLocaleString('pt-PT')}`,
+            content: encoded,
+            branch: branch
+        };
+
+        // Adicionar SHA apenas se existir
+        if (sha) {
+            commitBody.sha = sha;
+        }
+
         const commitRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
             method: 'PUT',
             headers: {
@@ -291,12 +308,7 @@ async function handleGithubSync(e) {
                 'Content-Type': 'application/json',
                 'Accept': 'application/vnd.github.v3+json'
             },
-            body: JSON.stringify({
-                message: `Sincronizar dados: ${new Date().toLocaleString('pt-PT')}`,
-                content: encoded,
-                sha: sha,
-                branch: branch
-            })
+            body: JSON.stringify(commitBody)
         });
 
         if (!commitRes.ok) {
