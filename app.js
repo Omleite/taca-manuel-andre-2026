@@ -1696,31 +1696,46 @@ function renderCalendario() {
             const matchups = new Map();
             grupoGames.forEach(g => {
                 const key = g.home + '|||' + g.away;
-                if (!matchups.has(key)) matchups.set(key, g);
+                if (!matchups.has(key)) matchups.set(key, []);
+                matchups.get(key).push(g);
             });
 
             html += `<div class="grupo-card">
                 <h4 class="grupo-title">Grupo ${grupo}</h4>
                 <ul class="jogos-list">`;
 
-            matchups.forEach((game, key) => {
+            matchups.forEach((games, key) => {
                 const [home, away] = key.split('|||');
                 const homeExists = state.teams.some(t => t.name === home);
                 const awayExists = state.teams.some(t => t.name === away);
                 const invalid = !homeExists || !awayExists;
 
-                // Verificar se este match tem resultado (par 1 ou par 2)
-                const hasResult = state.gameResults.some(
-                    r => r.ronda === ronda && r.home === home && r.away === away && r.result
-                );
+                // Calcular resultado total do confronto (soma dos 2 pares)
+                const results = games.map(g =>
+                    state.gameResults.find(r => r.ronda === ronda && r.par === g.par && r.home === home && r.away === away)
+                ).filter(Boolean);
 
-                html += `<li class="jogo${invalid ? ' jogo-invalid' : ''}${hasResult ? ' jogo-done' : ''}">
-                    <span class="team-home">${esc(home)}</span>
-                    <span class="jogo-vs">VS</span>
-                    <span class="team-away">${esc(away)}</span>
-                    ${invalid ? '<span class="jogo-warning" title="Uma ou ambas as equipas não existem">⚠️</span>' : ''}
-                    ${hasResult ? '<span class="jogo-result-badge">✓</span>' : ''}
-                    ${isAdmin() ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
+                const hasAnyResult = results.some(r => r.result);
+
+                // Badges por par
+                const parBadges = games.sort((a, b) => a.par - b.par).map(g => {
+                    const res = state.gameResults.find(r => r.ronda === ronda && r.par === g.par && r.home === home && r.away === away);
+                    if (!res || !res.result) return `<span class="par-badge par-pending">Par ${g.par}: por jogar</span>`;
+                    if (res.result === 'home') return `<span class="par-badge par-home-win">Par ${g.par}: <strong>${esc(home)}</strong> venceu</span>`;
+                    if (res.result === 'away') return `<span class="par-badge par-away-win">Par ${g.par}: <strong>${esc(away)}</strong> venceu</span>`;
+                    if (res.result === 'draw')  return `<span class="par-badge par-draw">Par ${g.par}: Empate</span>`;
+                    return '';
+                }).join('');
+
+                html += `<li class="jogo${invalid ? ' jogo-invalid' : ''}${hasAnyResult ? ' jogo-done' : ''}">
+                    <div class="jogo-teams">
+                        <span class="team-home">${esc(home)}</span>
+                        <span class="jogo-vs">VS</span>
+                        <span class="team-away">${esc(away)}</span>
+                        ${invalid ? '<span class="jogo-warning" title="Uma ou ambas as equipas não existem">⚠️</span>' : ''}
+                        ${isAdmin() ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
+                    </div>
+                    ${hasAnyResult ? `<div class="jogo-pars">${parBadges}</div>` : ''}
                 </li>`;
             });
 
