@@ -417,14 +417,14 @@ body {
 .nav-auth { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; margin-left: .5rem; }
 
 .btn-nav-login {
-    font-family: var(--font-head); font-size: .75rem; font-weight: 700;
-    letter-spacing: .06em; text-transform: uppercase;
-    padding: .4rem 1rem; border-radius: var(--r-sm); cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0.25rem 0.5rem; cursor: pointer;
     background: transparent; color: var(--accent-lt);
-    border: 1.5px solid rgba(181,137,42,.5);
-    transition: background .15s, border-color .15s;
+    border: none;
+    transition: opacity .15s, transform .15s;
+    display: flex; align-items: center; justify-content: center;
 }
-.btn-nav-login:hover { background: rgba(181,137,42,.12); border-color: var(--accent-lt); }
+.btn-nav-login:hover { opacity: 0.7; transform: scale(1.1); }
 
 .nav-user { display: flex; align-items: center; gap: .5rem; }
 
