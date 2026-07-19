@@ -1031,6 +1031,7 @@ function printStrokeTable() {
     
     // Clonar a tabela para não modificar a original
     const tableClone = table.cloneNode(true);
+    const tableHtml = tableClone.outerHTML;
     
     // Criar uma nova janela
     const printWindow = window.open('', '', 'width=1000,height=600');
@@ -1050,6 +1051,17 @@ function printStrokeTable() {
                 .match-meta { border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 12px; margin: 12px 0 14px; background: #f8fafc; }
                 .match-meta p { margin: 4px 0; font-size: 12px; color: #334155; }
                 .match-meta strong { color: #0f172a; }
+                .print-ticket { margin-bottom: 18px; }
+                .cut-line {
+                    margin: 16px 0 18px;
+                    border-top: 2px dashed #9ca3af;
+                    text-align: center;
+                    color: #6b7280;
+                    font-size: 11px;
+                    padding-top: 6px;
+                    letter-spacing: 0.06em;
+                    text-transform: uppercase;
+                }
                 table { width: 100%; border-collapse: collapse; margin-top: 20px; }
                 th, td { border: 1px solid #999; padding: 8px; text-align: center; font-size: 12px; }
                 th { background-color: #e8f5e9; font-weight: bold; color: #2d5016; }
@@ -1062,26 +1074,41 @@ function printStrokeTable() {
                     body { padding: 0; }
                     table { margin-top: 10px; }
                     th, td { padding: 6px; font-size: 11px; }
+                    .print-ticket { break-inside: avoid; }
+                    .cut-line { break-inside: avoid; }
                 }
             </style>
         </head>
         <body>
-            <h1>⛳ Distribuição por Buracos</h1>
-            <div class="print-info">Taça Manuel André 2026 · Estela Golf Club</div>
-            <div class="match-meta">
-                <p><strong>${roundText}</strong> · <strong>${groupText}</strong> · <strong>${parText}</strong></p>
-                <p><strong>Equipa A:</strong> ${esc(teamAText)} | <strong>Par A:</strong> ${esc(pairAText)}</p>
-                <p><strong>Equipa B:</strong> ${esc(teamBText)} | <strong>Par B:</strong> ${esc(pairBText)}</p>
-            </div>
-    `);
-    
-    // Adicionar a tabela
-    printWindow.document.write(tableClone.outerHTML);
-    
-    printWindow.document.write(`
-            <p style="margin-top: 20px; font-size: 11px; color: #666;">
-                <strong>Legenda:</strong> Os buracos a verde (●) recebem pancada(s) de abono. Múltiplos pontos (●●) indicam múltiplas pancadas no mesmo buraco.
-            </p>
+            <section class="print-ticket">
+                <h1>⛳ Distribuição por Buracos</h1>
+                <div class="print-info">Taça Manuel André 2026 · Estela Golf Club</div>
+                <div class="match-meta">
+                    <p><strong>${roundText}</strong> · <strong>${groupText}</strong> · <strong>${parText}</strong></p>
+                    <p><strong>Equipa A:</strong> ${esc(teamAText)} | <strong>Par A:</strong> ${esc(pairAText)}</p>
+                    <p><strong>Equipa B:</strong> ${esc(teamBText)} | <strong>Par B:</strong> ${esc(pairBText)}</p>
+                </div>
+                ${tableHtml}
+                <p style="margin-top: 20px; font-size: 11px; color: #666;">
+                    <strong>Legenda:</strong> Os buracos a verde (●) recebem pancada(s) de abono. Múltiplos pontos (●●) indicam múltiplas pancadas no mesmo buraco.
+                </p>
+            </section>
+
+            <div class="cut-line">Linha de recorte</div>
+
+            <section class="print-ticket">
+                <h1>⛳ Distribuição por Buracos</h1>
+                <div class="print-info">Taça Manuel André 2026 · Estela Golf Club</div>
+                <div class="match-meta">
+                    <p><strong>${roundText}</strong> · <strong>${groupText}</strong> · <strong>${parText}</strong></p>
+                    <p><strong>Equipa A:</strong> ${esc(teamAText)} | <strong>Par A:</strong> ${esc(pairAText)}</p>
+                    <p><strong>Equipa B:</strong> ${esc(teamBText)} | <strong>Par B:</strong> ${esc(pairBText)}</p>
+                </div>
+                ${tableHtml}
+                <p style="margin-top: 20px; font-size: 11px; color: #666;">
+                    <strong>Legenda:</strong> Os buracos a verde (●) recebem pancada(s) de abono. Múltiplos pontos (●●) indicam múltiplas pancadas no mesmo buraco.
+                </p>
+            </section>
         </body>
         </html>
     `);
