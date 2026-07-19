@@ -1256,6 +1256,7 @@ function setGameResult(ronda, par, home, away, result) {
 
 function calculateStandings(ronda, accumulate) {
     // ronda: número da ronda; accumulate: true = soma todas as rondas até ronda
+    console.log(`calculateStandings called: ronda=${ronda} (type: ${typeof ronda}), accumulate=${accumulate}`);
     
     const standings = { A: [], B: [], C: [], D: [] };
     
