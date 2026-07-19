@@ -73,6 +73,29 @@
     </div>
 </div>
 
+<!-- ══ GITHUB SYNC MODAL ═════════════════════════════════════════ -->
+<div id="githubSyncModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="githubSyncTitle">
+    <div class="modal-box">
+        <button class="modal-close" id="btnCloseGithubSync" aria-label="Fechar">×</button>
+        <h2 id="githubSyncTitle" style="margin: 0 0 1rem 0; font-size: 1.3rem; color: var(--txt-head);">Sincronizar com GitHub</h2>
+        <p style="color: var(--txt-light); margin-bottom: 1rem; font-size: 0.9rem;">Para sincronizar as alterações automaticamente com o repositório, introduza um GitHub Personal Access Token.</p>
+        <form id="githubSyncForm" novalidate>
+            <div class="form-field">
+                <label for="githubToken">Personal Access Token</label>
+                <input type="password" id="githubToken" placeholder="ghp_..." spellcheck="false" autocomplete="off">
+                <p style="font-size: 0.8rem; color: var(--txt-light); margin-top: 0.5rem;">
+                    <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">Gerar token no GitHub</a> (scopes: repo)
+                </p>
+            </div>
+            <p class="github-sync-error hidden" id="githubSyncError" style="color: var(--red); margin: 0.5rem 0; font-size: 0.9rem;"></p>
+            <div class="form-footer">
+                <button type="button" class="btn btn-ghost" id="btnCancelGithubSync">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Sincronizar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- ══ HERO BANNER ═════════════════════════════════════════════ -->
 <section class="site-hero">
     <div class="hero-inner">
@@ -419,6 +442,7 @@
             <div class="form-footer">
                 <button class="btn btn-ghost" id="btnExport">↓ Exportar JSON</button>
                 <button class="btn btn-ghost" id="btnImport">↑ Importar JSON</button>
+                <button class="btn btn-primary" id="btnSyncGithub">☁ Sincronizar GitHub</button>
                 <button class="btn btn-danger" id="btnClearAll">Limpar Tudo</button>
             </div>
             <input type="file" id="importFile" accept=".json" class="hidden">
