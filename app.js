@@ -242,7 +242,6 @@ async function handleGithubSync(e) {
         const dataToExport = {
             players: state.players,
             teams: state.teams,
-            strokeIndex: state.strokeIndex,
             gameResults: state.gameResults,
             calendar: state.calendar
         };
@@ -341,8 +340,8 @@ function loadState() {
         const parsed = JSON.parse(raw);
         state.players     = Array.isArray(parsed.players) ? parsed.players : [];
         state.teams       = Array.isArray(parsed.teams)   ? parsed.teams   : [];
-        state.strokeIndex = Array.isArray(parsed.strokeIndex) && parsed.strokeIndex.length === 18
-            ? parsed.strokeIndex : [...DEFAULT_SI];
+        // SI é fixo do Estela Golf Club (não editável via JSON)
+        state.strokeIndex = [...DEFAULT_SI];
     } catch (e) { console.error('Erro ao carregar dados:', e); }
 }
 
@@ -354,11 +353,17 @@ async function loadDataBackup() {
         
         const data = await response.json();
         if (data.players && data.teams) {
-            // Carregar dados do servidor
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            // Carregar dados do servidor (sem permitir SI customizado)
+            const sanitizedData = {
+                players: data.players,
+                teams: data.teams,
+                gameResults: data.gameResults || [],
+                calendar: data.calendar || []
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizedData));
             state.players = data.players;
             state.teams = data.teams;
-            state.strokeIndex = data.strokeIndex || [...DEFAULT_SI];
+            state.strokeIndex = [...DEFAULT_SI];
             state.gameResults = data.gameResults || [];
             state.calendar = data.calendar || [];
             console.log('✓ Dados carregados do backup no servidor.');
@@ -436,7 +441,13 @@ function initializeTestData() {
 }
 
 function saveState() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const dataToSave = {
+        players: state.players,
+        teams: state.teams,
+        gameResults: state.gameResults,
+        calendar: state.calendar
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1062,30 +1073,7 @@ function renderSIGrids() {
 }
 
 function siCell(idx) {
-    return `<div class="si-cell"><span class="hole-num">B${idx+1}</span><input type="number" id="si-${idx}" value="${state.strokeIndex[idx]}" min="1" max="18"></div>`;
-}
-
-function saveSI() {
-    if (!isAdmin()) return;
-    const vals = [];
-    for (let i = 0; i < 18; i++) {
-        const v = parseInt(document.getElementById(`si-${i}`).value, 10);
-        if (isNaN(v) || v < 1 || v > 18) { showToast(`Valor inválido no buraco ${i+1}. Use 1 a 18.`, 'error'); return; }
-        vals.push(v);
-    }
-    if (new Set(vals).size !== 18) { showToast('Os valores de SI devem ser todos diferentes (1 a 18).', 'error'); return; }
-    state.strokeIndex = vals;
-    saveState();
-    showToast('Stroke Index guardado.');
-}
-
-function resetSI() {
-    if (!isAdmin()) return;
-    if (!confirm('Repor o Stroke Index para os valores predefinidos?')) return;
-    state.strokeIndex = [...DEFAULT_SI];
-    saveState();
-    renderSIGrids();
-    showToast('Stroke Index reposto.');
+    return `<div class="si-cell"><span class="hole-num">B${idx+1}</span><input type="number" value="${state.strokeIndex[idx]}" min="1" max="18" disabled></div>`;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1103,7 +1091,6 @@ function exportData() {
     const dataToExport = {
         players: state.players,
         teams: state.teams,
-        strokeIndex: state.strokeIndex,
         gameResults: state.gameResults,
         calendar: state.calendar
     };
@@ -1123,7 +1110,7 @@ function importData(file) {
             const p = JSON.parse(e.target.result);
             if (p.players)     state.players     = p.players;
             if (p.teams)       state.teams       = p.teams;
-            if (p.strokeIndex) state.strokeIndex = p.strokeIndex;
+            state.strokeIndex = [...DEFAULT_SI];
             saveState(); renderPlayers(); renderTeams(); renderSIGrids();
             showToast('Dados importados com sucesso.');
         } catch { showToast('Ficheiro inválido ou corrompido.', 'error'); }
@@ -1856,8 +1843,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Configurações
-    document.getElementById('btnSaveSI').addEventListener('click', saveSI);
-    document.getElementById('btnResetSI').addEventListener('click', resetSI);
     document.getElementById('btnExport').addEventListener('click', exportData);
     document.getElementById('btnImport').addEventListener('click', () => document.getElementById('importFile').click());
     document.getElementById('importFile').addEventListener('change', e => { importData(e.target.files[0]); e.target.value=''; });
