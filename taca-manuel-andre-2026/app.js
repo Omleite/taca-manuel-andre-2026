@@ -12,6 +12,35 @@ const SALT        = 'egc:tma:2026:estela';
 const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 6];
 
 // ════════════════════════════════════════════════════════════
+//  CÁLCULO DE HCP DE JOGO (fórmula WHS oficial)
+// ════════════════════════════════════════════════════════════
+//  HCP Jogo = round(WHS × SR/113 + (CR − Par))  — capped a 36
+//
+//  Estela · Homens  · Amarelas  CR: 71,2  SR: 128  Par: 72
+//  Estela · Senhoras· Vermelhas CR: 73,7  SR: 126  Par: 72
+
+function calculateGameHandicap(whs, genero) {
+    if (whs === null || whs === undefined || isNaN(whs)) return 0;
+    const whsNum = parseFloat(whs);
+    let ph;
+    if (genero === 'F') {
+        // Vermelhas: CR 73,7 / SR 126 / Par 72
+        ph = Math.round(whsNum * (126 / 113) + (73.7 - 72));
+    } else {
+        // Amarelas: CR 71,2 / SR 128 / Par 72
+        ph = Math.round(whsNum * (128 / 113) + (71.2 - 72));
+    }
+    return Math.min(ph, 36); // Máximo 36 neste torneio
+}
+
+// Recalcular todos os HCP de Jogo baseado no WHS
+function recalculateAllGameHandicaps() {
+    state.players.forEach(p => {
+        p.handicap = calculateGameHandicap(p.handicapWhs, p.genero);
+    });
+}
+
+// ════════════════════════════════════════════════════════════
 //  ESTADO
 // ════════════════════════════════════════════════════════════
 
@@ -19,30 +48,24 @@ let state = {
     players: [],
     teams: [],
     strokeIndex: [...DEFAULT_SI],
-    gameResults: []  // Array de resultados de jogos: { ronda, grupo, homeTeam, awayTeam, result }
+    gameResults: [],  // Array de resultados de jogos
+    calendar: []      // Calendário editável de jogos
 };
 
 let authState = {
-    users:       [],
-    currentUser: null
+    currentUser: null,
+    adminPassword: 'estela2026'  // Password fixo para admin
 };
 
 // ════════════════════════════════════════════════════════════
 //  AUTENTICAÇÃO
 // ════════════════════════════════════════════════════════════
 
-async function hashPassword(password) {
-    const data = new TextEncoder().encode(SALT + password + SALT);
-    const buf  = await crypto.subtle.digest('SHA-256', data);
-    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 function loadAuth() {
     try {
         const raw = localStorage.getItem(AUTH_KEY);
         if (raw) {
             const p = JSON.parse(raw);
-            authState.users       = Array.isArray(p.users) ? p.users : [];
             authState.currentUser = p.currentUser || null;
         }
     } catch (e) { console.error('loadAuth:', e); }
@@ -52,32 +75,16 @@ function saveAuth() {
     localStorage.setItem(AUTH_KEY, JSON.stringify(authState));
 }
 
-async function ensureDefaultAdmin() {
-    if (!authState.users.length) {
-        authState.users.push({
-            id:           genId(),
-            username:     'admin',
-            displayName:  'Administrador',
-            passwordHash: await hashPassword('estela2026'),
-            role:         'admin',
-            createdAt:    new Date().toISOString()
-        });
-        saveAuth();
-    }
-}
-
 const isLoggedIn = () => !!authState.currentUser;
-const isAdmin    = () => authState.currentUser?.role === 'admin';
+const isAdmin    = () => isLoggedIn();
 
-async function doLogin(username, password) {
-    const hash = await hashPassword(password);
-    const user = authState.users.find(
-        u => u.username.toLowerCase() === username.toLowerCase() && u.passwordHash === hash
-    );
-    if (!user) return false;
-    authState.currentUser = { id: user.id, username: user.username, displayName: user.displayName || user.username, role: user.role };
-    saveAuth();
-    return true;
+function doLogin(username, password) {
+    if (username === 'admin' && password === authState.adminPassword) {
+        authState.currentUser = { username: 'admin', displayName: 'Administrador', role: 'admin' };
+        saveAuth();
+        return true;
+    }
+    return false;
 }
 
 function doLogout() {
@@ -90,43 +97,39 @@ function doLogout() {
 // ── UI Auth ──────────────────────────────────────────────────
 
 function updateAuthUI() {
-    const loggedIn = isLoggedIn();
-    const admin    = isAdmin();
+    const admin = isAdmin();
+    console.log('[updateAuthUI] admin =', admin, ', currentUser =', authState.currentUser);
 
     // Nav
-    document.getElementById('btnOpenLogin').classList.toggle('hidden', loggedIn);
-    document.getElementById('navUser').classList.toggle('hidden', !loggedIn);
-    if (loggedIn) {
+    document.getElementById('btnOpenLogin').classList.toggle('hidden', admin);
+    document.getElementById('navUser').classList.toggle('hidden', !admin);
+    if (admin) {
         document.getElementById('navUsername').textContent = authState.currentUser.displayName;
-        const badge = document.getElementById('navUserRole');
-        badge.textContent = admin ? 'Admin' : 'User';
-        badge.className   = 'nav-role-badge ' + (admin ? 'badge-admin' : 'badge-user');
     }
 
-    // Botões de adicionar: só para autenticados
+    // Botões de adicionar: só para admin
     const addPlayerBtn = document.getElementById('btnShowPlayerForm');
     const addTeamBtn   = document.getElementById('btnShowTeamForm');
-    addPlayerBtn.classList.toggle('hidden', !loggedIn);
-    addTeamBtn.classList.toggle('hidden', !loggedIn);
+    addPlayerBtn.classList.toggle('hidden', !admin);
+    addTeamBtn.classList.toggle('hidden', !admin);
 
-    // Esconder formulários se sessão terminou
-    if (!loggedIn) {
+    // Esconder formulários se logout
+    if (!admin) {
         document.getElementById('playerForm').classList.add('hidden');
         document.getElementById('teamForm').classList.add('hidden');
     }
 
     // Secções admin-only
-    document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !admin));
-
-    // Secções auth-only (qualquer utilizador autenticado)
-    document.querySelectorAll('.auth-only').forEach(el => el.classList.toggle('hidden', !loggedIn));
+    const adminOnlyEls = document.querySelectorAll('.admin-only');
+    console.log('[updateAuthUI] Found', adminOnlyEls.length, 'admin-only elements');
+    adminOnlyEls.forEach(el => {
+        el.classList.toggle('hidden', !admin);
+        console.log('[updateAuthUI] Element:', el.textContent?.trim(), '-> hidden:', el.classList.contains('hidden'));
+    });
 
     // Re-render listas para actualizar botões editar/apagar
     renderPlayers();
     renderTeams();
-
-    // Admin: render utilizadores
-    if (admin) renderUsers();
 }
 
 // ── Modal Login ───────────────────────────────────────────────
@@ -144,7 +147,7 @@ function closeLoginModal() {
     document.getElementById('loginModal').classList.add('hidden');
 }
 
-async function handleLogin(e) {
+function handleLogin(e) {
     e.preventDefault();
     const username  = document.getElementById('loginUsername').value.trim();
     const password  = document.getElementById('loginPassword').value;
@@ -163,7 +166,7 @@ async function handleLogin(e) {
     submitBtn.textContent = 'A verificar…';
 
     try {
-        const ok = await doLogin(username, password);
+        const ok = doLogin(username, password);
         if (ok) {
             closeLoginModal();
             updateAuthUI();
@@ -180,88 +183,152 @@ async function handleLogin(e) {
     }
 }
 
-// ── Gestão de utilizadores (admin) ───────────────────────────
+// ── Modal Sincronização GitHub ────────────────────────────────
 
-function renderUsers() {
-    const el = document.getElementById('usersList');
-    if (!el) return;
-    if (!authState.users.length) {
-        el.innerHTML = '<p style="font-size:.85rem;color:var(--txt-light);padding:.25rem 0">Nenhum utilizador.</p>';
+function openGithubSyncModal() {
+    document.getElementById('githubSyncModal').classList.remove('hidden');
+    document.getElementById('githubToken').value = localStorage.getItem('gh-token') || '';
+    document.getElementById('githubSyncError').classList.add('hidden');
+    document.getElementById('githubSyncError').textContent = '';
+    setTimeout(() => document.getElementById('githubToken').focus(), 50);
+}
+
+function closeGithubSyncModal() {
+    document.getElementById('githubSyncModal').classList.add('hidden');
+}
+
+async function handleGithubSync(e) {
+    e.preventDefault();
+    const token = document.getElementById('githubToken').value.trim();
+    const errEl = document.getElementById('githubSyncError');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+
+    errEl.classList.add('hidden');
+
+    if (!token) {
+        errEl.textContent = 'Introduza um GitHub Personal Access Token.';
+        errEl.classList.remove('hidden');
         return;
     }
-    el.innerHTML = authState.users.map(u => `
-        <div class="user-item">
-            <div class="user-info">
-                <span class="user-name">${esc(u.displayName || u.username)}</span>
-                <span class="user-meta">@${esc(u.username)}</span>
-            </div>
-            <span class="nav-role-badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role === 'admin' ? 'Admin' : 'User'}</span>
-            <div class="user-actions">
-                ${authState.currentUser?.id === u.id
-                    ? '<span class="current-user-tag">← sessão activa</span>'
-                    : `<button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')">✕</button>`
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'A sincronizar…';
+
+    try {
+        // Suporta tokens clássicos (ghp_) e fine-grained (github_pat_)
+        // GitHub aceita tanto "token" como "Bearer" mas fine-grained requer "Bearer"
+        const authHeader = `Bearer ${token}`;
+
+        // Verificar se o token é válido
+        const validRes = await fetch('https://api.github.com/user', {
+            headers: { 
+                'Authorization': authHeader,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+
+        if (!validRes.ok) {
+            throw new Error('Token inválido ou expirado. Crie um novo em https://github.com/settings/tokens');
+        }
+
+        // Guardar token no localStorage
+        localStorage.setItem('gh-token', token);
+
+        // Sincronizar dados
+        saveState();
+        saveGameResults();
+        saveCalendar();
+
+        const dataToExport = {
+            players: state.players,
+            teams: state.teams,
+            strokeIndex: state.strokeIndex,
+            gameResults: state.gameResults,
+            calendar: state.calendar
+        };
+
+        const content = JSON.stringify(dataToExport, null, 2);
+        const encoded = btoa(unescape(encodeURIComponent(content))); // Base64 encode com UTF-8
+
+        // GitHub API - actualizar ficheiro
+        const repo = 'Omleite/taca-manuel-andre-2026';
+        const filePath = 'data-backup.json';
+        const branch = 'master';
+
+        // Obter SHA do ficheiro atual - forçar sem cache
+        let sha = null;
+        const shaRes = await fetch(
+            `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}&t=${Date.now()}`,
+            {
+                headers: { 
+                    'Authorization': authHeader,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Cache-Control': 'no-cache'
                 }
-            </div>
-        </div>
-    `).join('');
-}
+            }
+        );
 
-async function saveNewUser() {
-    const displayName = document.getElementById('inputNewDisplayName').value.trim();
-    const username    = document.getElementById('inputNewUsername').value.trim();
-    const password    = document.getElementById('inputNewPassword').value;
-    const role        = document.getElementById('inputNewRole').value;
+        if (shaRes.status === 200) {
+            const shaData = await shaRes.json();
+            sha = shaData.sha;
+        } else if (shaRes.status === 404) {
+            sha = null; // Ficheiro não existe, será criado
+        } else {
+            const shaErr = await shaRes.json().catch(() => ({}));
+            throw new Error(`Erro ao obter SHA do ficheiro (${shaRes.status}): ${shaErr.message || ''}`);
+        }
 
-    if (!username)          { showToast('Insira o nome de utilizador.', 'error'); return; }
-    if (password.length < 6){ showToast('A palavra-passe deve ter pelo menos 6 caracteres.', 'error'); return; }
-    if (!/^[a-z0-9._-]+$/i.test(username)) { showToast('O nome de utilizador só pode conter letras, números, . _ -', 'error'); return; }
-    if (authState.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-        showToast('Esse nome de utilizador já existe.', 'error'); return;
+        // Preparar body do commit
+        const body = {
+            message: `Sincronizar dados: ${new Date().toLocaleString('pt-PT')}`,
+            content: encoded,
+            branch: branch
+        };
+        if (sha) body.sha = sha;
+
+        // Fazer commit
+        const commitRes = await fetch(
+            `https://api.github.com/repos/${repo}/contents/${filePath}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': authHeader,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                body: JSON.stringify(body)
+            }
+        );
+
+        if (!commitRes.ok) {
+            const error = await commitRes.json().catch(() => ({}));
+            let msg = error.message || 'Erro desconhecido';
+            
+            if (msg.includes('not accessible') || commitRes.status === 403) {
+                throw new Error('Token sem permissões. Selecione "Contents: Read and write" ao criar o token.');
+            }
+            if (msg.includes('sha') || msg.includes('does not match')) {
+                throw new Error('Conflito de versão. Tente novamente - o ficheiro foi alterado entretanto.');
+            }
+            
+            throw new Error(`GitHub API (${commitRes.status}): ${msg}`);
+        }
+
+        closeGithubSyncModal();
+        showToast('✅ Dados sincronizados com sucesso!');
+    } catch (err) {
+        errEl.textContent = `Erro: ${err.message}`;
+        errEl.classList.remove('hidden');
+        console.error('GitHub sync error:', err);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sincronizar';
     }
-
-    const hash = await hashPassword(password);
-    authState.users.push({ id: genId(), username, displayName: displayName || username, passwordHash: hash, role, createdAt: new Date().toISOString() });
-    saveAuth();
-    document.getElementById('newUserForm').classList.add('hidden');
-    document.getElementById('inputNewDisplayName').value = '';
-    document.getElementById('inputNewUsername').value    = '';
-    document.getElementById('inputNewPassword').value    = '';
-    renderUsers();
-    showToast('Utilizador criado.');
 }
 
-function deleteUser(id) {
-    const user = authState.users.find(u => u.id === id);
-    if (!user) return;
-    if (!confirm(`Eliminar o utilizador "${esc(user.displayName || user.username)}"?`)) return;
-    authState.users = authState.users.filter(u => u.id !== id);
-    saveAuth();
-    renderUsers();
-    showToast('Utilizador eliminado.');
-}
+// ── Gestão de utilizadores (admin) ───────────────────────────
 
-async function changeOwnPassword() {
-    const currentPwd = document.getElementById('inputCurrentPwd').value;
-    const newPwd     = document.getElementById('inputNewPwd').value;
-    const confirmPwd = document.getElementById('inputConfirmPwd').value;
-
-    if (!currentPwd || !newPwd || !confirmPwd) { showToast('Preencha todos os campos.', 'error'); return; }
-    if (newPwd !== confirmPwd) { showToast('As palavras-passe não coincidem.', 'error'); return; }
-    if (newPwd.length < 6)    { showToast('A nova palavra-passe deve ter pelo menos 6 caracteres.', 'error'); return; }
-
-    const currentHash = await hashPassword(currentPwd);
-    const idx = authState.users.findIndex(u => u.id === authState.currentUser.id);
-    if (idx === -1 || authState.users[idx].passwordHash !== currentHash) {
-        showToast('Palavra-passe actual incorrecta.', 'error'); return;
-    }
-
-    authState.users[idx].passwordHash = await hashPassword(newPwd);
-    saveAuth();
-    document.getElementById('inputCurrentPwd').value = '';
-    document.getElementById('inputNewPwd').value     = '';
-    document.getElementById('inputConfirmPwd').value = '';
-    showToast('Palavra-passe alterada com sucesso.');
-}
+// (Gestão de users removida - apenas admin fixo)
 
 // ════════════════════════════════════════════════════════════
 //  PERSISTÊNCIA (dados do torneio)
@@ -280,22 +347,25 @@ function loadState() {
 }
 
 async function loadDataBackup() {
-    // Tenta carregar dados do arquivo backup.json se localStorage estiver vazio
+    // Sempre tenta carregar o backup mais recente do servidor
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) return; // Já tem dados no localStorage
-        
-        const response = await fetch('data-backup.json');
-        if (!response.ok) return;
+        const response = await fetch('data-backup.json?t=' + Date.now()); // Cache busting
+        if (!response.ok) return false;
         
         const data = await response.json();
         if (data.players && data.teams) {
+            // Carregar dados do servidor
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
             state.players = data.players;
             state.teams = data.teams;
             state.strokeIndex = data.strokeIndex || [...DEFAULT_SI];
+            state.gameResults = data.gameResults || [];
+            state.calendar = data.calendar || [];
+            console.log('✓ Dados carregados do backup no servidor.');
+            return true;
         }
-    } catch (e) { console.error('Erro ao carregar backup:', e); }
+    } catch (e) { console.error('✗ Erro ao carregar backup:', e); }
+    return false;
 }
 
 function initializeTestData() {
@@ -411,10 +481,11 @@ function initTabs() {
             document.getElementById(`tab-${target}`).classList.add('active');
             if (target === 'calcular') refreshCalcSelects();
             if (target === 'config')   { renderSIGrids(); if (isAdmin()) renderUsers(); }
-            if (target === 'grupos')   { if (isAdmin()) renderGrupos(); }
+            if (target === 'grupos')   { renderGrupos(); }
+            if (target === 'calendario') renderCalendario();
             if (target === 'classificacao') { 
-                const ronda = parseInt(document.getElementById('selRondaClass').value, 10) || 1;
-                renderClassificacao(ronda);
+                const val = document.getElementById('selRondaClass').value;
+                renderClassificacao(val === 'total' ? 'total' : (parseInt(val, 10) || 1));
             }
         });
     });
@@ -437,9 +508,10 @@ function renderPlayers() {
     el.innerHTML = sorted.map(p => `
         <div class="card player-card">
             <div class="player-info">
-                <span class="player-name">${esc(p.name)}</span>
+                <span class="player-name">${esc(p.name)} <span class="player-gender-symbol">${p.genero === 'M' ? '♂' : p.genero === 'F' ? '♀' : ''}</span></span>
+                <span class="player-fednum">${p.numeroFederado ? `FPG: ${esc(p.numeroFederado)}` : '—'}</span>
                 <div class="player-handicaps">
-                    <span class="player-hcp">WHS: <strong>${p.handicapWhs || '—'}</strong></span>
+                    <span class="player-hcp">WHS: <strong>${p.handicapWhs !== undefined && p.handicapWhs !== null && p.handicapWhs !== '' ? parseFloat(p.handicapWhs).toFixed(1) : '—'}</strong></span>
                     <span class="player-hcp">Jogo: <strong>${p.handicap}</strong></span>
                 </div>
             </div>
@@ -456,9 +528,12 @@ function openAddPlayer() {
     if (!isLoggedIn()) { openLoginModal(); return; }
     document.getElementById('playerFormTitle').textContent = 'Novo Jogador';
     document.getElementById('inputPlayerName').value = '';
+    document.getElementById('inputPlayerName').value = '';
+    document.getElementById('inputPlayerNumFederado').value = '';
     document.getElementById('inputPlayerHcpWhs').value = '';
-    document.getElementById('inputPlayerHcp').value  = '';
+    document.getElementById('inputPlayerGenero').value = '';
     document.getElementById('playerEditId').value    = '';
+    document.getElementById('displayPlayerHcp').textContent = '—';
     document.getElementById('playerForm').classList.remove('hidden');
     document.getElementById('inputPlayerName').focus();
 }
@@ -469,8 +544,12 @@ function openEditPlayer(id) {
     if (!p) return;
     document.getElementById('playerFormTitle').textContent = 'Editar Jogador';
     document.getElementById('inputPlayerName').value = p.name;
+    document.getElementById('inputPlayerNumFederado').value = p.numeroFederado || '';
     document.getElementById('inputPlayerHcpWhs').value = p.handicapWhs || '';
-    document.getElementById('inputPlayerHcp').value  = p.handicap;
+    document.getElementById('inputPlayerGenero').value = p.genero || '';
+    const calculatedHcp = calculateGameHandicap(p.handicapWhs, p.genero);
+    document.getElementById('displayPlayerHcp').textContent = calculatedHcp !== 0 || p.handicapWhs == 0 ? calculatedHcp : '—';
+    document.getElementById('inputPlayerGenero').value = p.genero || '';
     document.getElementById('playerEditId').value    = id;
     document.getElementById('playerForm').classList.remove('hidden');
     document.getElementById('inputPlayerName').focus();
@@ -478,24 +557,26 @@ function openEditPlayer(id) {
 
 function savePlayer() {
     if (!isLoggedIn()) { openLoginModal(); return; }
-    const name      = document.getElementById('inputPlayerName').value.trim();
-    const hcpWhsRaw = document.getElementById('inputPlayerHcpWhs').value;
-    const hcpJogoRaw = document.getElementById('inputPlayerHcp').value;
-    const hcpWhs    = parseInt(hcpWhsRaw, 10);
-    const hcpJogo   = parseInt(hcpJogoRaw, 10);
-    const editId    = document.getElementById('playerEditId').value;
+    const name           = document.getElementById('inputPlayerName').value.trim();
+    const numeroFederado = document.getElementById('inputPlayerNumFederado').value.trim();
+    const hcpWhsRaw      = document.getElementById('inputPlayerHcpWhs').value;
+    const genero         = document.getElementById('inputPlayerGenero').value;
+    const hcpWhs         = parseFloat(hcpWhsRaw);
+    const editId         = document.getElementById('playerEditId').value;
 
     if (!name)                            { showToast('Insira o nome do jogador.', 'error');              return; }
     if (hcpWhsRaw === '' || isNaN(hcpWhs))   { showToast('Insira o Handicap WHS válido.', 'error');       return; }
-    if (hcpJogoRaw === '' || isNaN(hcpJogo)) { showToast('Insira o Handicap de Jogo válido.', 'error');    return; }
+    if (!genero)                         { showToast('Selecione o gênero do jogador.', 'error');       return; }
     if (hcpWhs < -10 || hcpWhs > 54)     { showToast('Handicap WHS deve estar entre -10 e 54.', 'error'); return; }
-    if (hcpJogo < -10 || hcpJogo > 54)   { showToast('Handicap de Jogo deve estar entre -10 e 54.', 'error'); return; }
+
+    // Calcular HCP de Jogo automaticamente
+    const hcpJogo = calculateGameHandicap(hcpWhs, genero);
 
     if (editId) {
         const p = getPlayer(editId);
-        if (p) { p.name = name; p.handicapWhs = hcpWhs; p.handicap = hcpJogo; }
+        if (p) { p.name = name; p.numeroFederado = numeroFederado; p.handicapWhs = hcpWhs; p.handicap = hcpJogo; p.genero = genero; }
     } else {
-        state.players.push({ id: genId(), name, handicapWhs: hcpWhs, handicap: hcpJogo });
+        state.players.push({ id: genId(), name, numeroFederado, handicapWhs: hcpWhs, handicap: hcpJogo, genero });
     }
     saveState();
     document.getElementById('playerForm').classList.add('hidden');
@@ -540,19 +621,27 @@ function renderTeams() {
         // Coloca o capitão primeiro
         const sortedPlayers = captain ? [captain, ...otherPlayers] : otherPlayers;
         
+        // Calcular HCP Equipa (média dos HCP de Campo)
+        const teamHcp = sortedPlayers.length > 0 
+            ? (sortedPlayers.reduce((sum, p) => sum + p.handicap, 0) / sortedPlayers.length).toFixed(1)
+            : '—';
+        
         const rows = sortedPlayers.length
             ? sortedPlayers.map(p => {
                 const isCaptain = p.id === t.captainId;
                 return `<li class="team-player-item ${isCaptain ? 'is-captain' : ''}">
                     <span class="name">${isCaptain ? '⭐ ' : ''}${esc(p.name)}</span>
-                    <span class="hcp">HCP ${p.handicap}</span>
+                    <span class="hcp">HCP Campo ${p.handicap}</span>
                 </li>`;
             }).join('')
             : '<li class="team-player-item"><span style="color:#9ca3af">Sem jogadores associados</span></li>';
         return `
             <div class="card team-card">
                 <div class="team-card-header">
-                    <span class="team-name">${esc(t.name)}</span>
+                    <div class="team-header-info">
+                        <span class="team-name">${esc(t.name)}</span>
+                        <span class="team-hcp">HCP: ${teamHcp}</span>
+                    </div>
                     ${isLoggedIn() ? `
                     <div class="team-actions">
                         <button class="btn btn-sm btn-ghost" onclick="openEditTeam('${t.id}')">Editar</button>
@@ -569,8 +658,9 @@ function openAddTeam() {
     if (!state.players.length) { showToast('Adicione jogadores antes de criar equipas.', 'warn'); return; }
     document.getElementById('teamFormTitle').textContent = 'Nova Equipa';
     document.getElementById('inputTeamName').value = '';
+    document.getElementById('inputTeamCaptain').value = '';
     document.getElementById('teamEditId').value    = '';
-    renderTeamPicker([]);
+    renderTeamPicker([], null);
     document.getElementById('teamForm').classList.remove('hidden');
 }
 
@@ -580,23 +670,49 @@ function openEditTeam(id) {
     if (!t) return;
     document.getElementById('teamFormTitle').textContent = 'Editar Equipa';
     document.getElementById('inputTeamName').value = t.name;
+    document.getElementById('inputTeamCaptain').value = t.captainId || '';
     document.getElementById('teamEditId').value    = id;
-    renderTeamPicker(t.playerIds || []);
+    renderTeamPicker(t.playerIds || [], t.captainId || null);
     document.getElementById('teamForm').classList.remove('hidden');
 }
 
-function renderTeamPicker(selected) {
-    const el     = document.getElementById('teamPlayerPicker');
+function renderTeamPicker(selected, captainId) {
+    const editId = document.getElementById('teamEditId').value;
+    const editingTeam = editId ? state.teams.find(t => t.id === editId) : null;
+    
+    // Jogadores que já estão em outras equipas (exceto a equipa que estamos a editar)
+    const occupiedPlayerIds = new Set();
+    state.teams.forEach(t => {
+        if (!editingTeam || t.id !== editingTeam.id) {
+            (t.playerIds || []).forEach(pid => occupiedPlayerIds.add(pid));
+        }
+    });
+    
+    // Renderizar select de capitão com todos os jogadores disponíveis
     const sorted = [...state.players].sort((a, b) => a.name.localeCompare(b.name, 'pt'));
-    el.innerHTML = sorted.map(p => `
-        <label class="picker-item ${selected.includes(p.id) ? 'selected' : ''}">
-            <input type="checkbox" value="${p.id}" ${selected.includes(p.id) ? 'checked' : ''}>
-            <span>${esc(p.name)}</span>
-            <span class="picker-hcp">HCP ${p.handicap}</span>
-        </label>
-    `).join('');
+    const captainSelect = document.getElementById('inputTeamCaptain');
+    captainSelect.innerHTML = '<option value="">— Sem capitão —</option>' + sorted.map(p => 
+        `<option value="${p.id}" ${captainId === p.id ? 'selected' : ''}>${esc(p.name)}</option>`
+    ).join('');
+    
+    // Renderizar picker de jogadores (apenas os não ocupados)
+    const el = document.getElementById('teamPlayerPicker');
+    el.innerHTML = sorted.map(p => {
+        const isOccupied = occupiedPlayerIds.has(p.id);
+        const isSelected = selected.includes(p.id);
+        const isDisabled = isOccupied && !isSelected; // Desabilitar apenas se não estiver selecionado
+        
+        return `
+            <label class="picker-item ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}">
+                <input type="checkbox" value="${p.id}" ${isSelected ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
+                <span>${esc(p.name)}</span>
+                <span class="picker-hcp">HCP ${p.handicap}</span>
+            </label>
+        `;
+    }).join('');
+    
     updatePickerHint();
-    el.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    el.querySelectorAll('input[type="checkbox"]:not(:disabled)').forEach(cb => {
         cb.addEventListener('change', e => {
             e.target.closest('.picker-item').classList.toggle('selected', e.target.checked);
             updatePickerHint();
@@ -619,14 +735,17 @@ function saveTeam() {
     if (!isLoggedIn()) { openLoginModal(); return; }
     const name      = document.getElementById('inputTeamName').value.trim();
     const playerIds = getCheckedPlayerIds();
+    const captainId = document.getElementById('inputTeamCaptain').value || null;
     const editId    = document.getElementById('teamEditId').value;
+    
     if (!name)                   { showToast('Insira o nome da equipa.', 'error');                return; }
     if (playerIds.length !== 4)  { showToast('Seleccione exactamente 4 jogadores.', 'error');    return; }
+    
     if (editId) {
         const t = state.teams.find(t => t.id === editId);
-        if (t) { t.name = name; t.playerIds = playerIds; }
+        if (t) { t.name = name; t.playerIds = playerIds; t.captainId = captainId; }
     } else {
-        state.teams.push({ id: genId(), name, playerIds });
+        state.teams.push({ id: genId(), name, playerIds, captainId });
     }
     saveState();
     document.getElementById('teamForm').classList.add('hidden');
@@ -975,7 +1094,21 @@ function resetSI() {
 
 function exportData() {
     if (!isAdmin()) return;
-    const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    // Sincroniza o state com localStorage antes de exportar
+    saveState();
+    saveGameResults();
+    saveCalendar();
+    
+    // Exporta o state completo incluindo calendar e gameResults
+    const dataToExport = {
+        players: state.players,
+        teams: state.teams,
+        strokeIndex: state.strokeIndex,
+        gameResults: state.gameResults,
+        calendar: state.calendar
+    };
+    
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {type:'application/json'});
     const url  = URL.createObjectURL(blob);
     const a    = Object.assign(document.createElement('a'), {href:url, download:'taca-manuel-andre-2026.json'});
     a.click(); URL.revokeObjectURL(url);
@@ -1011,7 +1144,16 @@ function clearAll() {
 //  CLASSIFICAÇÃO
 // ════════════════════════════════════════════════════════════
 
-// Definição dos jogos (ronda, grupo, equipas)
+// Datas de cada ronda
+const RONDA_DATES = {
+    1: 'Até 21 de Junho',
+    2: 'Até 26 de Julho',
+    3: 'Até 30 de Agosto',
+    4: 'Até 27 de Setembro',
+    5: 'Até 25 de Outubro'
+};
+
+// Calendário inicial predefinido (seed) — editável pelo admin
 const CALENDAR_DATA = [
     // Ronda 1
     { ronda: 1, grupo: 'A', par: 1, home: 'Os Craques', away: 'LJMS' },
@@ -1092,6 +1234,24 @@ const CALENDAR_DATA = [
     { ronda: 5, grupo: 'C', par: 2, home: 'Piratas', away: 'Masters' }
 ];
 
+function saveCalendar() {
+    localStorage.setItem(STORAGE_KEY + '-calendar', JSON.stringify(state.calendar));
+}
+
+function loadCalendar() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY + '-calendar');
+        if (raw) state.calendar = JSON.parse(raw);
+    } catch (e) { console.error('loadCalendar:', e); }
+}
+
+function initializeCalendar() {
+    if (!state.calendar.length) {
+        state.calendar = CALENDAR_DATA.map(g => ({ ...g }));
+        saveCalendar();
+    }
+}
+
 function saveGameResults() {
     localStorage.setItem(STORAGE_KEY + '-results', JSON.stringify(state.gameResults));
 }
@@ -1117,10 +1277,8 @@ function setGameResult(ronda, par, home, away, result) {
     saveGameResults();
 }
 
-function calculateStandings(ronda) {
-    // Retorna objeto: { A: [...], B: [...], etc }
-    // Apenas equipas que existem em state.teams e têm grupo definido
-    // Cada equipa tem { id, name, grupo, points, played, wins, draws, losses }
+function calculateStandings(ronda, accumulate) {
+    // ronda: número da ronda; accumulate: true = soma todas as rondas até ronda
     
     const standings = { A: [], B: [], C: [], D: [] };
     
@@ -1141,7 +1299,10 @@ function calculateStandings(ronda) {
     });
     
     // Calcular pontos baseado nos resultados
-    const games = CALENDAR_DATA.filter(g => g.ronda <= ronda);
+    // accumulate=true: todas as rondas até ronda; false: só a ronda exacta
+    const games = accumulate
+        ? state.calendar.filter(g => g.ronda <= ronda)
+        : state.calendar.filter(g => g.ronda === ronda);
     
     games.forEach(game => {
         const homeTeam = standings[game.grupo].find(t => t.name === game.home);
@@ -1158,11 +1319,11 @@ function calculateStandings(ronda) {
                 const result = gameResult.result;
                 if (result === 'home') {
                     homeTeam.wins++;
-                    homeTeam.points += 2;
+                    homeTeam.points += 3;
                     awayTeam.losses++;
                 } else if (result === 'away') {
                     awayTeam.wins++;
-                    awayTeam.points += 2;
+                    awayTeam.points += 3;
                     homeTeam.losses++;
                 } else if (result === 'draw') {
                     homeTeam.draws++;
@@ -1185,18 +1346,19 @@ function calculateStandings(ronda) {
 function renderClassificacao(ronda) {
     // Recarregar resultados do localStorage
     loadGameResults();
+    const showScheduledGamesColumn = isAdmin();
     
-    const standings = calculateStandings(ronda);
+    // Se ronda === 'total', calcular soma das 5 rondas (acumulado)
+    // Convert ronda to number for comparison (dropdown sends strings like '1', '2', etc.)
+    const standings = ronda === 'total' ? calculateStandings(5, true) : calculateStandings(parseInt(ronda), false);
     let html = '';
-    
-    // Se não é admin, mostrar aviso
-    if (!isAdmin()) {
-        html += `<div class="class-admin-notice">ℹ️ Apenas o administrador pode registar os resultados dos jogos.</div>`;
-    }
     
     Object.keys(standings).sort().forEach(grupo => {
         const teams = standings[grupo];
-        const groupGames = CALENDAR_DATA.filter(g => g.ronda <= ronda && g.grupo === grupo);
+        // Total: acumula todas as rondas; ronda específica: só jogos dessa ronda
+        const groupGames = ronda === 'total'
+            ? state.calendar.filter(g => g.grupo === grupo)
+            : state.calendar.filter(g => g.ronda === ronda && g.grupo === grupo);
         
         html += `
         <div class="class-group">
@@ -1206,7 +1368,7 @@ function renderClassificacao(ronda) {
                     <tr>
                         <th style="width:5%">Pos</th>
                         <th style="width:40%">Equipa</th>
-                        <th style="width:15%">Jogos</th>
+                        ${showScheduledGamesColumn ? '<th style="width:15%">Jogos Agendados</th>' : ''}
                         <th style="width:12%">V</th>
                         <th style="width:12%">E</th>
                         <th style="width:12%">D</th>
@@ -1221,7 +1383,7 @@ function renderClassificacao(ronda) {
                     <tr>
                         <td>${idx + 1}</td>
                         <td><strong>${esc(team.name)}</strong></td>
-                        <td>${team.played}</td>
+                        ${showScheduledGamesColumn ? `<td>${team.played}</td>` : ''}
                         <td>${team.wins}</td>
                         <td>${team.draws}</td>
                         <td>${team.losses}</td>
@@ -1230,10 +1392,19 @@ function renderClassificacao(ronda) {
             `;
         });
         
+        // Mostrar equipas em folga (0 jogos nesta ronda/total)
+        const teamsResting = teams.filter(t => t.played === 0);
+        
         html += `
                 </tbody>
             </table>
         `;
+        
+        if (teamsResting.length > 0) {
+            html += `<div style="margin-top:0.75rem; padding:0.75rem; background:#fef3c7; border-left:3px solid #f59e0b; font-size:0.9rem; color:#78350f;">
+                <strong>Folga:</strong> ${teamsResting.map(t => esc(t.name)).join(', ')}
+            </div>`;
+        }
         
         // Mostrar secção de edição de resultados apenas para administrador
         if (isAdmin()) {
@@ -1309,78 +1480,273 @@ function renderClassificacao(ronda) {
 // ════════════════════════════════════════════════════════════
 
 function renderGrupos() {
-    if (!isAdmin()) return;
-    
     const container = document.getElementById('gruposContainer');
     const grupos = ['A', 'B', 'C', 'D'];
+    const isAdminUser = isAdmin();
     
     let html = '';
     grupos.forEach(g => {
         const teamsInGrupo = state.teams.filter(t => t.grupo === g);
         
-        html += `<div class="grupo-edit-card">
-            <div class="grupo-edit-title">Grupo ${g}</div>`;
-        
-        if (teamsInGrupo.length > 0) {
-            html += `<div class="grupo-teams-list">`;
-            teamsInGrupo.forEach(team => {
-                html += `<div class="grupo-team-item" data-team-id="${team.id}">
-                    <span class="grupo-team-name">${team.name}</span>
-                    <div class="grupo-team-actions">
-                        <button class="btn-grupo-remove" data-team-id="${team.id}" data-grupo="${g}">Remover</button>
-                    </div>
-                </div>`;
+        // MODO ADMIN: Com controles de edição
+        if (isAdminUser) {
+            html += `<div class="grupo-edit-card">
+                <div class="grupo-edit-title">Grupo ${g}</div>`;
+            
+            if (teamsInGrupo.length > 0) {
+                html += `<div class="grupo-teams-list">`;
+                teamsInGrupo.forEach(team => {
+                    html += `<div class="grupo-team-item" data-team-id="${team.id}">
+                        <span class="grupo-team-name">${team.name}</span>
+                        <div class="grupo-team-actions">
+                            <button class="btn-grupo-remove" data-team-id="${team.id}" data-grupo="${g}">Remover</button>
+                        </div>
+                    </div>`;
+                });
+                html += `</div>`;
+            } else {
+                html += `<div class="grupo-empty-msg">Nenhuma equipa neste grupo</div>`;
+            }
+            
+            // Dropdown para adicionar
+            html += `<div class="grupo-add-team">
+                <select class="sel-add-team" data-grupo="${g}">
+                    <option value="">+ Adicionar Equipa</option>`;
+            
+            const teamsSemGrupo = state.teams.filter(t => t.grupo !== g);
+            teamsSemGrupo.forEach(team => {
+                html += `<option value="${team.id}">${team.name}</option>`;
             });
+            
+            html += `</select></div></div>`;
+        } 
+        // MODO VISUALIZAÇÃO: Apenas mostrar (sem edição)
+        else {
+            html += `<div class="grupo-view-card">
+                <div class="grupo-view-title">Grupo ${g}</div>`;
+            
+            if (teamsInGrupo.length > 0) {
+                html += `<div class="grupo-teams-list">`;
+                teamsInGrupo.forEach(team => {
+                    html += `<div class="grupo-team-item view-only">
+                        <span class="grupo-team-name">${team.name}</span>
+                    </div>`;
+                });
+                html += `</div>`;
+            } else {
+                html += `<div class="grupo-empty-msg">Nenhuma equipa neste grupo</div>`;
+            }
+            
             html += `</div>`;
-        } else {
-            html += `<div class="grupo-empty-msg">Nenhuma equipa neste grupo</div>`;
         }
-        
-        // Dropdown para adicionar
-        html += `<div class="grupo-add-team">
-            <select class="sel-add-team" data-grupo="${g}">
-                <option value="">+ Adicionar Equipa</option>`;
-        
-        const teamsSemGrupo = state.teams.filter(t => t.grupo !== g);
-        teamsSemGrupo.forEach(team => {
-            html += `<option value="${team.id}">${team.name}</option>`;
-        });
-        
-        html += `</select></div></div>`;
     });
     
     container.innerHTML = html;
     
-    // Event listeners para remover
-    container.querySelectorAll('.btn-grupo-remove').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const teamId = btn.dataset.teamId;
-            const team = state.teams.find(t => t.id === teamId);
-            if (team) {
-                team.grupo = '';
-                saveState();
-                renderGrupos();
-                showToast(`${team.name} removida do grupo`);
-            }
-        });
-    });
-    
-    // Event listeners para adicionar
-    container.querySelectorAll('.sel-add-team').forEach(sel => {
-        sel.addEventListener('change', () => {
-            const teamId = sel.value;
-            const grupo = sel.dataset.grupo;
-            if (teamId) {
+    // Event listeners APENAS se for admin
+    if (isAdminUser) {
+        // Event listeners para remover
+        container.querySelectorAll('.btn-grupo-remove').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const teamId = btn.dataset.teamId;
                 const team = state.teams.find(t => t.id === teamId);
                 if (team) {
-                    team.grupo = grupo;
+                    team.grupo = '';
                     saveState();
                     renderGrupos();
-                    showToast(`${team.name} adicionada ao Grupo ${grupo}`);
+                    showToast(`${team.name} removida do grupo`);
                 }
-            }
+            });
         });
+        
+        // Event listeners para adicionar
+        container.querySelectorAll('.sel-add-team').forEach(sel => {
+            sel.addEventListener('change', () => {
+                const teamId = sel.value;
+                const grupo = sel.dataset.grupo;
+                if (teamId) {
+                    const team = state.teams.find(t => t.id === teamId);
+                    if (team) {
+                        team.grupo = grupo;
+                        saveState();
+                        renderGrupos();
+                        showToast(`${team.name} adicionada ao Grupo ${grupo}`);
+                    }
+                }
+            });
+        });
+    }
+}
+
+// ════════════════════════════════════════════════════════════
+//  CALENDÁRIO — Interface dinâmica
+// ════════════════════════════════════════════════════════════
+
+function renderCalendario() {
+    const container = document.getElementById('calendarioContainer');
+    if (!container) return;
+
+    const rondes = [1, 2, 3, 4, 5];
+    let html = '';
+
+    rondes.forEach(ronda => {
+        const rondaGames = state.calendar.filter(g => g.ronda === ronda);
+        if (!rondaGames.length) return;
+
+        html += `<div class="ronda-block">
+            <div class="ronda-header">
+                <span class="ronda-num">${ronda}ª Ronda</span>
+                <span class="ronda-date">${RONDA_DATES[ronda] || ''}</span>
+            </div>
+            <div class="grupos-grid">`;
+
+        ['A', 'B', 'C', 'D'].forEach(grupo => {
+            const grupoGames = rondaGames.filter(g => g.grupo === grupo);
+            if (!grupoGames.length) return;
+
+            // Agrupar por confronto (home + away) — cada confronto tem Par 1 e Par 2
+            const matchups = new Map();
+            grupoGames.forEach(g => {
+                const key = g.home + '|||' + g.away;
+                if (!matchups.has(key)) matchups.set(key, []);
+                matchups.get(key).push(g);
+            });
+
+            html += `<div class="grupo-card">
+                <h4 class="grupo-title">Grupo ${grupo}</h4>
+                <ul class="jogos-list">`;
+
+            matchups.forEach((games, key) => {
+                const [home, away] = key.split('|||');
+                const homeExists = state.teams.some(t => t.name === home);
+                const awayExists = state.teams.some(t => t.name === away);
+                const invalid = !homeExists || !awayExists;
+
+                // Calcular resultado total do confronto (soma dos 2 pares)
+                const results = games.map(g =>
+                    state.gameResults.find(r => r.ronda === ronda && r.par === g.par && r.home === home && r.away === away)
+                ).filter(Boolean);
+
+                const hasAnyResult = results.some(r => r.result);
+
+                // Calcular score total (nº pares ganhos por cada equipa)
+                let homeScore = 0, awayScore = 0, drawCount = 0;
+                results.forEach(r => {
+                    if (r.result === 'home') homeScore++;
+                    else if (r.result === 'away') awayScore++;
+                    else if (r.result === 'draw') drawCount++;
+                });
+                const isDraw = hasAnyResult && homeScore === awayScore;
+                const homeWins = homeScore > awayScore;
+                const awayWins = awayScore > homeScore;
+
+                // Badges por par (lado esquerdo = home, lado direito = away)
+                const parBadges = games.sort((a, b) => a.par - b.par).map(g => {
+                    const res = state.gameResults.find(r => r.ronda === ronda && r.par === g.par && r.home === home && r.away === away);
+                    if (!res || !res.result) return `<span class="par-badge par-pending">Par ${g.par}</span><span class="par-badge par-pending">Par ${g.par}</span>`;
+                    if (res.result === 'home') return `<span class="par-badge par-home-win">✓ Par ${g.par}</span><span class="par-badge par-pending">Par ${g.par}</span>`;
+                    if (res.result === 'away') return `<span class="par-badge par-pending">Par ${g.par}</span><span class="par-badge par-away-win">✓ Par ${g.par}</span>`;
+                    if (res.result === 'draw')  return `<span class="par-badge par-draw">= Par ${g.par}</span><span class="par-badge par-draw">= Par ${g.par}</span>`;
+                    return '';
+                }).join('');
+
+                const scoreLabel = hasAnyResult
+                    ? `<span class="jogo-score${isDraw ? ' score-draw' : ''}">${homeScore}–${awayScore}</span>`
+                    : `<span class="jogo-vs">VS</span>`;
+
+                const homeClass = hasAnyResult ? (homeWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
+                const awayClass = hasAnyResult ? (awayWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
+
+                html += `<li class="jogo${invalid ? ' jogo-invalid' : ''}${hasAnyResult ? ' jogo-done' : ''}">
+                    <div class="jogo-teams">
+                        <span class="team-home${homeClass}">${esc(home)}</span>
+                        ${scoreLabel}
+                        <span class="team-away${awayClass}">${esc(away)}</span>
+                        ${invalid ? '<span class="jogo-warning" title="Uma ou ambas as equipas não existem">⚠️</span>' : ''}
+                        ${isAdmin() ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
+                    </div>
+                    ${hasAnyResult ? `<div class="jogo-pars">${parBadges}</div>` : ''}
+                </li>`;
+            });
+
+            html += `</ul></div>`;
+        });
+
+        html += `</div></div>`;
     });
+
+    if (!html) {
+        html = `<div class="empty-state"><p>Calendário vazio. ${isAdmin() ? 'Use o formulário abaixo para adicionar jogos.' : ''}</p></div>`;
+    }
+
+    container.innerHTML = html;
+
+    // Listeners para remover jogos (admin)
+    if (isAdmin()) {
+        container.querySelectorAll('.btn-del-match').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const ronda = parseInt(btn.dataset.ronda, 10);
+                const home = btn.dataset.home;
+                const away = btn.dataset.away;
+                if (!confirm(`Remover "${home} VS ${away}" da Ronda ${ronda}?\n(Remove Par 1 e Par 2)`)) return;
+                state.calendar = state.calendar.filter(
+                    g => !(g.ronda === ronda && g.home === home && g.away === away)
+                );
+                saveCalendar();
+                renderCalendario();
+                showToast(`Jogo removido: ${home} vs ${away}`);
+            });
+        });
+
+        // Actualizar dropdowns do formulário
+        updateAddMatchDropdowns();
+
+        // Mostrar painel de adicionar
+        const panel = document.getElementById('addMatchPanel');
+        if (panel) panel.classList.remove('hidden');
+    } else {
+        const panel = document.getElementById('addMatchPanel');
+        if (panel) panel.classList.add('hidden');
+    }
+}
+
+function updateAddMatchDropdowns() {
+    const grupoEl = document.getElementById('addMatchGrupo');
+    const homeEl  = document.getElementById('addMatchHome');
+    const awayEl  = document.getElementById('addMatchAway');
+    if (!grupoEl || !homeEl || !awayEl) return;
+
+    const grupo = grupoEl.value;
+    const teams = grupo
+        ? state.teams.filter(t => t.grupo === grupo)
+        : state.teams;
+
+    const opts = `<option value="">-- Selecionar --</option>` +
+        teams.map(t => `<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('');
+    homeEl.innerHTML = opts;
+    awayEl.innerHTML = opts;
+}
+
+function addCalendarMatch() {
+    if (!isAdmin()) return;
+    const ronda = parseInt(document.getElementById('addMatchRonda').value, 10);
+    const grupo = document.getElementById('addMatchGrupo').value;
+    const home  = document.getElementById('addMatchHome').value;
+    const away  = document.getElementById('addMatchAway').value;
+
+    if (!home || !away) { showToast('Selecione as duas equipas.', 'error'); return; }
+    if (home === away)  { showToast('As equipas têm de ser diferentes.', 'error'); return; }
+
+    const exists = state.calendar.some(
+        g => g.ronda === ronda && g.home === home && g.away === away
+    );
+    if (exists) { showToast('Este jogo já existe no calendário.', 'error'); return; }
+
+    state.calendar.push({ ronda, grupo, par: 1, home, away });
+    state.calendar.push({ ronda, grupo, par: 2, home, away });
+    saveCalendar();
+    renderCalendario();
+    showToast(`Jogo adicionado: ${home} vs ${away} (Par 1 + Par 2)`);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1388,14 +1754,24 @@ function renderGrupos() {
 // ════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', async () => {
-    loadState();
-    loadGameResults();
-    await loadDataBackup();
+    // Carregar o backup do servidor PRIMEIRO
+    const hasBackupData = await loadDataBackup();
+    // Se não conseguiu carregar do servidor, tenta dados locais
+    if (!hasBackupData) {
+        loadState();
+        loadGameResults();
+        loadCalendar();
+    }
+    // Recalcular todos os handicaps de jogo baseado no WHS
+    recalculateAllGameHandicaps();
     loadAuth();
     initializeTestData();
-    await ensureDefaultAdmin();
+    initializeCalendar();
+    // ensureDefaultAdmin() removed - using fixed admin credentials
 
     initTabs();
+    // Renderizar classificação na página inicial (tab por defeito)
+    renderClassificacao('total');
 
     // Menu burger
     const burger   = document.getElementById('navBurger');
@@ -1420,13 +1796,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (e.target === e.currentTarget) closeLoginModal();
     });
 
+    // GitHub Sync
+    document.getElementById('btnSyncGithub').addEventListener('click', openGithubSyncModal);
+    document.getElementById('btnCloseGithubSync').addEventListener('click', closeGithubSyncModal);
+    document.getElementById('btnCancelGithubSync').addEventListener('click', closeGithubSyncModal);
+    document.getElementById('btnExportAndClose').addEventListener('click', () => { exportData(); closeGithubSyncModal(); });
+    document.getElementById('githubSyncModal').addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeGithubSyncModal();
+    });
+
     // Jogadores
     document.getElementById('btnShowPlayerForm').addEventListener('click', openAddPlayer);
     document.getElementById('btnCancelPlayer').addEventListener('click', () => document.getElementById('playerForm').classList.add('hidden'));
     document.getElementById('btnSavePlayer').addEventListener('click', savePlayer);
     document.getElementById('inputPlayerName').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('inputPlayerHcpWhs').focus(); });
-    document.getElementById('inputPlayerHcpWhs').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('inputPlayerHcp').focus(); });
-    document.getElementById('inputPlayerHcp').addEventListener('keydown',  e => { if (e.key==='Enter') savePlayer(); });
+    
+    // Recalcular HCP de Jogo quando WHS ou Gênero muda
+    function recalcHcp() {
+        const whsRaw = document.getElementById('inputPlayerHcpWhs').value;
+        const generoVal = document.getElementById('inputPlayerGenero').value;
+        if (whsRaw === '' || isNaN(parseFloat(whsRaw))) {
+            document.getElementById('displayPlayerHcp').textContent = '—';
+            return;
+        }
+        const calculatedHcp = calculateGameHandicap(parseFloat(whsRaw), generoVal);
+        document.getElementById('displayPlayerHcp').textContent = calculatedHcp;
+    }
+    document.getElementById('inputPlayerHcpWhs').addEventListener('input', recalcHcp);
+    document.getElementById('inputPlayerGenero').addEventListener('change', recalcHcp);
+    document.getElementById('inputPlayerHcpWhs').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('inputPlayerGenero').focus(); });
+    document.getElementById('inputPlayerGenero').addEventListener('keydown',  e => { if (e.key==='Enter') savePlayer(); });
 
     // Equipas
     document.getElementById('btnShowTeamForm').addEventListener('click', openAddTeam);
@@ -1442,8 +1841,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Classificação
     document.getElementById('selRondaClass').addEventListener('change', (e) => {
-        renderClassificacao(parseInt(e.target.value, 10));
+        const val = e.target.value;
+        renderClassificacao(val === 'total' ? 'total' : parseInt(val, 10));
     });
+
+    // Calendário — formulário de adicionar jogo (admin)
+    const addMatchGrupoEl = document.getElementById('addMatchGrupo');
+    if (addMatchGrupoEl) {
+        addMatchGrupoEl.addEventListener('change', updateAddMatchDropdowns);
+    }
+    const btnAddMatch = document.getElementById('btnAddMatch');
+    if (btnAddMatch) {
+        btnAddMatch.addEventListener('click', addCalendarMatch);
+    }
 
     // Configurações
     document.getElementById('btnSaveSI').addEventListener('click', saveSI);
@@ -1453,13 +1863,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('importFile').addEventListener('change', e => { importData(e.target.files[0]); e.target.value=''; });
     document.getElementById('btnClearAll').addEventListener('click', clearAll);
 
-    // Gestão utilizadores (admin)
-    document.getElementById('btnShowNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.remove('hidden'));
-    document.getElementById('btnCancelNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.add('hidden'));
-    document.getElementById('btnSaveNewUser').addEventListener('click', saveNewUser);
+    // Gestão utilizadores (admin) - REMOVED: saveNewUser not implemented
+    // document.getElementById('btnShowNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.remove('hidden'));
+    // document.getElementById('btnCancelNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.add('hidden'));
+    // document.getElementById('btnSaveNewUser').addEventListener('click', saveNewUser);
 
-    // Alterar palavra-passe
-    document.getElementById('btnChangePwd').addEventListener('click', changeOwnPassword);
+    // Alterar palavra-passe - REMOVED: changeOwnPassword not implemented
+    // document.getElementById('btnChangePwd').addEventListener('click', changeOwnPassword);
 
     // Render inicial
     renderPlayers();
