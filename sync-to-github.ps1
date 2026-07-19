@@ -5,7 +5,7 @@
 
 $projectPath = $PSScriptRoot
 $backupFile  = Join-Path $projectPath "data-backup.json"
-$downloadsPath = [Environment]::GetFolderPath("Downloads")
+$downloadsPath = "$env:USERPROFILE\Downloads"
 
 Write-Host ""
 Write-Host "=======================================" -ForegroundColor Green
