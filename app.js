@@ -502,11 +502,8 @@ function renderPlayers() {
     el.innerHTML = sorted.map(p => `
         <div class="card player-card">
             <div class="player-info">
-                <span class="player-name">${esc(p.name)}</span>
-                ${p.numeroFederado ? `<span class="player-fednum" title="Número Federado FPG">🏌️ ${esc(p.numeroFederado)}</span>` : ''}
-                <div class="player-genero">
-                    <span class="player-gender-badge">${p.genero === 'M' ? '♂ Masculino' : p.genero === 'F' ? '♀ Feminino' : '—'}</span>
-                </div>
+                <span class="player-name">${esc(p.name)} <span class="player-gender-symbol">${p.genero === 'M' ? '♂' : p.genero === 'F' ? '♀' : ''}</span></span>
+                ${p.numeroFederado ? `<span class="player-fednum">FPG: ${esc(p.numeroFederado)}</span>` : ''}
                 <div class="player-handicaps">
                     <span class="player-hcp">WHS: <strong>${p.handicapWhs !== undefined && p.handicapWhs !== null && p.handicapWhs !== '' ? parseFloat(p.handicapWhs).toFixed(1) : '—'}</strong></span>
                     <span class="player-hcp">Jogo: <strong>${p.handicap}</strong></span>
