@@ -204,6 +204,11 @@ body {
     font-family: var(--font-head); font-weight: 700; font-size: .95rem;
     color: var(--txt-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.player-fednum {
+    display: inline-block; font-size: .7rem; color: #666; background: #f0f0f0;
+    padding: 2px 6px; border-radius: 3px; margin-left: 6px; white-space: nowrap;
+    font-family: var(--font-mono); font-weight: 600; letter-spacing: .02em;
+}
 .player-handicaps { display: flex; gap: .75rem; margin-top: 4px; flex-wrap: wrap; }
 .player-hcp {
     font-size: .72rem; color: var(--txt-light); margin-top: 0;

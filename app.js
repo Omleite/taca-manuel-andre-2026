@@ -503,6 +503,7 @@ function renderPlayers() {
         <div class="card player-card">
             <div class="player-info">
                 <span class="player-name">${esc(p.name)}</span>
+                ${p.numeroFederado ? `<span class="player-fednum" title="Número Federado FPG">🏌️ ${esc(p.numeroFederado)}</span>` : ''}
                 <div class="player-genero">
                     <span class="player-gender-badge">${p.genero === 'M' ? '♂ Masculino' : p.genero === 'F' ? '♀ Feminino' : '—'}</span>
                 </div>
@@ -524,6 +525,8 @@ function openAddPlayer() {
     if (!isLoggedIn()) { openLoginModal(); return; }
     document.getElementById('playerFormTitle').textContent = 'Novo Jogador';
     document.getElementById('inputPlayerName').value = '';
+    document.getElementById('inputPlayerName').value = '';
+    document.getElementById('inputPlayerNumFederado').value = '';
     document.getElementById('inputPlayerHcpWhs').value = '';
     document.getElementById('inputPlayerGenero').value = '';
     document.getElementById('playerEditId').value    = '';
@@ -538,6 +541,7 @@ function openEditPlayer(id) {
     if (!p) return;
     document.getElementById('playerFormTitle').textContent = 'Editar Jogador';
     document.getElementById('inputPlayerName').value = p.name;
+    document.getElementById('inputPlayerNumFederado').value = p.numeroFederado || '';
     document.getElementById('inputPlayerHcpWhs').value = p.handicapWhs || '';
     document.getElementById('inputPlayerGenero').value = p.genero || '';
     const calculatedHcp = calculateGameHandicap(p.handicapWhs, p.genero);
@@ -550,11 +554,12 @@ function openEditPlayer(id) {
 
 function savePlayer() {
     if (!isLoggedIn()) { openLoginModal(); return; }
-    const name      = document.getElementById('inputPlayerName').value.trim();
-    const hcpWhsRaw = document.getElementById('inputPlayerHcpWhs').value;
-    const genero    = document.getElementById('inputPlayerGenero').value;
-    const hcpWhs    = parseFloat(hcpWhsRaw);
-    const editId    = document.getElementById('playerEditId').value;
+    const name           = document.getElementById('inputPlayerName').value.trim();
+    const numeroFederado = document.getElementById('inputPlayerNumFederado').value.trim();
+    const hcpWhsRaw      = document.getElementById('inputPlayerHcpWhs').value;
+    const genero         = document.getElementById('inputPlayerGenero').value;
+    const hcpWhs         = parseFloat(hcpWhsRaw);
+    const editId         = document.getElementById('playerEditId').value;
 
     if (!name)                            { showToast('Insira o nome do jogador.', 'error');              return; }
     if (hcpWhsRaw === '' || isNaN(hcpWhs))   { showToast('Insira o Handicap WHS válido.', 'error');       return; }
@@ -566,9 +571,9 @@ function savePlayer() {
 
     if (editId) {
         const p = getPlayer(editId);
-        if (p) { p.name = name; p.handicapWhs = hcpWhs; p.handicap = hcpJogo; p.genero = genero; }
+        if (p) { p.name = name; p.numeroFederado = numeroFederado; p.handicapWhs = hcpWhs; p.handicap = hcpJogo; p.genero = genero; }
     } else {
-        state.players.push({ id: genId(), name, handicapWhs: hcpWhs, handicap: hcpJogo, genero });
+        state.players.push({ id: genId(), name, numeroFederado, handicapWhs: hcpWhs, handicap: hcpJogo, genero });
     }
     saveState();
     document.getElementById('playerForm').classList.add('hidden');
