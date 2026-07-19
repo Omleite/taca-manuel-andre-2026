@@ -98,6 +98,7 @@ function doLogout() {
 
 function updateAuthUI() {
     const admin = isAdmin();
+    console.log('[updateAuthUI] admin =', admin, ', currentUser =', authState.currentUser);
 
     // Nav
     document.getElementById('btnOpenLogin').classList.toggle('hidden', admin);
@@ -119,7 +120,12 @@ function updateAuthUI() {
     }
 
     // Secções admin-only
-    document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !admin));
+    const adminOnlyEls = document.querySelectorAll('.admin-only');
+    console.log('[updateAuthUI] Found', adminOnlyEls.length, 'admin-only elements');
+    adminOnlyEls.forEach(el => {
+        el.classList.toggle('hidden', !admin);
+        console.log('[updateAuthUI] Element:', el.textContent?.trim(), '-> hidden:', el.classList.contains('hidden'));
+    });
 
     // Re-render listas para actualizar botões editar/apagar
     renderPlayers();
