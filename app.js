@@ -450,26 +450,22 @@ async function loadDataBackup() {
     // Sempre tenta carregar o backup mais recente do servidor
     try {
         const response = await fetch('data-backup.json?t=' + Date.now()); // Cache busting
-        if (!response.ok) return;
+        if (!response.ok) return false;
         
         const data = await response.json();
         if (data.players && data.teams) {
-            // Comparar versions: se o backup tem mais dados, usar ele
-            const localRaw = localStorage.getItem(STORAGE_KEY);
-            const localData = localRaw ? JSON.parse(localRaw) : null;
-            
-            // Se não temos dados locais, ou o backup é mais recente/completo, usar o backup
-            if (!localData || !localData.teams?.length || data.teams.length > localData.teams.length) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                state.players = data.players;
-                state.teams = data.teams;
-                state.strokeIndex = data.strokeIndex || [...DEFAULT_SI];
-                state.gameResults = data.gameResults || [];
-                state.calendar = data.calendar || [];
-                console.log('Dados carregados do backup no servidor.');
-            }
+            // Carregar dados do servidor
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            state.players = data.players;
+            state.teams = data.teams;
+            state.strokeIndex = data.strokeIndex || [...DEFAULT_SI];
+            state.gameResults = data.gameResults || [];
+            state.calendar = data.calendar || [];
+            console.log('✓ Dados carregados do backup no servidor.');
+            return true;
         }
-    } catch (e) { console.error('Erro ao carregar backup:', e); }
+    } catch (e) { console.error('✗ Erro ao carregar backup:', e); }
+    return false;
 }
 
 function initializeTestData() {
@@ -1798,12 +1794,14 @@ function addCalendarMatch() {
 // ════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Sempre carregar o backup do servidor PRIMEIRO (tem prioridade)
-    await loadDataBackup();
-    // Depois carregar dados locais (sobrescreve se existir no localStorage)
-    loadState();
-    loadGameResults();
-    loadCalendar();
+    // Carregar o backup do servidor PRIMEIRO
+    const hasBackupData = await loadDataBackup();
+    // Se não conseguiu carregar do servidor, tenta dados locais
+    if (!hasBackupData) {
+        loadState();
+        loadGameResults();
+        loadCalendar();
+    }
     loadAuth();
     initializeTestData();
     initializeCalendar();
