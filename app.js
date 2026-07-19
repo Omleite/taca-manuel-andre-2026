@@ -141,6 +141,16 @@ function updateAuthUI() {
     // Secções admin-only
     document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !admin));
 
+    // Tab Jogadores: apenas admin
+    document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.toggle('hidden', !admin));
+    // Se não é admin e tab activo é Jogadores, redirecionar para Classificação
+    if (!admin) {
+        const jogadoresTab = document.getElementById('tab-jogadores');
+        if (jogadoresTab && jogadoresTab.classList.contains('active')) {
+            document.querySelector('[data-tab="classificacao"]')?.click();
+        }
+    }
+
     // Secções auth-only (qualquer utilizador autenticado)
     document.querySelectorAll('.auth-only').forEach(el => el.classList.toggle('hidden', !loggedIn));
 
@@ -584,8 +594,8 @@ function initTabs() {
             if (target === 'grupos')   { renderGrupos(); }
             if (target === 'calendario') renderCalendario();
             if (target === 'classificacao') { 
-                const ronda = parseInt(document.getElementById('selRondaClass').value, 10) || 1;
-                renderClassificacao(ronda);
+                const val = document.getElementById('selRondaClass').value;
+                renderClassificacao(val === 'total' ? 'total' : (parseInt(val, 10) || 1));
             }
         });
     });
@@ -613,7 +623,7 @@ function renderPlayers() {
                     <span class="player-gender-badge">${p.genero === 'M' ? '♂ Masculino' : p.genero === 'F' ? '♀ Feminino' : '—'}</span>
                 </div>
                 <div class="player-handicaps">
-                    <span class="player-hcp">WHS: <strong>${p.handicapWhs || '—'}</strong></span>
+                    <span class="player-hcp">WHS: <strong>${p.handicapWhs !== undefined && p.handicapWhs !== null && p.handicapWhs !== '' ? parseFloat(p.handicapWhs).toFixed(1) : '—'}</strong></span>
                     <span class="player-hcp">Jogo: <strong>${p.handicap}</strong></span>
                 </div>
             </div>
@@ -659,7 +669,7 @@ function savePlayer() {
     const name      = document.getElementById('inputPlayerName').value.trim();
     const hcpWhsRaw = document.getElementById('inputPlayerHcpWhs').value;
     const genero    = document.getElementById('inputPlayerGenero').value;
-    const hcpWhs    = parseInt(hcpWhsRaw, 10);
+    const hcpWhs    = parseFloat(hcpWhsRaw);
     const editId    = document.getElementById('playerEditId').value;
 
     if (!name)                            { showToast('Insira o nome do jogador.', 'error');              return; }
@@ -724,7 +734,7 @@ function renderTeams() {
                 const isCaptain = p.id === t.captainId;
                 return `<li class="team-player-item ${isCaptain ? 'is-captain' : ''}">
                     <span class="name">${isCaptain ? '⭐ ' : ''}${esc(p.name)}</span>
-                    <span class="hcp">HCP ${p.handicap}</span>
+                    <span class="hcp">HCP Campo ${p.handicap}</span>
                 </li>`;
             }).join('')
             : '<li class="team-player-item"><span style="color:#9ca3af">Sem jogadores associados</span></li>';
@@ -1436,7 +1446,8 @@ function renderClassificacao(ronda) {
     // Recarregar resultados do localStorage
     loadGameResults();
     
-    const standings = calculateStandings(ronda);
+    // Se ronda === 'total', calcular soma das 5 rondas
+    const standings = ronda === 'total' ? calculateStandings(5) : calculateStandings(ronda);
     let html = '';
     
     // Se não é admin, mostrar aviso
@@ -1808,6 +1819,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await ensureDefaultAdmin();
 
     initTabs();
+    // Renderizar classificação na página inicial (tab por defeito)
+    renderClassificacao('total');
 
     // Menu burger
     const burger   = document.getElementById('navBurger');
@@ -1877,7 +1890,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Classificação
     document.getElementById('selRondaClass').addEventListener('change', (e) => {
-        renderClassificacao(parseInt(e.target.value, 10));
+        const val = e.target.value;
+        renderClassificacao(val === 'total' ? 'total' : parseInt(val, 10));
     });
 
     // Calendário — formulário de adicionar jogo (admin)
