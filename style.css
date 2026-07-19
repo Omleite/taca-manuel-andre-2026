@@ -849,6 +849,31 @@ body {
     border-radius: 4px;
     padding: 0.25rem 0.5rem;
 }
+.jogo-teams {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+.jogo-pars {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+    padding-left: 0.2rem;
+}
+.par-badge {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+.par-pending  { background: #f1f5f9; color: #94a3b8; }
+.par-home-win { background: #dcfce7; color: #15803d; }
+.par-away-win { background: #dcfce7; color: #15803d; }
+.par-draw     { background: #fef9c3; color: #a16207; }
 .jogo-result-badge {
     color: #16a34a;
     font-weight: bold;
