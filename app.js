@@ -235,6 +235,15 @@ async function handleGithubSync(e) {
     submitBtn.textContent = 'A sincronizar…';
 
     try {
+        // Verificar se o token é válido
+        const validRes = await fetch('https://api.github.com/user', {
+            headers: { Authorization: `token ${token}` }
+        });
+
+        if (!validRes.ok) {
+            throw new Error('Token inválido ou expirado. Crie um novo em https://github.com/settings/tokens');
+        }
+
         // Guardar token no localStorage
         localStorage.setItem('gh-token', token);
 
@@ -252,7 +261,7 @@ async function handleGithubSync(e) {
         };
 
         const content = JSON.stringify(dataToExport, null, 2);
-        const encoded = btoa(content); // Base64 encode
+        const encoded = btoa(unescape(encodeURIComponent(content))); // Base64 encode com UTF-8
 
         // GitHub API - actualizar ficheiro
         const repo = 'Omleite/taca-manuel-andre-2026';
@@ -260,23 +269,28 @@ async function handleGithubSync(e) {
         const branch = 'master';
 
         // Obter SHA do ficheiro atual
-        const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`, {
-            headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3.raw' }
-        });
-
         let sha = null;
-        if (getRes.ok) {
-            const blob = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`, {
-                headers: { Authorization: `token ${token}` }
+        try {
+            const getShaRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`, {
+                headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
             });
-            const data = await blob.json();
-            sha = data.sha;
+
+            if (getShaRes.ok) {
+                const shaData = await getShaRes.json();
+                sha = shaData.sha;
+            }
+        } catch (err) {
+            console.log('Ficheiro não existe ainda, será criado novo.');
         }
 
         // Fazer commit
         const commitRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
             method: 'PUT',
-            headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+            headers: {
+                Authorization: `token ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/vnd.github.v3+json'
+            },
             body: JSON.stringify({
                 message: `Sincronizar dados: ${new Date().toLocaleString('pt-PT')}`,
                 content: encoded,
@@ -287,7 +301,11 @@ async function handleGithubSync(e) {
 
         if (!commitRes.ok) {
             const error = await commitRes.json();
-            throw new Error(error.message || 'Erro ao sincronizar com GitHub');
+            const msg = error.message || 'Erro desconhecido';
+            if (msg.includes('not accessible')) {
+                throw new Error('Token sem permissões. Crie um novo com scopes: repo');
+            }
+            throw new Error(msg);
         }
 
         closeGithubSyncModal();
