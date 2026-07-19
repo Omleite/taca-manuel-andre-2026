@@ -1376,10 +1376,8 @@ function setGameResult(ronda, par, home, away, result) {
     saveGameResults();
 }
 
-function calculateStandings(ronda) {
-    // Retorna objeto: { A: [...], B: [...], etc }
-    // Apenas equipas que existem em state.teams e têm grupo definido
-    // Cada equipa tem { id, name, grupo, points, played, wins, draws, losses }
+function calculateStandings(ronda, accumulate) {
+    // ronda: número da ronda; accumulate: true = soma todas as rondas até ronda
     
     const standings = { A: [], B: [], C: [], D: [] };
     
@@ -1400,7 +1398,10 @@ function calculateStandings(ronda) {
     });
     
     // Calcular pontos baseado nos resultados
-    const games = state.calendar.filter(g => g.ronda <= ronda);
+    // accumulate=true: todas as rondas até ronda; false: só a ronda exacta
+    const games = accumulate
+        ? state.calendar.filter(g => g.ronda <= ronda)
+        : state.calendar.filter(g => g.ronda === ronda);
     
     games.forEach(game => {
         const homeTeam = standings[game.grupo].find(t => t.name === game.home);
@@ -1445,18 +1446,16 @@ function renderClassificacao(ronda) {
     // Recarregar resultados do localStorage
     loadGameResults();
     
-    // Se ronda === 'total', calcular soma das 5 rondas
-    const standings = ronda === 'total' ? calculateStandings(5) : calculateStandings(ronda);
+    // Se ronda === 'total', calcular soma das 5 rondas (acumulado)
+    const standings = ronda === 'total' ? calculateStandings(5, true) : calculateStandings(ronda, false);
     let html = '';
-    
-    // Se não é admin, mostrar aviso
-    if (!isAdmin()) {
-        html += `<div class="class-admin-notice">ℹ️ Apenas o administrador pode registar os resultados dos jogos.</div>`;
-    }
     
     Object.keys(standings).sort().forEach(grupo => {
         const teams = standings[grupo];
-        const groupGames = state.calendar.filter(g => g.ronda <= ronda && g.grupo === grupo);
+        // Total: acumula todas as rondas; ronda específica: só jogos dessa ronda
+        const groupGames = ronda === 'total'
+            ? state.calendar.filter(g => g.grupo === grupo)
+            : state.calendar.filter(g => g.ronda === ronda && g.grupo === grupo);
         
         html += `
         <div class="class-group">
@@ -1710,11 +1709,17 @@ function renderCalendario() {
                 const awayExists = state.teams.some(t => t.name === away);
                 const invalid = !homeExists || !awayExists;
 
-                html += `<li class="jogo${invalid ? ' jogo-invalid' : ''}">
+                // Verificar se este match tem resultado (par 1 ou par 2)
+                const hasResult = state.gameResults.some(
+                    r => r.ronda === ronda && r.home === home && r.away === away && r.result
+                );
+
+                html += `<li class="jogo${invalid ? ' jogo-invalid' : ''}${hasResult ? ' jogo-done' : ''}">
                     <span class="team-home">${esc(home)}</span>
                     <span class="jogo-vs">VS</span>
                     <span class="team-away">${esc(away)}</span>
                     ${invalid ? '<span class="jogo-warning" title="Uma ou ambas as equipas não existem">⚠️</span>' : ''}
+                    ${hasResult ? '<span class="jogo-result-badge">✓</span>' : ''}
                     ${isAdmin() ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
                 </li>`;
             });
