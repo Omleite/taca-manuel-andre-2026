@@ -1848,7 +1848,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btnSyncGithub').addEventListener('click', openGithubSyncModal);
     document.getElementById('btnCloseGithubSync').addEventListener('click', closeGithubSyncModal);
     document.getElementById('btnCancelGithubSync').addEventListener('click', closeGithubSyncModal);
-    document.getElementById('githubSyncForm').addEventListener('submit', handleGithubSync);
+    document.getElementById('btnExportAndClose').addEventListener('click', () => { exportData(); closeGithubSyncModal(); });
     document.getElementById('githubSyncModal').addEventListener('click', e => {
         if (e.target === e.currentTarget) closeGithubSyncModal();
     });

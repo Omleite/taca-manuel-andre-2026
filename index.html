@@ -77,28 +77,20 @@
 <div id="githubSyncModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="githubSyncTitle">
     <div class="modal-box">
         <button class="modal-close" id="btnCloseGithubSync" aria-label="Fechar">×</button>
-        <h2 id="githubSyncTitle" style="margin: 0 0 1rem 0; font-size: 1.3rem; color: var(--txt-head);">Sincronizar com GitHub</h2>
-        <div style="background: #f5f5f5; padding: 0.8rem; border-radius: 0.4rem; margin-bottom: 1rem; font-size: 0.85rem; color: var(--txt-light);">
-            <strong>Passos para criar o token (fine-grained):</strong>
-            <ol style="margin: 0.5rem 0 0 1.2rem; padding: 0;">
-                <li>Aceda a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com → Settings → Fine-grained tokens</a></li>
-                <li>Nome: <code>taca-manuel-andre-2026</code></li>
-                <li>Repository access: <strong>Only select repositories</strong> → <code>taca-manuel-andre-2026</code></li>
-                <li>Permissions → Contents: <strong>Read and write</strong></li>
-                <li>Clique em "Generate token" e copie o código</li>
+        <h2 id="githubSyncTitle" style="margin: 0 0 1rem 0; font-size: 1.3rem; color: var(--txt-head);">Sincronizar Dados Online</h2>
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.8rem; border-radius: 0.4rem; margin-bottom: 1rem; font-size: 0.85rem;">
+            <strong style="color:#166534;">Como partilhar os dados com todos:</strong>
+            <ol style="margin: 0.6rem 0 0 1.2rem; padding: 0; line-height: 1.8;">
+                <li>Clique em <strong>"Exportar Dados"</strong> abaixo</li>
+                <li>Guarde o ficheiro na pasta <strong>Downloads</strong></li>
+                <li>Execute o script <code>sync-to-github.ps1</code> na pasta do projeto</li>
+                <li>O site atualiza em 1-2 min após Netlify ser ligado ao GitHub</li>
             </ol>
         </div>
-        <form id="githubSyncForm" novalidate>
-            <div class="form-field">
-                <label for="githubToken">Personal Access Token</label>
-                <input type="password" id="githubToken" placeholder="ghp_..." spellcheck="false" autocomplete="off">
-            </div>
-            <p class="github-sync-error hidden" id="githubSyncError" style="color: var(--red); margin: 0.5rem 0; font-size: 0.9rem;"></p>
-            <div class="form-footer">
-                <button type="button" class="btn btn-ghost" id="btnCancelGithubSync">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Sincronizar</button>
-            </div>
-        </form>
+        <div class="form-footer" style="flex-direction: column; gap: 0.5rem;">
+            <button class="btn btn-primary" id="btnExportAndClose" style="width:100%">⬇ Exportar Dados (passo 1)</button>
+            <button type="button" class="btn btn-ghost" id="btnCancelGithubSync" style="width:100%">Fechar</button>
+        </div>
     </div>
 </div>
 
