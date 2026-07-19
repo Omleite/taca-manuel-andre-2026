@@ -615,6 +615,11 @@ function renderTeams() {
         // Coloca o capitão primeiro
         const sortedPlayers = captain ? [captain, ...otherPlayers] : otherPlayers;
         
+        // Calcular HCP Equipa (média dos HCP de Campo)
+        const teamHcp = sortedPlayers.length > 0 
+            ? (sortedPlayers.reduce((sum, p) => sum + p.handicap, 0) / sortedPlayers.length).toFixed(1)
+            : '—';
+        
         const rows = sortedPlayers.length
             ? sortedPlayers.map(p => {
                 const isCaptain = p.id === t.captainId;
@@ -627,7 +632,10 @@ function renderTeams() {
         return `
             <div class="card team-card">
                 <div class="team-card-header">
-                    <span class="team-name">${esc(t.name)}</span>
+                    <div class="team-header-info">
+                        <span class="team-name">${esc(t.name)}</span>
+                        <span class="team-hcp">HCP: ${teamHcp}</span>
+                    </div>
                     ${isLoggedIn() ? `
                     <div class="team-actions">
                         <button class="btn btn-sm btn-ghost" onclick="openEditTeam('${t.id}')">Editar</button>

@@ -222,7 +222,9 @@ body {
 .teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1.25rem; }
 .team-card  { margin-bottom: 0; border-top: 3px solid var(--accent); }
 .team-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+.team-header-info { display: flex; flex-direction: column; gap: .25rem; flex: 1; }
 .team-name { font-family: var(--font-head); font-size: 1.1rem; font-weight: 800; color: var(--primary); }
+.team-hcp { font-size: .85rem; color: #7c3aed; font-weight: 700; }
 .team-actions { display: flex; gap: .5rem; flex-shrink: 0; }
 .team-players-list { list-style: none; display: flex; flex-direction: column; gap: .4rem; }
 .team-player-item.is-captain { background: linear-gradient(to right, rgba(181,137,42,.08), rgba(181,137,42,0)); border-left: 2px solid var(--accent); padding-left: .65rem; }
