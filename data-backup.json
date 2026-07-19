@@ -17,7 +17,7 @@
                     {
                         "id":  "mrpcd3x1h0l18",
                         "name":  "Gabriel Guerreiro",
-                        "handicapWhs":  -2,
+                        "handicapWhs":  99,
                         "handicap":  -1,
                         "genero":  "M"
                     },
@@ -31,7 +31,7 @@
                     {
                         "id":  "mrpcd3x1efzv0",
                         "name":  "Higino Moreira",
-                        "handicapWhs":  -3,
+                        "handicapWhs":  99,
                         "handicap":  -3,
                         "genero":  "M"
                     },
@@ -45,7 +45,7 @@
                     {
                         "id":  "mrpcd3x18281c",
                         "name":  "Franquelim Moreira",
-                        "handicapWhs":  -8,
+                        "handicapWhs":  99,
                         "handicap":  -7,
                         "genero":  "M"
                     },
@@ -66,35 +66,35 @@
                     {
                         "id":  "mrpcd3x1eky1j",
                         "name":  "Amílcar Neiva",
-                        "handicapWhs":  24.6,
+                        "handicapWhs":  99,
                         "handicap":  27,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1m7cke",
                         "name":  "Adelaide Figueiredo",
-                        "handicapWhs":  19,
+                        "handicapWhs":  99,
                         "handicap":  23,
                         "genero":  "F"
                     },
                     {
                         "id":  "mrpcd3x180cuf",
                         "name":  "Paulo Pereira",
-                        "handicapWhs":  -7,
+                        "handicapWhs":  99,
                         "handicap":  -7,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1dm2ug",
                         "name":  "Alberto Quintas",
-                        "handicapWhs":  20.3,
+                        "handicapWhs":  99,
                         "handicap":  22,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1nqirr",
                         "name":  "Filipe Quintas",
-                        "handicapWhs":  2,
+                        "handicapWhs":  99,
                         "handicap":  5,
                         "genero":  "M"
                     },
@@ -108,7 +108,7 @@
                     {
                         "id":  "mrpcd3x1im42z",
                         "name":  "Nuno Poiarez",
-                        "handicapWhs":  17.4,
+                        "handicapWhs":  99,
                         "handicap":  19,
                         "genero":  "M"
                     },
@@ -136,21 +136,21 @@
                     {
                         "id":  "mrpcd3x154b2v",
                         "name":  "Pedro Moutinho",
-                        "handicapWhs":  2,
+                        "handicapWhs":  99,
                         "handicap":  2,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1qjr3m",
                         "name":  "Luís Costa",
-                        "handicapWhs":  -5,
+                        "handicapWhs":  99,
                         "handicap":  -3,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1bewgf",
                         "name":  "Natália Pereira",
-                        "handicapWhs":  -6,
+                        "handicapWhs":  99,
                         "handicap":  -4,
                         "genero":  "F"
                     },
@@ -171,14 +171,14 @@
                     {
                         "id":  "mrpcd3x17yo8n",
                         "name":  "Adelino Caldeira",
-                        "handicapWhs":  30,
+                        "handicapWhs":  99,
                         "handicap":  33,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1j3gno",
                         "name":  "Moura Gonçalves",
-                        "handicapWhs":  -2,
+                        "handicapWhs":  99,
                         "handicap":  0,
                         "genero":  "M"
                     },
@@ -220,7 +220,7 @@
                     {
                         "id":  "mrpcd3x1jbuvx",
                         "name":  "Filipe Costa",
-                        "handicapWhs":  0,
+                        "handicapWhs":  99,
                         "handicap":  4,
                         "genero":  "M"
                     },
@@ -234,7 +234,7 @@
                     {
                         "id":  "mrpcd3x1m5e7w",
                         "name":  "Maria do Carmo",
-                        "handicapWhs":  0,
+                        "handicapWhs":  99,
                         "handicap":  2,
                         "genero":  "F"
                     },
@@ -290,35 +290,35 @@
                     {
                         "id":  "mrpcd3x1lkt0z",
                         "name":  "Rui Feijóo",
-                        "handicapWhs":  -10,
+                        "handicapWhs":  99,
                         "handicap":  -10,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1biqia",
                         "name":  "Manuel Rodrigues Jr",
-                        "handicapWhs":  16,
+                        "handicapWhs":  99,
                         "handicap":  19,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1qfh0m",
                         "name":  "Luís Perez",
-                        "handicapWhs":  -9,
+                        "handicapWhs":  99,
                         "handicap":  -8,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1g8qqk",
                         "name":  "Manuel Castro",
-                        "handicapWhs":  26,
+                        "handicapWhs":  99,
                         "handicap":  28,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1ov9aj",
                         "name":  "Afonso Poiarez",
-                        "handicapWhs":  11,
+                        "handicapWhs":  99,
                         "handicap":  12,
                         "genero":  "M"
                     },
@@ -346,21 +346,21 @@
                     {
                         "id":  "mrpcd3x1nf4dl",
                         "name":  "Tó",
-                        "handicapWhs":  -6,
+                        "handicapWhs":  99,
                         "handicap":  -8,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1i3gvh",
                         "name":  "Gabriel Guimarães",
-                        "handicapWhs":  23,
+                        "handicapWhs":  99,
                         "handicap":  26,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrpcd3x1j7r8q",
                         "name":  "Carlos Silva Santos",
-                        "handicapWhs":  3,
+                        "handicapWhs":  99,
                         "handicap":  5,
                         "genero":  "M"
                     },
@@ -374,7 +374,7 @@
                     {
                         "id":  "mrpcd3x1c5qyz",
                         "name":  "Henrique Sampaio",
-                        "handicapWhs":  6,
+                        "handicapWhs":  99,
                         "handicap":  10,
                         "genero":  "M"
                     },
@@ -388,7 +388,7 @@
                     {
                         "id":  "mrpcd3x1mhpgw",
                         "name":  "Martim Quintas",
-                        "handicapWhs":  -7,
+                        "handicapWhs":  99,
                         "handicap":  -5,
                         "genero":  "M"
                     },
@@ -409,7 +409,7 @@
                     {
                         "id":  "mrpcd3x1kqxpj",
                         "name":  "Henrique Araújo",
-                        "handicapWhs":  28,
+                        "handicapWhs":  99,
                         "handicap":  31,
                         "genero":  "M"
                     },
@@ -430,7 +430,7 @@
                     {
                         "id":  "mrpcd3x1hmqrl",
                         "name":  "Sérgio Lopes",
-                        "handicapWhs":  20,
+                        "handicapWhs":  99,
                         "handicap":  23,
                         "genero":  "M"
                     },
@@ -451,7 +451,7 @@
                     {
                         "id":  "mrpcd3x1i6r9b",
                         "name":  "Mário Paiva",
-                        "handicapWhs":  21,
+                        "handicapWhs":  99,
                         "handicap":  25,
                         "genero":  "M"
                     },
@@ -465,7 +465,7 @@
                     {
                         "id":  "mrpcd3x1qvhya",
                         "name":  "José Nogueira",
-                        "handicapWhs":  32,
+                        "handicapWhs":  99,
                         "handicap":  35,
                         "genero":  "M"
                     },
@@ -500,21 +500,21 @@
                     {
                         "id":  "mrqtl1gb1gx7r",
                         "name":  "Manel Maia",
-                        "handicapWhs":  12,
+                        "handicapWhs":  99,
                         "handicap":  13,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrqtlvqo8pawb",
                         "name":  "Bruno Portela",
-                        "handicapWhs":  13,
+                        "handicapWhs":  99,
                         "handicap":  14,
                         "genero":  "M"
                     },
                     {
                         "id":  "mrqtmeey6jrrt",
                         "name":  "José Barroso",
-                        "handicapWhs":  14,
+                        "handicapWhs":  99,
                         "handicap":  15,
                         "genero":  "M"
                     },
