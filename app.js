@@ -1005,6 +1005,29 @@ function renderStrokeTable(strokes, higherPar, teamAName, teamBName) {
 function printStrokeTable() {
     const table = document.querySelector('#strokeTable');
     if (!table) { showToast('Tabela não encontrada.', 'error'); return; }
+
+    const teamAId = document.getElementById('selTeamA').value;
+    const teamBId = document.getElementById('selTeamB').value;
+    const teamA = state.teams.find(t => t.id === teamAId);
+    const teamB = state.teams.find(t => t.id === teamBId);
+    const pA1 = getPlayer(document.getElementById('selA1').value);
+    const pA2 = getPlayer(document.getElementById('selA2').value);
+    const pB1 = getPlayer(document.getElementById('selB1').value);
+    const pB2 = getPlayer(document.getElementById('selB2').value);
+
+    // Tenta identificar a ronda/par no calendário para as duas equipas selecionadas.
+    const match = state.calendar.find(g =>
+        (g.home === teamA?.name && g.away === teamB?.name) ||
+        (g.home === teamB?.name && g.away === teamA?.name)
+    );
+
+    const roundText = match?.ronda ? `${match.ronda}ª Ronda` : 'Ronda: não definida';
+    const groupText = match?.grupo ? `Grupo ${match.grupo}` : 'Grupo: —';
+    const parText = match?.par ? `Par ${match.par}` : 'Par: —';
+    const teamAText = teamA?.name || '—';
+    const teamBText = teamB?.name || '—';
+    const pairAText = pA1 && pA2 ? `${pA1.name} e ${pA2.name}` : '—';
+    const pairBText = pB1 && pB2 ? `${pB1.name} e ${pB2.name}` : '—';
     
     // Clonar a tabela para não modificar a original
     const tableClone = table.cloneNode(true);
@@ -1024,6 +1047,9 @@ function printStrokeTable() {
                 body { font-family: Montserrat, Arial, sans-serif; padding: 20px; background: white; }
                 h1 { text-align: center; margin-bottom: 20px; color: #2d5016; font-size: 24px; }
                 .print-info { text-align: center; color: #666; font-size: 12px; margin-bottom: 15px; }
+                .match-meta { border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 12px; margin: 12px 0 14px; background: #f8fafc; }
+                .match-meta p { margin: 4px 0; font-size: 12px; color: #334155; }
+                .match-meta strong { color: #0f172a; }
                 table { width: 100%; border-collapse: collapse; margin-top: 20px; }
                 th, td { border: 1px solid #999; padding: 8px; text-align: center; font-size: 12px; }
                 th { background-color: #e8f5e9; font-weight: bold; color: #2d5016; }
@@ -1042,6 +1068,11 @@ function printStrokeTable() {
         <body>
             <h1>⛳ Distribuição por Buracos</h1>
             <div class="print-info">Taça Manuel André 2026 · Estela Golf Club</div>
+            <div class="match-meta">
+                <p><strong>${roundText}</strong> · <strong>${groupText}</strong> · <strong>${parText}</strong></p>
+                <p><strong>Equipa A:</strong> ${esc(teamAText)} | <strong>Par A:</strong> ${esc(pairAText)}</p>
+                <p><strong>Equipa B:</strong> ${esc(teamBText)} | <strong>Par B:</strong> ${esc(pairBText)}</p>
+            </div>
     `);
     
     // Adicionar a tabela
