@@ -1744,6 +1744,11 @@ function getGameResult(ronda, par, home, away) {
 }
 
 function setGameResult(ronda, par, home, away, result) {
+    // Na fase a eliminar (rondas 6-8) não existe empate.
+    if (ronda >= 6 && result === 'draw') {
+        result = null;
+    }
+
     const existing = getGameResult(ronda, par, home, away);
     if (existing) {
         existing.result = result;
@@ -1963,7 +1968,6 @@ function buildEliminationClassificationHtml(ronda) {
                     <span class="team-name">${esc(game.home)}</span>
                     <div class="result-buttons">
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
-                        <button class="btn-result ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">Empate</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
                         <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
                     </div>
