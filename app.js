@@ -1915,6 +1915,73 @@ function bindRoundDatesEditorEvents() {
     });
 }
 
+function renderEliminationClassification(ronda) {
+    const games = buildPlayoffScheduleEntries().filter(g => g.ronda === ronda);
+    const grouped = new Map();
+
+    games.forEach(game => {
+        if (!grouped.has(game.grupo)) grouped.set(game.grupo, []);
+        grouped.get(game.grupo).push(game);
+    });
+
+    let html = `
+        <div class="class-group">
+            <h3 class="class-title">${getRoundLabel(ronda)}</h3>
+    `;
+
+    [...grouped.keys()].sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).forEach(matchNo => {
+        const matchGames = grouped.get(matchNo).sort((a, b) => a.par - b.par);
+        if (!matchGames.length) return;
+
+        const home = matchGames[0].home;
+        const away = matchGames[0].away;
+
+        let homeWins = 0;
+        let awayWins = 0;
+        let hasAnyResult = false;
+
+        matchGames.forEach(g => {
+            const res = getGameResult(g.ronda, g.par, g.home, g.away);
+            if (!res || !res.result) return;
+            hasAnyResult = true;
+            if (res.result === 'home') homeWins++;
+            if (res.result === 'away') awayWins++;
+        });
+
+        html += `
+            <div class="card" style="margin-bottom:1rem;">
+                <h4 style="margin:0 0 .75rem 0; color:var(--primary);">Match ${matchNo}: ${esc(home)} vs ${esc(away)}</h4>
+                <p class="class-desc" style="margin-bottom:.75rem;">Resultado do confronto: <strong>${hasAnyResult ? `${homeWins}-${awayWins}` : 'por disputar'}</strong></p>
+                <div class="games-input">
+        `;
+
+        matchGames.forEach(game => {
+            const result = getGameResult(game.ronda, game.par, game.home, game.away);
+            html += `
+                <div class="game-result-row">
+                    <span class="team-name" style="font-size: 0.85rem; color: var(--txt-light);">Par ${game.par}</span>
+                    <span class="team-name">${esc(game.home)}</span>
+                    <div class="result-buttons">
+                        <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
+                        <button class="btn-result ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">Empate</button>
+                        <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
+                        <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
+                    </div>
+                    <span class="team-name">${esc(game.away)}</span>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    document.getElementById('classificacaoContainer').innerHTML = html;
+}
+
 function calculateStandings(ronda, accumulate) {
     // ronda: número da ronda; accumulate: true = soma todas as rondas até ronda
     
@@ -2000,10 +2067,47 @@ function renderClassificacao(ronda) {
     // Recarregar resultados do localStorage
     loadGameResults();
     const showScheduledGamesColumn = can('classification_manage');
+
+    const rondaNum = parseInt(ronda, 10);
+    if (ronda !== 'total' && !isNaN(rondaNum) && rondaNum >= 6) {
+        renderEliminationClassification(rondaNum);
+
+        if (can('classification_manage')) {
+            document.querySelectorAll('.btn-result').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const rr = parseInt(e.target.dataset.ronda, 10);
+                    const par = parseInt(e.target.dataset.par, 10);
+                    const home = e.target.dataset.home;
+                    const away = e.target.dataset.away;
+                    const result = e.target.dataset.result;
+
+                    setGameResult(rr, par, home, away, result);
+                    const selectedView = document.getElementById('selRondaClass').value;
+                    renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
+                    showToast(`Resultado registado - Par ${par}: ${home} vs ${away}`);
+                });
+            });
+
+            document.querySelectorAll('.btn-result-clear').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const rr = parseInt(e.target.dataset.ronda, 10);
+                    const par = parseInt(e.target.dataset.par, 10);
+                    const home = e.target.dataset.home;
+                    const away = e.target.dataset.away;
+
+                    setGameResult(rr, par, home, away, null);
+                    const selectedView = document.getElementById('selRondaClass').value;
+                    renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
+                    showToast(`Resultado limpo - Par ${par}: ${home} vs ${away}`);
+                });
+            });
+        }
+        return;
+    }
     
     // Se ronda === 'total', calcular soma das 5 rondas (acumulado)
     // Convert ronda to number for comparison (dropdown sends strings like '1', '2', etc.)
-    const standings = ronda === 'total' ? calculateStandings(5, true) : calculateStandings(parseInt(ronda), false);
+    const standings = ronda === 'total' ? calculateStandings(5, true) : calculateStandings(parseInt(ronda, 10), false);
     let html = '';
     
     Object.keys(standings).sort().forEach(grupo => {
