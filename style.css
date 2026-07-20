@@ -429,14 +429,22 @@ body {
     position: fixed; bottom: 28px; right: 28px; padding: .8rem 1.2rem;
     border-radius: var(--r-lg); font-family: var(--font-head); font-size: .8rem;
     font-weight: 700; letter-spacing: .03em; color: var(--card-bg);
-    background: var(--primary); box-shadow: var(--sh-lg);
+    background: var(--primary);
+    box-shadow: 0 10px 24px rgba(0,0,0,.3), 0 0 0 1px rgba(196,163,67,.22) inset;
     opacity: 0; transform: translateY(10px);
     transition: opacity .25s, transform .25s; z-index: 9999; max-width: 340px;
-    border-left: 4px solid var(--accent);
+    border: 1.5px solid var(--accent);
 }
 .toast.show        { opacity: 1; transform: translateY(0); }
-.toast.toast-error { background: var(--red); border-left-color: #fca5a5; }
-.toast.toast-warn  { background: #7c5d00; border-left-color: var(--accent-lt); }
+.toast.toast-error {
+    background: var(--red);
+    border-color: #fca5a5;
+    box-shadow: 0 10px 24px rgba(0,0,0,.3), 0 0 0 1px rgba(252,165,165,.22) inset;
+}
+.toast.toast-warn  {
+    background: #7c5d00;
+    border-color: var(--accent-lt);
+}
 
 /* ── UTILITÁRIOS ───────────────────────── */
 .hidden { display: none !important; }
@@ -948,14 +956,14 @@ body {
 }
 
 .result-buttons {
-    display: flex; gap: 0.5rem;
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
 }
 
 .btn-result {
     padding: 0.5rem 0.8rem; border: 2px solid var(--border); background: white;
     color: var(--txt-dark); border-radius: var(--r-sm); cursor: pointer;
     font-family: var(--font-body); font-size: 0.85rem; font-weight: 600;
-    transition: all 0.2s ease;
+    transition: all 0.2s ease; min-width: 82px; text-align: center;
 }
 
 .btn-result:hover {
@@ -970,7 +978,7 @@ body {
     padding: 0.5rem 0.8rem; border: 2px solid var(--border); background: #f0f0f0;
     color: var(--txt-dark); border-radius: var(--r-sm); cursor: pointer;
     font-family: var(--font-body); font-size: 0.85rem; font-weight: 600;
-    transition: all 0.2s ease; margin-left: 0.5rem;
+    transition: all 0.2s ease; margin-left: 0; min-width: 82px; text-align: center;
 }
 
 .btn-result-clear:hover {
@@ -1076,7 +1084,17 @@ body {
         flex-direction: column; gap: 0.5rem;
     }
     .team-name { flex: 1; width: 100%; }
-    .result-buttons { width: 100%; justify-content: space-around; }
+    .result-buttons {
+        width: 100%;
+        justify-content: stretch;
+        gap: 0.45rem;
+    }
+    .result-buttons .btn-result,
+    .result-buttons .btn-result-clear {
+        flex: 1 1 calc(50% - 0.25rem);
+        min-width: 0;
+        padding: 0.55rem 0.4rem;
+    }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
