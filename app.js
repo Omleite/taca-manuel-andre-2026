@@ -8,6 +8,8 @@ const STORAGE_KEY = 'taca-manuel-andre-2026';
 const AUTH_KEY    = 'tma-2026-auth';
 const GITHUB_TOKEN_SESSION_KEY = 'tma-2026-gh-token';
 const SALT        = 'egc:tma:2026:estela';
+const EMERGENCY_ADMIN_USERNAME = 'admin';
+const EMERGENCY_ADMIN_PASSWORD = 'estela2026';
 
 // Stroke Index predefinido - Estela Golf Club
 const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 6];
@@ -56,7 +58,6 @@ let state = {
 
 let authState = {
     currentUser: null,
-    adminPassword: 'estela2026',  // Compatibilidade com versões antigas
     users: []
 };
 
@@ -98,13 +99,11 @@ function loadAuth() {
             const p = JSON.parse(raw);
             authState.currentUser = p.currentUser || null;
             authState.users = Array.isArray(p.users) ? p.users : [];
-            if (typeof p.adminPassword === 'string' && p.adminPassword.trim()) {
-                authState.adminPassword = p.adminPassword;
-            }
         }
         authState.users = authState.users.map(u => ({
             ...u,
-            role: normalizeRole(u.role)
+            role: normalizeRole(u.role),
+            mustResetPassword: !!u.mustResetPassword
         }));
         if (authState.currentUser) {
             authState.currentUser.role = normalizeRole(authState.currentUser.role);
@@ -156,10 +155,11 @@ function canAccessTab(tabName) {
 }
 
 function ensureDefaultAdminUser() {
-    const existingAdmin = authState.users.find(u => normalizeUsername(u.username) === 'admin');
+    const existingAdmin = authState.users.find(u => normalizeUsername(u.username) === EMERGENCY_ADMIN_USERNAME);
     if (existingAdmin) {
         if (!existingAdmin.passwordHash) {
-            existingAdmin.passwordHash = hashPassword(authState.adminPassword || 'estela2026');
+            existingAdmin.passwordHash = hashPassword(EMERGENCY_ADMIN_PASSWORD);
+            existingAdmin.mustResetPassword = true;
         }
         existingAdmin.displayName = existingAdmin.displayName || 'Administrador';
         existingAdmin.role = ROLES.TOURNAMENT_ADMIN;
@@ -168,12 +168,38 @@ function ensureDefaultAdminUser() {
 
     authState.users.push({
         id: 'admin-default',
-        username: 'admin',
+        username: EMERGENCY_ADMIN_USERNAME,
         displayName: 'Administrador',
         role: ROLES.TOURNAMENT_ADMIN,
-        passwordHash: hashPassword(authState.adminPassword || 'estela2026')
+        passwordHash: hashPassword(EMERGENCY_ADMIN_PASSWORD),
+        mustResetPassword: true
     });
     saveAuth();
+}
+
+function getUsersBackupSnapshot() {
+    return authState.users
+        .map(u => ({
+            id: u.id || genId(),
+            username: normalizeUsername(u.username),
+            displayName: (u.displayName || u.username || 'Utilizador').trim(),
+            role: normalizeRole(u.role)
+        }))
+        .filter(u => !!u.username);
+}
+
+function hydrateUsersFromBackup(rawUsers) {
+    if (!Array.isArray(rawUsers)) return [];
+    return rawUsers
+        .map(u => ({
+            id: u.id || genId(),
+            username: normalizeUsername(u.username),
+            displayName: (u.displayName || u.username || 'Utilizador').trim(),
+            role: normalizeRole(u.role),
+            passwordHash: null,
+            mustResetPassword: true
+        }))
+        .filter(u => !!u.username);
 }
 
 function getUserByUsername(username) {
@@ -186,12 +212,13 @@ const isAdmin    = () => can('users_manage');
 
 function doLogin(username, password) {
     const user = getUserByUsername(username);
-    if (user && user.passwordHash === hashPassword(password)) {
+    if (user && user.passwordHash && user.passwordHash === hashPassword(password)) {
         authState.currentUser = {
             id: user.id,
             username: user.username,
             displayName: user.displayName,
-            role: user.role
+            role: user.role,
+            mustResetPassword: !!user.mustResetPassword
         };
         saveAuth();
         return true;
@@ -312,8 +339,14 @@ function handleLogin(e) {
             closeLoginModal();
             updateAuthUI();
             showToast(`Bem-vindo, ${authState.currentUser.displayName}!`);
+            if (authState.currentUser.mustResetPassword) {
+                showToast('Password de recuperação ativa. Altere a password em Configurações.', 'warn');
+            }
         } else {
-            errEl.textContent = 'Utilizador ou palavra-passe incorrectos.';
+            const foundUser = getUserByUsername(username);
+            errEl.textContent = (foundUser && !foundUser.passwordHash)
+                ? 'Utilizador sem password definida. Peça reset ao administrador.'
+                : 'Utilizador ou palavra-passe incorrectos.';
             errEl.classList.remove('hidden');
             document.getElementById('loginPassword').value = '';
             document.getElementById('loginPassword').focus();
@@ -382,12 +415,22 @@ async function handleGithubSync(e) {
         saveState();
         saveGameResults();
         saveCalendar();
+        saveRoundDates();
+        saveAuth();
+
+        const usersSnapshot = getUsersBackupSnapshot();
 
         const dataToExport = {
             players: state.players,
             teams: state.teams,
             gameResults: state.gameResults,
-            calendar: state.calendar
+            calendar: state.calendar,
+            roundDates: state.roundDates,
+            auth: {
+                users: usersSnapshot
+            },
+            // Compatibilidade com versões antigas (sem passwords)
+            users: usersSnapshot
         };
 
         const content = JSON.stringify(dataToExport, null, 2);
@@ -495,6 +538,7 @@ function renderUsers() {
                 <div class="user-info">
                     <span class="user-name">${esc(u.displayName)}</span>
                     <span class="user-meta">@${esc(u.username)} ${isCurrent ? '<span class="current-user-tag">(sessão atual)</span>' : ''}</span>
+                    ${!u.passwordHash ? '<span class="current-user-tag">Reset de password pendente</span>' : ''}
                 </div>
                 <div class="user-actions">
                     <select class="role-select" data-user-id="${u.id}" ${isCurrent ? 'disabled' : ''}>
@@ -502,6 +546,7 @@ function renderUsers() {
                         <option value="${ROLES.SCORING_OFFICIAL}" ${role === ROLES.SCORING_OFFICIAL ? 'selected' : ''}>Scoring Official</option>
                         <option value="${ROLES.TOURNAMENT_ADMIN}" ${role === ROLES.TOURNAMENT_ADMIN ? 'selected' : ''}>Tournament Admin</option>
                     </select>
+                    <button class="btn btn-sm btn-ghost btn-reset-user-pwd" data-user-id="${u.id}">Definir Password</button>
                     <button class="btn btn-sm btn-danger btn-delete-user" data-user-id="${u.id}" ${canDelete ? '' : 'disabled'}>Remover</button>
                     ${canDemote ? '' : '<span class="current-user-tag">Admin obrigatório</span>'}
                 </div>
@@ -519,6 +564,38 @@ function renderUsers() {
             deleteUser(e.target.dataset.userId);
         });
     });
+
+    list.querySelectorAll('.btn-reset-user-pwd').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            resetUserPassword(e.target.dataset.userId);
+        });
+    });
+}
+
+function resetUserPassword(userId) {
+    if (!can('users_manage')) return;
+    const user = authState.users.find(u => u.id === userId);
+    if (!user) return;
+
+    const newPwd = prompt(`Nova password para ${user.displayName} (mínimo 6 caracteres):`);
+    if (newPwd === null) return;
+
+    const next = newPwd.trim();
+    if (next.length < 6) {
+        showToast('A password deve ter pelo menos 6 caracteres.', 'error');
+        return;
+    }
+
+    user.passwordHash = hashPassword(next);
+    user.mustResetPassword = false;
+
+    if (authState.currentUser && authState.currentUser.id === user.id) {
+        authState.currentUser.mustResetPassword = false;
+    }
+
+    saveAuth();
+    renderUsers();
+    showToast('Password redefinida com sucesso.');
 }
 
 function saveNewUser() {
@@ -551,7 +628,8 @@ function saveNewUser() {
         username,
         displayName,
         role,
-        passwordHash: hashPassword(password)
+        passwordHash: hashPassword(password),
+        mustResetPassword: false
     });
 
     saveAuth();
@@ -646,8 +724,9 @@ function changeOwnPassword() {
     }
 
     currentUser.passwordHash = hashPassword(newPwd);
-    if (normalizeUsername(currentUser.username) === 'admin') {
-        authState.adminPassword = newPwd;
+    currentUser.mustResetPassword = false;
+    if (authState.currentUser && authState.currentUser.id === currentUser.id) {
+        authState.currentUser.mustResetPassword = false;
     }
 
     saveAuth();
@@ -681,19 +760,42 @@ async function loadDataBackup() {
         
         const data = await response.json();
         if (data.players && data.teams) {
+            const importedRoundDates = data.roundDates && typeof data.roundDates === 'object'
+                ? data.roundDates
+                : { ...DEFAULT_RONDA_DATES };
+
+            const importedUsersRaw = Array.isArray(data.auth?.users)
+                ? data.auth.users
+                : (Array.isArray(data.users) ? data.users : []);
+            const importedUsers = hydrateUsersFromBackup(importedUsersRaw);
+
             // Carregar dados do servidor (sem permitir SI customizado)
             const sanitizedData = {
                 players: data.players,
                 teams: data.teams,
                 gameResults: data.gameResults || [],
-                calendar: data.calendar || []
+                calendar: data.calendar || [],
+                roundDates: importedRoundDates
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizedData));
+            localStorage.setItem(STORAGE_KEY + '-results', JSON.stringify(data.gameResults || []));
+            localStorage.setItem(STORAGE_KEY + '-calendar', JSON.stringify(data.calendar || []));
+            localStorage.setItem(STORAGE_KEY + '-round-dates', JSON.stringify(importedRoundDates));
+
+            if (importedUsers.length) {
+                const authPayload = {
+                    currentUser: null,
+                    users: importedUsers
+                };
+                localStorage.setItem(AUTH_KEY, JSON.stringify(authPayload));
+            }
+
             state.players = data.players;
             state.teams = data.teams;
             state.strokeIndex = [...DEFAULT_SI];
             state.gameResults = data.gameResults || [];
             state.calendar = data.calendar || [];
+            state.roundDates = importedRoundDates;
             console.log('✓ Dados carregados do backup no servidor.');
             return true;
         }
@@ -1483,6 +1585,10 @@ function exportData() {
     saveState();
     saveGameResults();
     saveCalendar();
+    saveRoundDates();
+    saveAuth();
+
+    const usersSnapshot = getUsersBackupSnapshot();
     
     // Exporta o state completo incluindo calendar e gameResults
     const dataToExport = {
@@ -1490,7 +1596,12 @@ function exportData() {
         teams: state.teams,
         gameResults: state.gameResults,
         calendar: state.calendar,
-        roundDates: state.roundDates
+        roundDates: state.roundDates,
+        auth: {
+            users: usersSnapshot
+        },
+        // Compatibilidade com versões antigas (sem passwords)
+        users: usersSnapshot
     };
     
     const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {type:'application/json'});
@@ -1506,13 +1617,53 @@ function importData(file) {
     reader.onload = e => {
         try {
             const p = JSON.parse(e.target.result);
-            if (p.players)     state.players     = p.players;
-            if (p.teams)       state.teams       = p.teams;
-            if (p.roundDates)  state.roundDates  = p.roundDates;
+
+            if (Array.isArray(p.players)) state.players = p.players;
+            if (Array.isArray(p.teams)) state.teams = p.teams;
+            if (Array.isArray(p.gameResults)) state.gameResults = p.gameResults;
+            if (Array.isArray(p.calendar)) state.calendar = p.calendar;
+            if (p.roundDates && typeof p.roundDates === 'object') state.roundDates = p.roundDates;
+
+            const importedUsersRaw = Array.isArray(p.auth?.users)
+                ? p.auth.users
+                : (Array.isArray(p.users) ? p.users : null);
+
+            if (importedUsersRaw) {
+                authState.users = hydrateUsersFromBackup(importedUsersRaw);
+            }
+
+            if (authState.currentUser) {
+                const refreshedCurrent = authState.users.find(u => normalizeUsername(u.username) === normalizeUsername(authState.currentUser.username));
+                authState.currentUser = refreshedCurrent
+                    ? {
+                        id: refreshedCurrent.id,
+                        username: refreshedCurrent.username,
+                        displayName: refreshedCurrent.displayName,
+                        role: normalizeRole(refreshedCurrent.role)
+                    }
+                    : null;
+            }
+
+            ensureDefaultAdminUser();
             state.strokeIndex = [...DEFAULT_SI];
             initializeRoundDates();
+            initializeCalendar();
+
+            saveAuth();
+            saveGameResults();
+            saveCalendar();
             saveRoundDates();
-            saveState(); renderPlayers(); renderTeams(); renderSIGrids();
+
+            saveState();
+            renderPlayers();
+            renderTeams();
+            renderSIGrids();
+            renderUsers();
+            renderCalendario();
+
+            const selectedRound = document.getElementById('selRondaClass')?.value || 'total';
+            renderClassificacao(selectedRound === 'total' ? 'total' : parseInt(selectedRound, 10));
+            updateAuthUI();
             showToast('Dados importados com sucesso.');
         } catch { showToast('Ficheiro inválido ou corrompido.', 'error'); }
     };
