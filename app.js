@@ -1489,7 +1489,8 @@ function exportData() {
         players: state.players,
         teams: state.teams,
         gameResults: state.gameResults,
-        calendar: state.calendar
+        calendar: state.calendar,
+        roundDates: state.roundDates
     };
     
     const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {type:'application/json'});
@@ -1507,7 +1508,10 @@ function importData(file) {
             const p = JSON.parse(e.target.result);
             if (p.players)     state.players     = p.players;
             if (p.teams)       state.teams       = p.teams;
+            if (p.roundDates)  state.roundDates  = p.roundDates;
             state.strokeIndex = [...DEFAULT_SI];
+            initializeRoundDates();
+            saveRoundDates();
             saveState(); renderPlayers(); renderTeams(); renderSIGrids();
             showToast('Dados importados com sucesso.');
         } catch { showToast('Ficheiro inválido ou corrompido.', 'error'); }
@@ -1539,17 +1543,58 @@ function clearAll() {
 
 // Datas de cada ronda
 const DEFAULT_RONDA_DATES = {
-    1: 'Até 21 de Junho',
-    2: 'Até 26 de Julho',
-    3: 'Até 30 de Agosto',
-    4: 'Até 27 de Setembro',
-    5: 'Até 25 de Outubro',
-    6: '15 de Novembro',
-    7: '29 de Novembro',
-    8: '13 de Dezembro'
+    1: '2026-06-21',
+    2: '2026-07-26',
+    3: '2026-08-30',
+    4: '2026-09-27',
+    5: '2026-10-25',
+    6: '2026-11-15',
+    7: '2026-11-29',
+    8: '2026-12-13'
 };
 
 const ROUND_DATE_ORDER = [1, 2, 3, 4, 5, 6, 7, 8];
+const MONTHS_PT = ['janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+function normalizeMonthName(value) {
+    return (value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+}
+
+function parseLegacyRoundDateToISO(value) {
+    const cleaned = (value || '').trim().replace(/^ate\s+/i, '');
+    const m = cleaned.match(/(\d{1,2})\s+de\s+([A-Za-zÀ-ÿ]+)/i);
+    if (!m) return null;
+
+    const day = parseInt(m[1], 10);
+    const monthName = normalizeMonthName(m[2]);
+    const monthIdx = MONTHS_PT.indexOf(monthName);
+    if (!day || monthIdx < 0) return null;
+
+    const mm = String(monthIdx + 1).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    return `2026-${mm}-${dd}`;
+}
+
+function normalizeRoundDateValue(ronda, value) {
+    const raw = (value || '').trim();
+    if (!raw) return DEFAULT_RONDA_DATES[ronda];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    return parseLegacyRoundDateToISO(raw) || DEFAULT_RONDA_DATES[ronda];
+}
+
+function formatRoundDateLabel(ronda, isoDate) {
+    const normalized = normalizeRoundDateValue(ronda, isoDate);
+    const d = new Date(`${normalized}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return '';
+
+    const day = d.getDate();
+    const month = MONTHS_PT[d.getMonth()];
+    const text = `${day} de ${month}`;
+    return ronda <= 5 ? `Até ${text}` : text;
+}
 
 // Calendário inicial predefinido (seed) — editável pelo admin
 const CALENDAR_DATA = [
@@ -1656,7 +1701,7 @@ function loadRoundDates() {
         const parsed = JSON.parse(raw);
         ROUND_DATE_ORDER.forEach(r => {
             if (typeof parsed[r] === 'string' && parsed[r].trim()) {
-                state.roundDates[r] = parsed[r].trim();
+                state.roundDates[r] = normalizeRoundDateValue(r, parsed[r]);
             }
         });
     } catch (e) {
@@ -1679,9 +1724,7 @@ function initializeRoundDates() {
         return;
     }
     ROUND_DATE_ORDER.forEach(r => {
-        if (!state.roundDates[r] || !String(state.roundDates[r]).trim()) {
-            state.roundDates[r] = DEFAULT_RONDA_DATES[r];
-        }
+        state.roundDates[r] = normalizeRoundDateValue(r, state.roundDates[r]);
     });
 }
 
@@ -1831,7 +1874,7 @@ function renderRoundDatesEditor() {
     const rows = ROUND_DATE_ORDER.map(ronda => `
         <div class="form-field" style="margin-bottom:.4rem;">
             <label for="roundDate-${ronda}">${getRoundLabel(ronda)}</label>
-            <input id="roundDate-${ronda}" type="text" value="${esc(state.roundDates[ronda] || DEFAULT_RONDA_DATES[ronda] || '')}" placeholder="Data da ronda">
+            <input id="roundDate-${ronda}" type="date" value="${esc(state.roundDates[ronda] || DEFAULT_RONDA_DATES[ronda] || '')}">
         </div>
     `).join('');
 
@@ -1857,7 +1900,7 @@ function bindRoundDatesEditorEvents() {
         ROUND_DATE_ORDER.forEach(ronda => {
             const input = document.getElementById(`roundDate-${ronda}`);
             const v = (input?.value || '').trim();
-            state.roundDates[ronda] = v || DEFAULT_RONDA_DATES[ronda];
+            state.roundDates[ronda] = normalizeRoundDateValue(ronda, v);
         });
         saveRoundDates();
         renderCalendario();
@@ -2213,7 +2256,7 @@ function renderCalendario() {
         html += `<div class="ronda-block">
             <div class="ronda-header">
                 <span class="ronda-num">${getRoundLabel(ronda)}</span>
-                <span class="ronda-date">${state.roundDates[ronda] || DEFAULT_RONDA_DATES[ronda] || ''}</span>
+                <span class="ronda-date">${formatRoundDateLabel(ronda, state.roundDates[ronda])}</span>
             </div>
             <div class="grupos-grid">`;
 
