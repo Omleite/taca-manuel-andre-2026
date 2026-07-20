@@ -71,11 +71,6 @@ const ROLE_LABELS = {
     [ROLES.SCORING_OFFICIAL]: 'Scoring Official'
 };
 
-const ROLE_NAV_LABELS = {
-    [ROLES.TOURNAMENT_ADMIN]: 'Admin',
-    [ROLES.TOURNAMENT_MANAGER]: 'Manager',
-    [ROLES.SCORING_OFFICIAL]: 'Scoring'
-};
 
 const PERMISSIONS = {
     users_manage: [ROLES.TOURNAMENT_ADMIN],
@@ -145,10 +140,6 @@ function normalizeRole(role) {
 
 function roleLabel(role) {
     return ROLE_LABELS[normalizeRole(role)] || ROLE_LABELS[ROLES.TOURNAMENT_MANAGER];
-}
-
-function roleNavLabel(role) {
-    return ROLE_NAV_LABELS[normalizeRole(role)] || ROLE_NAV_LABELS[ROLES.TOURNAMENT_MANAGER];
 }
 
 function can(permission) {
@@ -232,10 +223,6 @@ function updateAuthUI() {
         // Evita informação redundante quando nome e função são iguais.
         const duplicatedLabel = displayName.toLowerCase() === roleText.toLowerCase();
         usernameEl.classList.toggle('hidden', duplicatedLabel);
-
-        const roleEl = document.getElementById('navUserRole');
-        roleEl.textContent = roleNavLabel(authState.currentUser.role);
-        roleEl.className = `nav-role-badge ${isTournamentAdmin ? 'badge-admin' : 'badge-user'}`;
     }
 
     // Botões de adicionar conforme permissões
