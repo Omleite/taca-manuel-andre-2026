@@ -1533,7 +1533,10 @@ const RONDA_DATES = {
     2: 'Até 26 de Julho',
     3: 'Até 30 de Agosto',
     4: 'Até 27 de Setembro',
-    5: 'Até 25 de Outubro'
+    5: 'Até 25 de Outubro',
+    6: '15 de Novembro',
+    7: '29 de Novembro',
+    8: '13 de Dezembro'
 };
 
 // Calendário inicial predefinido (seed) — editável pelo admin
@@ -1660,6 +1663,121 @@ function setGameResult(ronda, par, home, away, result) {
     saveGameResults();
 }
 
+function isGroupStageGame(game) {
+    return game && game.ronda >= 1 && game.ronda <= 5 && ['A', 'B', 'C', 'D'].includes(game.grupo);
+}
+
+function resultPoints(result) {
+    if (result === 'home') return { home: 3, away: 0 };
+    if (result === 'away') return { home: 0, away: 3 };
+    if (result === 'draw') return { home: 1, away: 1 };
+    return { home: 0, away: 0 };
+}
+
+function applyGroupTieBreak(groupTeams, group, gamesForScope) {
+    const pointBuckets = new Map();
+
+    groupTeams.forEach(team => {
+        if (!pointBuckets.has(team.points)) pointBuckets.set(team.points, []);
+        pointBuckets.get(team.points).push(team);
+    });
+
+    const orderedPoints = [...pointBuckets.keys()].sort((a, b) => b - a);
+    const ranked = [];
+
+    orderedPoints.forEach(pointsValue => {
+        const bucket = [...pointBuckets.get(pointsValue)];
+        if (bucket.length === 1) {
+            ranked.push(bucket[0]);
+            return;
+        }
+
+        const tiedNames = new Set(bucket.map(t => t.name));
+        const h2h = {};
+        bucket.forEach(t => {
+            h2h[t.name] = { points: 0, diff: 0 };
+        });
+
+        gamesForScope.forEach(game => {
+            if (game.grupo !== group) return;
+            if (!tiedNames.has(game.home) || !tiedNames.has(game.away)) return;
+            const gameResult = getGameResult(game.ronda, game.par, game.home, game.away);
+            if (!gameResult || !gameResult.result) return;
+
+            const pts = resultPoints(gameResult.result);
+            h2h[game.home].points += pts.home;
+            h2h[game.away].points += pts.away;
+            h2h[game.home].diff += (pts.home - pts.away);
+            h2h[game.away].diff += (pts.away - pts.home);
+        });
+
+        bucket.sort((a, b) => {
+            if (h2h[b.name].points !== h2h[a.name].points) return h2h[b.name].points - h2h[a.name].points;
+            if (h2h[b.name].diff !== h2h[a.name].diff) return h2h[b.name].diff - h2h[a.name].diff;
+            if (b.wins !== a.wins) return b.wins - a.wins;
+            if (b.draws !== a.draws) return b.draws - a.draws;
+
+            const diffA = a.pointsFor - a.pointsAgainst;
+            const diffB = b.pointsFor - b.pointsAgainst;
+            if (diffB !== diffA) return diffB - diffA;
+
+            return a.name.localeCompare(b.name, 'pt');
+        });
+
+        ranked.push(...bucket);
+    });
+
+    return ranked;
+}
+
+function isGroupStageFullyScored() {
+    const groupStageGames = state.calendar.filter(isGroupStageGame);
+    if (!groupStageGames.length) return false;
+    return groupStageGames.every(game => {
+        const result = getGameResult(game.ronda, game.par, game.home, game.away);
+        return !!(result && result.result);
+    });
+}
+
+function buildPlayoffScheduleEntries() {
+    const completedGroups = isGroupStageFullyScored();
+    const standings = completedGroups ? calculateStandings(5, true) : null;
+
+    const a1 = standings?.A?.[0]?.name || '1ºA';
+    const a2 = standings?.A?.[1]?.name || '2ºA';
+    const b1 = standings?.B?.[0]?.name || '1ºB';
+    const b2 = standings?.B?.[1]?.name || '2ºB';
+    const c1 = standings?.C?.[0]?.name || '1ºC';
+    const c2 = standings?.C?.[1]?.name || '2ºC';
+    const d1 = standings?.D?.[0]?.name || '1ºD';
+    const d2 = standings?.D?.[1]?.name || '2ºD';
+
+    const finalMatches = [
+        { ronda: 6, grupo: '1', matchNo: 1, home: a1, away: b2 },
+        { ronda: 6, grupo: '2', matchNo: 2, home: b1, away: a2 },
+        { ronda: 6, grupo: '3', matchNo: 3, home: c1, away: d2 },
+        { ronda: 6, grupo: '4', matchNo: 4, home: d1, away: c2 },
+        { ronda: 7, grupo: '5', matchNo: 5, home: 'Vencedor 1', away: 'Vencedor 3' },
+        { ronda: 7, grupo: '6', matchNo: 6, home: 'Vencedor 2', away: 'Vencedor 4' },
+        { ronda: 8, grupo: '7', matchNo: 7, home: 'Vencedor 5', away: 'Vencedor 6' }
+    ];
+
+    const entries = [];
+    finalMatches.forEach(match => {
+        entries.push({ ...match, par: 1 });
+        entries.push({ ...match, par: 2 });
+    });
+
+    return entries;
+}
+
+function getRoundLabel(ronda) {
+    if (ronda === 6) return 'Quartos de Final';
+    if (ronda === 7) return 'Meias-finais';
+    if (ronda === 8) return 'Final';
+    return `${ronda}ª Ronda`;
+}
+
 function calculateStandings(ronda, accumulate) {
     // ronda: número da ronda; accumulate: true = soma todas as rondas até ronda
     
@@ -1673,6 +1791,8 @@ function calculateStandings(ronda, accumulate) {
                 name: team.name,
                 grupo: team.grupo,
                 points: 0,
+                pointsFor: 0,
+                pointsAgainst: 0,
                 played: 0,
                 wins: 0,
                 draws: 0,
@@ -1683,9 +1803,10 @@ function calculateStandings(ronda, accumulate) {
     
     // Calcular pontos baseado nos resultados
     // accumulate=true: todas as rondas até ronda; false: só a ronda exacta
-    const games = accumulate
-        ? state.calendar.filter(g => g.ronda <= ronda)
-        : state.calendar.filter(g => g.ronda === ronda);
+    const games = state.calendar.filter(g => {
+        if (!isGroupStageGame(g)) return false;
+        return accumulate ? g.ronda <= ronda : g.ronda === ronda;
+    });
     
     games.forEach(game => {
         const homeTeam = standings[game.grupo].find(t => t.name === game.home);
@@ -1703,24 +1824,36 @@ function calculateStandings(ronda, accumulate) {
                 if (result === 'home') {
                     homeTeam.wins++;
                     homeTeam.points += 3;
+                    homeTeam.pointsFor += 3;
+                    homeTeam.pointsAgainst += 0;
+                    awayTeam.pointsFor += 0;
+                    awayTeam.pointsAgainst += 3;
                     awayTeam.losses++;
                 } else if (result === 'away') {
                     awayTeam.wins++;
                     awayTeam.points += 3;
+                    awayTeam.pointsFor += 3;
+                    awayTeam.pointsAgainst += 0;
+                    homeTeam.pointsFor += 0;
+                    homeTeam.pointsAgainst += 3;
                     homeTeam.losses++;
                 } else if (result === 'draw') {
                     homeTeam.draws++;
                     homeTeam.points += 1;
+                    homeTeam.pointsFor += 1;
+                    homeTeam.pointsAgainst += 1;
                     awayTeam.draws++;
                     awayTeam.points += 1;
+                    awayTeam.pointsFor += 1;
+                    awayTeam.pointsAgainst += 1;
                 }
             }
         }
     });
     
-    // Ordenar por pontos (decrescente)
+    // Ordenar por pontos + desempate (fase de grupos)
     Object.keys(standings).forEach(grupo => {
-        standings[grupo].sort((a, b) => b.points - a.points);
+        standings[grupo] = applyGroupTieBreak(standings[grupo], grupo, games);
     });
     
     return standings;
@@ -1971,21 +2104,26 @@ function renderCalendario() {
     const container = document.getElementById('calendarioContainer');
     if (!container) return;
 
-    const rondes = [1, 2, 3, 4, 5];
+    const calendarEntries = [...state.calendar.filter(isGroupStageGame), ...buildPlayoffScheduleEntries()];
+    const rondes = [...new Set(calendarEntries.map(g => g.ronda))].sort((a, b) => a - b);
     let html = '';
 
     rondes.forEach(ronda => {
-        const rondaGames = state.calendar.filter(g => g.ronda === ronda);
+        const rondaGames = calendarEntries.filter(g => g.ronda === ronda);
         if (!rondaGames.length) return;
+
+        const gruposDaRonda = ronda <= 5
+            ? ['A', 'B', 'C', 'D']
+            : [...new Set(rondaGames.map(g => g.grupo))].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
 
         html += `<div class="ronda-block">
             <div class="ronda-header">
-                <span class="ronda-num">${ronda}ª Ronda</span>
+                <span class="ronda-num">${getRoundLabel(ronda)}</span>
                 <span class="ronda-date">${RONDA_DATES[ronda] || ''}</span>
             </div>
             <div class="grupos-grid">`;
 
-        ['A', 'B', 'C', 'D'].forEach(grupo => {
+        gruposDaRonda.forEach(grupo => {
             const grupoGames = rondaGames.filter(g => g.grupo === grupo);
             if (!grupoGames.length) return;
 
@@ -1998,14 +2136,15 @@ function renderCalendario() {
             });
 
             html += `<div class="grupo-card">
-                <h4 class="grupo-title">Grupo ${grupo}</h4>
+                <h4 class="grupo-title">${ronda <= 5 ? `Grupo ${grupo}` : `Match ${grupo}`}</h4>
                 <ul class="jogos-list">`;
 
             matchups.forEach((games, key) => {
                 const [home, away] = key.split('|||');
-                const homeExists = state.teams.some(t => t.name === home);
-                const awayExists = state.teams.some(t => t.name === away);
-                const invalid = !homeExists || !awayExists;
+                const shouldValidateTeams = ronda <= 5;
+                const homeExists = !shouldValidateTeams || state.teams.some(t => t.name === home);
+                const awayExists = !shouldValidateTeams || state.teams.some(t => t.name === away);
+                const invalid = shouldValidateTeams && (!homeExists || !awayExists);
 
                 // Calcular resultado total do confronto (soma dos 2 pares)
                 const results = games.map(g =>
@@ -2048,7 +2187,7 @@ function renderCalendario() {
                         ${scoreLabel}
                         <span class="team-away${awayClass}">${esc(away)}</span>
                         ${invalid ? '<span class="jogo-warning" title="Uma ou ambas as equipas não existem">⚠️</span>' : ''}
-                        ${can('calendar_manage') ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
+                        ${(can('calendar_manage') && ronda <= 5) ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
                     </div>
                     ${hasAnyResult ? `<div class="jogo-pars">${parBadges}</div>` : ''}
                 </li>`;
