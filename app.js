@@ -2188,13 +2188,14 @@ function renderClassificacao(ronda) {
             
             groupGames.forEach(game => {
                 const result = getGameResult(game.ronda, game.par, game.home, game.away);
+                const isKnockoutRound = game.ronda >= 6;
                 const resultHtml = `
                 <div class="game-result-row">
                     <span class="team-name" style="font-size: 0.85rem; color: var(--txt-light);">Par ${game.par}</span>
                     <span class="team-name">${esc(game.home)}</span>
                     <div class="result-buttons">
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
-                        <button class="btn-result ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">Empate</button>
+                        ${!isKnockoutRound ? `<button class="btn-result ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">Empate</button>` : ''}
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
                         <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
                     </div>

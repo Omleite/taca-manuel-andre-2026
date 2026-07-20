@@ -792,14 +792,25 @@ body {
     }
     .hero-sub-sep { display: none; }
     .hero-tribute {
-        right: .65rem;
-        bottom: .45rem;
-        padding: .22rem .5rem .22rem .22rem;
-        gap: .35rem;
+        right: .5rem;
+        bottom: .35rem;
+        max-width: calc(100% - 1rem);
+        padding: .25rem .55rem .25rem .25rem;
+        gap: .4rem;
         background: rgba(15,15,15,.62);
     }
-    .hero-tribute-img { width: 24px; height: 24px; }
-    .hero-tribute-name { font-size: .56rem; letter-spacing: .04em; }
+    .hero-tribute-img {
+        width: 28px;
+        height: 28px;
+        object-fit: cover;
+        object-position: center top;
+    }
+    .hero-tribute-name {
+        font-size: .6rem;
+        letter-spacing: .04em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
     .hcp-input-row  { flex-direction: column; }
     .fpg-link-btn   { padding: .75rem 1rem; }
     .grupos-grid    { grid-template-columns: 1fr; }
