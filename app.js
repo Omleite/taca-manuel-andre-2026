@@ -1499,7 +1499,8 @@ function renderClassificacao(ronda) {
                 const result = e.target.dataset.result;
                 
                 setGameResult(ronda, par, home, away, result);
-                renderClassificacao(ronda);
+                const selectedView = document.getElementById('selRondaClass').value;
+                renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
                 showToast(`Resultado registado - Par ${par}: ${home} vs ${away}`);
             });
         });
@@ -1513,7 +1514,8 @@ function renderClassificacao(ronda) {
                 const away = e.target.dataset.away;
                 
                 setGameResult(ronda, par, home, away, null);
-                renderClassificacao(ronda);
+                const selectedView = document.getElementById('selRondaClass').value;
+                renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
                 showToast(`Resultado limpo - Par ${par}: ${home} vs ${away}`);
             });
         });
