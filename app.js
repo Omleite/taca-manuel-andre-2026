@@ -493,9 +493,9 @@ function renderUsers() {
             <div class="user-item">
                 <div class="user-info">
                     <span class="user-name">${esc(u.displayName)}</span>
-                    <span class="user-meta">@${esc(u.username)} · ${roleLabel(role)} ${isCurrent ? '<span class="current-user-tag">(sessão atual)</span>' : ''}</span>
+                    <span class="user-meta">@${esc(u.username)} ${isCurrent ? '<span class="current-user-tag">(sessão atual)</span>' : ''}</span>
                 </div>
-                <div class="user-actions" style="display:flex; gap:.4rem; align-items:center;">
+                <div class="user-actions">
                     <select class="role-select" data-user-id="${u.id}" ${isCurrent ? 'disabled' : ''}>
                         <option value="${ROLES.TOURNAMENT_MANAGER}" ${role === ROLES.TOURNAMENT_MANAGER ? 'selected' : ''}>Tournament Manager</option>
                         <option value="${ROLES.SCORING_OFFICIAL}" ${role === ROLES.SCORING_OFFICIAL ? 'selected' : ''}>Scoring Official</option>
