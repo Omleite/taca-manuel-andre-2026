@@ -6,6 +6,7 @@
 
 const STORAGE_KEY = 'taca-manuel-andre-2026';
 const AUTH_KEY    = 'tma-2026-auth';
+const GITHUB_TOKEN_SESSION_KEY = 'tma-2026-gh-token';
 const SALT        = 'egc:tma:2026:estela';
 
 // Stroke Index predefinido - Estela Golf Club
@@ -98,7 +99,6 @@ function doLogout() {
 
 function updateAuthUI() {
     const admin = isAdmin();
-    console.log('[updateAuthUI] admin =', admin, ', currentUser =', authState.currentUser);
 
     // Nav
     document.getElementById('btnOpenLogin').classList.toggle('hidden', admin);
@@ -121,10 +121,8 @@ function updateAuthUI() {
 
     // Secções admin-only
     const adminOnlyEls = document.querySelectorAll('.admin-only');
-    console.log('[updateAuthUI] Found', adminOnlyEls.length, 'admin-only elements');
     adminOnlyEls.forEach(el => {
         el.classList.toggle('hidden', !admin);
-        console.log('[updateAuthUI] Element:', el.textContent?.trim(), '-> hidden:', el.classList.contains('hidden'));
     });
 
     // Re-render listas para actualizar botões editar/apagar
@@ -187,7 +185,10 @@ function handleLogin(e) {
 
 function openGithubSyncModal() {
     document.getElementById('githubSyncModal').classList.remove('hidden');
-    document.getElementById('githubToken').value = localStorage.getItem('gh-token') || '';
+    // Token só vive na sessão atual do browser (não persiste após fechar).
+    document.getElementById('githubToken').value = sessionStorage.getItem(GITHUB_TOKEN_SESSION_KEY) || '';
+    // Limpa token legado guardado em localStorage (versões antigas).
+    localStorage.removeItem('gh-token');
     document.getElementById('githubSyncError').classList.add('hidden');
     document.getElementById('githubSyncError').textContent = '';
     setTimeout(() => document.getElementById('githubToken').focus(), 50);
@@ -231,8 +232,8 @@ async function handleGithubSync(e) {
             throw new Error('Token inválido ou expirado. Crie um novo em https://github.com/settings/tokens');
         }
 
-        // Guardar token no localStorage
-        localStorage.setItem('gh-token', token);
+        // Guardar token apenas na sessão atual
+        sessionStorage.setItem(GITHUB_TOKEN_SESSION_KEY, token);
 
         // Sincronizar dados
         saveState();
