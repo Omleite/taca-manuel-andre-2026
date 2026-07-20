@@ -1057,7 +1057,18 @@ function renderTeams() {
         </div>`;
         return;
     }
-    el.innerHTML = state.teams.map(t => {
+    const sortedTeams = [...state.teams].sort((a, b) => {
+        const playersA = (a.playerIds || []).map(pid => getPlayer(pid)).filter(Boolean);
+        const playersB = (b.playerIds || []).map(pid => getPlayer(pid)).filter(Boolean);
+
+        const avgA = playersA.length ? playersA.reduce((sum, p) => sum + Number(p.handicap || 0), 0) / playersA.length : Number.POSITIVE_INFINITY;
+        const avgB = playersB.length ? playersB.reduce((sum, p) => sum + Number(p.handicap || 0), 0) / playersB.length : Number.POSITIVE_INFINITY;
+
+        if (avgA !== avgB) return avgA - avgB;
+        return a.name.localeCompare(b.name, 'pt');
+    });
+
+    el.innerHTML = sortedTeams.map(t => {
         const allPlayers = (t.playerIds || []).map(pid => getPlayer(pid)).filter(Boolean);
         
         // Separa o capitão dos outros
@@ -1089,7 +1100,7 @@ function renderTeams() {
                 <div class="team-card-header">
                     <div class="team-header-info">
                         <span class="team-name">${esc(t.name)}</span>
-                        <span class="team-hcp">HCP: ${teamHcp}</span>
+                        <span class="team-hcp">HCP Médio: ${teamHcp}</span>
                     </div>
                     ${can('teams_manage') ? `
                     <div class="team-actions">
