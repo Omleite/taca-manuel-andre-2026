@@ -457,7 +457,8 @@ body {
 
 /* ── FPG Quick bar (Calcular tab) ────── */
 .fpg-quickbar {
-    display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+    display: flex; align-items: center; justify-content: center;
+    gap: .55rem; flex-wrap: wrap;
     background: #f0f7ff; border: 1.5px solid #c9e2f5;
     border-radius: var(--r-md); padding: .6rem 1.1rem; margin-bottom: 1.5rem;
 }
@@ -469,10 +470,24 @@ body {
 }
 .fpg-quickbar-link {
     font-family: var(--font-head); font-size: .78rem; font-weight: 600;
-    color: #004880; text-decoration: none; white-space: nowrap; transition: color .15s;
+    color: #004880; text-decoration: none; white-space: nowrap;
+    transition: color .15s;
+    display: inline-flex; align-items: center;
+    line-height: 1.2;
 }
 .fpg-quickbar-link:hover { color: #0073cc; text-decoration: underline; }
 .fpg-quickbar-sep { color: #93c5fd; font-weight: 700; }
+
+@media (max-width: 640px) {
+    .fpg-quickbar {
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: .65rem .9rem;
+    }
+    .fpg-quickbar-link {
+        white-space: normal;
+    }
+}
 
 /* ══════════════════════════════════════════════
    NAV AUTH (login button / user info)
