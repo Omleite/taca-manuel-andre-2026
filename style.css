@@ -4,19 +4,19 @@
    ============================================= */
 
 :root {
-    --nav-bg:       #0d1a10;
-    --primary:      #1a3a22;
-    --mid:          #2e5e38;
-    --light:        #4a8a58;
-    --accent:       #b5892a;
-    --accent-lt:    #deb84e;
-    --accent-pale:  #f7edd0;
-    --page-bg:      #f2efe8;
+    --nav-bg:       #0f0f0f;
+    --primary:      #181818;
+    --mid:          #2a2a2a;
+    --light:        #444444;
+    --accent:       #c4a343;
+    --accent-lt:    #e4ca7a;
+    --accent-pale:  #f8f0d8;
+    --page-bg:      #f5f3ee;
     --card-bg:      #ffffff;
-    --border:       #dedad2;
-    --txt-dark:     #161610;
-    --txt-mid:      #3d3d35;
-    --txt-light:    #7a7a6e;
+    --border:       #ddd8cc;
+    --txt-dark:     #171717;
+    --txt-mid:      #3f3d38;
+    --txt-light:    #7a766e;
     --blue:         #1d4ed8;
     --blue-lt:      #dbeafe;
     --blue-50:      #eff6ff;
@@ -224,7 +224,7 @@ body {
 .team-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
 .team-header-info { display: flex; flex-direction: column; gap: .25rem; flex: 1; }
 .team-name { font-family: var(--font-head); font-size: 1.1rem; font-weight: 800; color: var(--primary); }
-.team-hcp { font-size: .85rem; color: #7c3aed; font-weight: 700; }
+.team-hcp { font-size: .85rem; color: var(--accent); font-weight: 700; }
 .team-actions { display: flex; gap: .5rem; flex-shrink: 0; }
 .team-players-list { list-style: none; display: flex; flex-direction: column; gap: .4rem; }
 .team-player-item.is-captain { background: linear-gradient(to right, rgba(181,137,42,.08), rgba(181,137,42,0)); border-left: 2px solid var(--accent); padding-left: .65rem; }
