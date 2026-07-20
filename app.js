@@ -71,6 +71,12 @@ const ROLE_LABELS = {
     [ROLES.SCORING_OFFICIAL]: 'Scoring Official'
 };
 
+const ROLE_NAV_LABELS = {
+    [ROLES.TOURNAMENT_ADMIN]: 'Admin',
+    [ROLES.TOURNAMENT_MANAGER]: 'Manager',
+    [ROLES.SCORING_OFFICIAL]: 'Scoring'
+};
+
 const PERMISSIONS = {
     users_manage: [ROLES.TOURNAMENT_ADMIN],
     players_manage: [ROLES.TOURNAMENT_ADMIN, ROLES.TOURNAMENT_MANAGER],
@@ -139,6 +145,10 @@ function normalizeRole(role) {
 
 function roleLabel(role) {
     return ROLE_LABELS[normalizeRole(role)] || ROLE_LABELS[ROLES.TOURNAMENT_MANAGER];
+}
+
+function roleNavLabel(role) {
+    return ROLE_NAV_LABELS[normalizeRole(role)] || ROLE_NAV_LABELS[ROLES.TOURNAMENT_MANAGER];
 }
 
 function can(permission) {
@@ -214,9 +224,17 @@ function updateAuthUI() {
     document.getElementById('btnOpenLogin').classList.toggle('hidden', logged);
     document.getElementById('navUser').classList.toggle('hidden', !logged);
     if (logged) {
-        document.getElementById('navUsername').textContent = authState.currentUser.displayName;
+        const displayName = (authState.currentUser.displayName || '').trim();
+        const roleText = roleLabel(authState.currentUser.role);
+        const usernameEl = document.getElementById('navUsername');
+
+        usernameEl.textContent = displayName;
+        // Evita informação redundante quando nome e função são iguais.
+        const duplicatedLabel = displayName.toLowerCase() === roleText.toLowerCase();
+        usernameEl.classList.toggle('hidden', duplicatedLabel);
+
         const roleEl = document.getElementById('navUserRole');
-        roleEl.textContent = roleLabel(authState.currentUser.role);
+        roleEl.textContent = roleNavLabel(authState.currentUser.role);
         roleEl.className = `nav-role-badge ${isTournamentAdmin ? 'badge-admin' : 'badge-user'}`;
     }
 
