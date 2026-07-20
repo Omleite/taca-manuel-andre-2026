@@ -55,7 +55,8 @@ let state = {
 
 let authState = {
     currentUser: null,
-    adminPassword: 'estela2026'  // Password fixo para admin
+    adminPassword: 'estela2026',  // Compatibilidade com versões antigas
+    users: []
 };
 
 // ════════════════════════════════════════════════════════════
@@ -68,7 +69,12 @@ function loadAuth() {
         if (raw) {
             const p = JSON.parse(raw);
             authState.currentUser = p.currentUser || null;
+            authState.users = Array.isArray(p.users) ? p.users : [];
+            if (typeof p.adminPassword === 'string' && p.adminPassword.trim()) {
+                authState.adminPassword = p.adminPassword;
+            }
         }
+        ensureDefaultAdminUser();
     } catch (e) { console.error('loadAuth:', e); }
 }
 
@@ -76,12 +82,58 @@ function saveAuth() {
     localStorage.setItem(AUTH_KEY, JSON.stringify(authState));
 }
 
+function hashPassword(password) {
+    const input = `${SALT}:${password}`;
+    let h = 5381;
+    for (let i = 0; i < input.length; i++) {
+        h = ((h << 5) + h) + input.charCodeAt(i);
+        h |= 0;
+    }
+    return (h >>> 0).toString(16);
+}
+
+function normalizeUsername(username) {
+    return (username || '').trim().toLowerCase();
+}
+
+function ensureDefaultAdminUser() {
+    const existingAdmin = authState.users.find(u => normalizeUsername(u.username) === 'admin');
+    if (existingAdmin) {
+        if (!existingAdmin.passwordHash) {
+            existingAdmin.passwordHash = hashPassword(authState.adminPassword || 'estela2026');
+        }
+        existingAdmin.displayName = existingAdmin.displayName || 'Administrador';
+        existingAdmin.role = existingAdmin.role || 'admin';
+        return;
+    }
+
+    authState.users.push({
+        id: 'admin-default',
+        username: 'admin',
+        displayName: 'Administrador',
+        role: 'admin',
+        passwordHash: hashPassword(authState.adminPassword || 'estela2026')
+    });
+    saveAuth();
+}
+
+function getUserByUsername(username) {
+    const uname = normalizeUsername(username);
+    return authState.users.find(u => normalizeUsername(u.username) === uname) || null;
+}
+
 const isLoggedIn = () => !!authState.currentUser;
-const isAdmin    = () => isLoggedIn();
+const isAdmin    = () => !!authState.currentUser && authState.currentUser.role === 'admin';
 
 function doLogin(username, password) {
-    if (username === 'admin' && password === authState.adminPassword) {
-        authState.currentUser = { username: 'admin', displayName: 'Administrador', role: 'admin' };
+    const user = getUserByUsername(username);
+    if (user && user.passwordHash === hashPassword(password)) {
+        authState.currentUser = {
+            id: user.id,
+            username: user.username,
+            displayName: user.displayName,
+            role: user.role
+        };
         saveAuth();
         return true;
     }
@@ -99,12 +151,16 @@ function doLogout() {
 
 function updateAuthUI() {
     const admin = isAdmin();
+    const logged = isLoggedIn();
 
     // Nav
-    document.getElementById('btnOpenLogin').classList.toggle('hidden', admin);
-    document.getElementById('navUser').classList.toggle('hidden', !admin);
-    if (admin) {
+    document.getElementById('btnOpenLogin').classList.toggle('hidden', logged);
+    document.getElementById('navUser').classList.toggle('hidden', !logged);
+    if (logged) {
         document.getElementById('navUsername').textContent = authState.currentUser.displayName;
+        const roleEl = document.getElementById('navUserRole');
+        roleEl.textContent = admin ? 'Admin' : 'User';
+        roleEl.className = `nav-role-badge ${admin ? 'badge-admin' : 'badge-user'}`;
     }
 
     // Botões de adicionar: só para admin
@@ -123,6 +179,11 @@ function updateAuthUI() {
     const adminOnlyEls = document.querySelectorAll('.admin-only');
     adminOnlyEls.forEach(el => {
         el.classList.toggle('hidden', !admin);
+    });
+
+    // Secções auth-only
+    document.querySelectorAll('.auth-only').forEach(el => {
+        el.classList.toggle('hidden', !logged);
     });
 
     // Re-render listas para actualizar botões editar/apagar
@@ -327,8 +388,190 @@ async function handleGithubSync(e) {
 }
 
 // ── Gestão de utilizadores (admin) ───────────────────────────
+function renderUsers() {
+    if (!isAdmin()) return;
 
-// (Gestão de users removida - apenas admin fixo)
+    const list = document.getElementById('usersList');
+    if (!list) return;
+
+    const sorted = [...authState.users].sort((a, b) => a.displayName.localeCompare(b.displayName, 'pt'));
+
+    if (!sorted.length) {
+        list.innerHTML = `<div class="empty-state"><p>Sem utilizadores configurados.</p></div>`;
+        return;
+    }
+
+    list.innerHTML = sorted.map(u => {
+        const isCurrent = authState.currentUser && authState.currentUser.username === u.username;
+        const canDelete = normalizeUsername(u.username) !== 'admin' && !isCurrent;
+        const adminCount = authState.users.filter(x => x.role === 'admin').length;
+        const canDemote = !(u.role === 'admin' && adminCount <= 1);
+
+        return `
+            <div class="user-item">
+                <div class="user-info">
+                    <span class="user-name">${esc(u.displayName)}</span>
+                    <span class="user-meta">@${esc(u.username)} · ${u.role === 'admin' ? 'Administrador' : 'Utilizador'} ${isCurrent ? '<span class="current-user-tag">(sessão atual)</span>' : ''}</span>
+                </div>
+                <div class="user-actions" style="display:flex; gap:.4rem; align-items:center;">
+                    <select class="role-select" data-user-id="${u.id}" ${isCurrent ? 'disabled' : ''}>
+                        <option value="user" ${u.role === 'user' ? 'selected' : ''}>Utilizador</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Administrador</option>
+                    </select>
+                    <button class="btn btn-sm btn-danger btn-delete-user" data-user-id="${u.id}" ${canDelete ? '' : 'disabled'}>Remover</button>
+                    ${canDemote ? '' : '<span class="current-user-tag">Admin obrigatório</span>'}
+                </div>
+            </div>`;
+    }).join('');
+
+    list.querySelectorAll('.role-select').forEach(sel => {
+        sel.addEventListener('change', (e) => {
+            updateUserRole(e.target.dataset.userId, e.target.value);
+        });
+    });
+
+    list.querySelectorAll('.btn-delete-user').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            deleteUser(e.target.dataset.userId);
+        });
+    });
+}
+
+function saveNewUser() {
+    if (!isAdmin()) return;
+
+    const displayName = document.getElementById('inputNewDisplayName').value.trim();
+    const username = normalizeUsername(document.getElementById('inputNewUsername').value);
+    const password = document.getElementById('inputNewPassword').value;
+    const role = document.getElementById('inputNewRole').value;
+
+    if (!displayName || !username || !password) {
+        showToast('Preencha nome, utilizador e palavra-passe.', 'error');
+        return;
+    }
+    if (!/^[a-z0-9._-]{3,}$/.test(username)) {
+        showToast('Utilizador inválido (mín. 3, apenas a-z, 0-9, . _ -).', 'error');
+        return;
+    }
+    if (password.length < 6) {
+        showToast('A palavra-passe deve ter pelo menos 6 caracteres.', 'error');
+        return;
+    }
+    if (getUserByUsername(username)) {
+        showToast('Já existe um utilizador com esse nome.', 'error');
+        return;
+    }
+
+    authState.users.push({
+        id: genId(),
+        username,
+        displayName,
+        role: role === 'admin' ? 'admin' : 'user',
+        passwordHash: hashPassword(password)
+    });
+
+    saveAuth();
+    document.getElementById('newUserForm').classList.add('hidden');
+    document.getElementById('inputNewDisplayName').value = '';
+    document.getElementById('inputNewUsername').value = '';
+    document.getElementById('inputNewPassword').value = '';
+    document.getElementById('inputNewRole').value = 'user';
+    renderUsers();
+    showToast('Utilizador criado com sucesso.');
+}
+
+function updateUserRole(userId, nextRole) {
+    if (!isAdmin()) return;
+    const user = authState.users.find(u => u.id === userId);
+    if (!user) return;
+
+    const role = nextRole === 'admin' ? 'admin' : 'user';
+    if (user.role === role) return;
+
+    const adminCount = authState.users.filter(u => u.role === 'admin').length;
+    if (user.role === 'admin' && role !== 'admin' && adminCount <= 1) {
+        showToast('Tem de existir pelo menos um administrador.', 'error');
+        renderUsers();
+        return;
+    }
+
+    user.role = role;
+
+    if (authState.currentUser && authState.currentUser.id === user.id) {
+        authState.currentUser.role = role;
+    }
+
+    saveAuth();
+    updateAuthUI();
+    renderUsers();
+    showToast('Função atualizada.');
+}
+
+function deleteUser(userId) {
+    if (!isAdmin()) return;
+    const user = authState.users.find(u => u.id === userId);
+    if (!user) return;
+
+    if (normalizeUsername(user.username) === 'admin') {
+        showToast('O utilizador admin base não pode ser removido.', 'error');
+        return;
+    }
+
+    if (authState.currentUser && authState.currentUser.id === userId) {
+        showToast('Não pode remover o utilizador com sessão ativa.', 'error');
+        return;
+    }
+
+    if (!confirm(`Remover o utilizador ${user.displayName}?`)) return;
+
+    authState.users = authState.users.filter(u => u.id !== userId);
+    saveAuth();
+    renderUsers();
+    showToast('Utilizador removido.');
+}
+
+function changeOwnPassword() {
+    if (!isLoggedIn()) return;
+
+    const currentPwd = document.getElementById('inputCurrentPwd').value;
+    const newPwd = document.getElementById('inputNewPwd').value;
+    const confirmPwd = document.getElementById('inputConfirmPwd').value;
+
+    if (!currentPwd || !newPwd || !confirmPwd) {
+        showToast('Preencha todos os campos da palavra-passe.', 'error');
+        return;
+    }
+    if (newPwd.length < 6) {
+        showToast('A nova palavra-passe deve ter pelo menos 6 caracteres.', 'error');
+        return;
+    }
+    if (newPwd !== confirmPwd) {
+        showToast('A confirmação da palavra-passe não coincide.', 'error');
+        return;
+    }
+
+    const currentUser = authState.users.find(u => u.id === authState.currentUser.id);
+    if (!currentUser) {
+        showToast('Utilizador atual não encontrado.', 'error');
+        return;
+    }
+
+    if (currentUser.passwordHash !== hashPassword(currentPwd)) {
+        showToast('Palavra-passe atual incorreta.', 'error');
+        return;
+    }
+
+    currentUser.passwordHash = hashPassword(newPwd);
+    if (normalizeUsername(currentUser.username) === 'admin') {
+        authState.adminPassword = newPwd;
+    }
+
+    saveAuth();
+    document.getElementById('inputCurrentPwd').value = '';
+    document.getElementById('inputNewPwd').value = '';
+    document.getElementById('inputConfirmPwd').value = '';
+    showToast('Palavra-passe alterada com sucesso.');
+}
 
 // ════════════════════════════════════════════════════════════
 //  PERSISTÊNCIA (dados do torneio)
@@ -1909,18 +2152,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('importFile').addEventListener('change', e => { importData(e.target.files[0]); e.target.value=''; });
     document.getElementById('btnClearAll').addEventListener('click', clearAll);
 
-    // Gestão utilizadores (admin) - REMOVED: saveNewUser not implemented
-    // document.getElementById('btnShowNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.remove('hidden'));
-    // document.getElementById('btnCancelNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.add('hidden'));
-    // document.getElementById('btnSaveNewUser').addEventListener('click', saveNewUser);
+    // Gestão utilizadores (admin)
+    document.getElementById('btnShowNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.remove('hidden'));
+    document.getElementById('btnCancelNewUser').addEventListener('click', () => document.getElementById('newUserForm').classList.add('hidden'));
+    document.getElementById('btnSaveNewUser').addEventListener('click', saveNewUser);
 
-    // Alterar palavra-passe - REMOVED: changeOwnPassword not implemented
-    // document.getElementById('btnChangePwd').addEventListener('click', changeOwnPassword);
+    // Alterar palavra-passe
+    document.getElementById('btnChangePwd').addEventListener('click', changeOwnPassword);
 
     // Render inicial
     renderPlayers();
     renderTeams();
     renderSIGrids();
     refreshCalcSelects();
+    renderUsers();
     updateAuthUI();
 });
