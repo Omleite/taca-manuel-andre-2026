@@ -50,7 +50,8 @@ let state = {
     teams: [],
     strokeIndex: [...DEFAULT_SI],
     gameResults: [],  // Array de resultados de jogos
-    calendar: []      // Calendário editável de jogos
+    calendar: [],     // Calendário editável de jogos
+    roundDates: {}    // Datas editáveis por ronda
 };
 
 let authState = {
@@ -1517,7 +1518,16 @@ function importData(file) {
 function clearAll() {
     if (!can('data_manage')) return;
     if (!confirm('Apagar todos os dados do torneio?\nEsta acção não pode ser desfeita.')) return;
-    state = { players:[], teams:[], strokeIndex:[...DEFAULT_SI], gameResults:[] };
+    state = {
+        players: [],
+        teams: [],
+        strokeIndex: [...DEFAULT_SI],
+        gameResults: [],
+        calendar: CALENDAR_DATA.map(g => ({ ...g })),
+        roundDates: { ...DEFAULT_RONDA_DATES }
+    };
+    saveCalendar();
+    saveRoundDates();
     saveState(); renderPlayers(); renderTeams(); renderSIGrids();
     document.getElementById('calcResult').classList.add('hidden');
     showToast('Todos os dados foram apagados.');
@@ -1528,7 +1538,7 @@ function clearAll() {
 // ════════════════════════════════════════════════════════════
 
 // Datas de cada ronda
-const RONDA_DATES = {
+const DEFAULT_RONDA_DATES = {
     1: 'Até 21 de Junho',
     2: 'Até 26 de Julho',
     3: 'Até 30 de Agosto',
@@ -1538,6 +1548,8 @@ const RONDA_DATES = {
     7: '29 de Novembro',
     8: '13 de Dezembro'
 };
+
+const ROUND_DATE_ORDER = [1, 2, 3, 4, 5, 6, 7, 8];
 
 // Calendário inicial predefinido (seed) — editável pelo admin
 const CALENDAR_DATA = [
@@ -1631,11 +1643,46 @@ function loadCalendar() {
     } catch (e) { console.error('loadCalendar:', e); }
 }
 
+function saveRoundDates() {
+    localStorage.setItem(STORAGE_KEY + '-round-dates', JSON.stringify(state.roundDates));
+}
+
+function loadRoundDates() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY + '-round-dates');
+        state.roundDates = { ...DEFAULT_RONDA_DATES };
+        if (!raw) return;
+
+        const parsed = JSON.parse(raw);
+        ROUND_DATE_ORDER.forEach(r => {
+            if (typeof parsed[r] === 'string' && parsed[r].trim()) {
+                state.roundDates[r] = parsed[r].trim();
+            }
+        });
+    } catch (e) {
+        console.error('loadRoundDates:', e);
+        state.roundDates = { ...DEFAULT_RONDA_DATES };
+    }
+}
+
 function initializeCalendar() {
     if (!state.calendar.length) {
         state.calendar = CALENDAR_DATA.map(g => ({ ...g }));
         saveCalendar();
     }
+}
+
+function initializeRoundDates() {
+    if (!state.roundDates || !Object.keys(state.roundDates).length) {
+        state.roundDates = { ...DEFAULT_RONDA_DATES };
+        saveRoundDates();
+        return;
+    }
+    ROUND_DATE_ORDER.forEach(r => {
+        if (!state.roundDates[r] || !String(state.roundDates[r]).trim()) {
+            state.roundDates[r] = DEFAULT_RONDA_DATES[r];
+        }
+    });
 }
 
 function saveGameResults() {
@@ -1776,6 +1823,53 @@ function getRoundLabel(ronda) {
     if (ronda === 7) return 'Meias-finais';
     if (ronda === 8) return 'Final';
     return `${ronda}ª Ronda`;
+}
+
+function renderRoundDatesEditor() {
+    if (!can('calendar_manage')) return '';
+
+    const rows = ROUND_DATE_ORDER.map(ronda => `
+        <div class="form-field" style="margin-bottom:.4rem;">
+            <label for="roundDate-${ronda}">${getRoundLabel(ronda)}</label>
+            <input id="roundDate-${ronda}" type="text" value="${esc(state.roundDates[ronda] || DEFAULT_RONDA_DATES[ronda] || '')}" placeholder="Data da ronda">
+        </div>
+    `).join('');
+
+    return `
+        <div class="card" style="margin-bottom:1.25rem;">
+            <h3>Datas das Rondas</h3>
+            <p class="config-desc">Admin e Tournament Manager podem editar as datas da fase de grupos e fase final.</p>
+            <div class="form-grid">${rows}</div>
+            <div class="form-footer">
+                <button class="btn btn-primary" id="btnSaveRoundDates">Guardar Datas</button>
+                <button class="btn btn-ghost" id="btnResetRoundDates">Repor Padrão</button>
+            </div>
+        </div>
+    `;
+}
+
+function bindRoundDatesEditorEvents() {
+    const btnSave = document.getElementById('btnSaveRoundDates');
+    const btnReset = document.getElementById('btnResetRoundDates');
+    if (!btnSave || !btnReset) return;
+
+    btnSave.addEventListener('click', () => {
+        ROUND_DATE_ORDER.forEach(ronda => {
+            const input = document.getElementById(`roundDate-${ronda}`);
+            const v = (input?.value || '').trim();
+            state.roundDates[ronda] = v || DEFAULT_RONDA_DATES[ronda];
+        });
+        saveRoundDates();
+        renderCalendario();
+        showToast('Datas atualizadas.');
+    });
+
+    btnReset.addEventListener('click', () => {
+        state.roundDates = { ...DEFAULT_RONDA_DATES };
+        saveRoundDates();
+        renderCalendario();
+        showToast('Datas repostas para o padrão.');
+    });
 }
 
 function calculateStandings(ronda, accumulate) {
@@ -2106,7 +2200,7 @@ function renderCalendario() {
 
     const calendarEntries = [...state.calendar.filter(isGroupStageGame), ...buildPlayoffScheduleEntries()];
     const rondes = [...new Set(calendarEntries.map(g => g.ronda))].sort((a, b) => a - b);
-    let html = '';
+    let html = renderRoundDatesEditor();
 
     rondes.forEach(ronda => {
         const rondaGames = calendarEntries.filter(g => g.ronda === ronda);
@@ -2119,7 +2213,7 @@ function renderCalendario() {
         html += `<div class="ronda-block">
             <div class="ronda-header">
                 <span class="ronda-num">${getRoundLabel(ronda)}</span>
-                <span class="ronda-date">${RONDA_DATES[ronda] || ''}</span>
+                <span class="ronda-date">${state.roundDates[ronda] || DEFAULT_RONDA_DATES[ronda] || ''}</span>
             </div>
             <div class="grupos-grid">`;
 
@@ -2204,6 +2298,7 @@ function renderCalendario() {
     }
 
     container.innerHTML = html;
+    bindRoundDatesEditorEvents();
 
     // Listeners para remover jogos (admin)
     if (can('calendar_manage')) {
@@ -2286,11 +2381,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadGameResults();
         loadCalendar();
     }
+    loadRoundDates();
     // Recalcular todos os handicaps de jogo baseado no WHS
     recalculateAllGameHandicaps();
     loadAuth();
     initializeTestData();
     initializeCalendar();
+    initializeRoundDates();
     // ensureDefaultAdmin() removed - using fixed admin credentials
 
     initTabs();
