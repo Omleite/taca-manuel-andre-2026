@@ -149,7 +149,7 @@ function can(permission) {
 
 function canAccessTab(tabName) {
     if (tabName === 'jogadores') return can('players_view');
-    if (tabName === 'config') return can('config_view');
+    if (tabName === 'configuracoes') return can('config_view');
     return true;
 }
 
@@ -247,14 +247,14 @@ function updateAuthUI() {
 
     // Tabs por permissão
     const tabJogadoresBtn = document.querySelector('.tab-btn[data-tab="jogadores"]');
-    const tabConfigBtn = document.querySelector('.tab-btn[data-tab="config"]');
+    const tabConfigBtn = document.querySelector('.tab-btn[data-tab="configuracoes"]');
     if (tabJogadoresBtn) tabJogadoresBtn.classList.toggle('hidden', !canAccessTab('jogadores'));
-    if (tabConfigBtn) tabConfigBtn.classList.toggle('hidden', !canAccessTab('config'));
+    if (tabConfigBtn) tabConfigBtn.classList.toggle('hidden', !canAccessTab('configuracoes'));
 
     const tabJogadoresPane = document.getElementById('tab-jogadores');
-    const tabConfigPane = document.getElementById('tab-config');
+    const tabConfigPane = document.getElementById('tab-configuracoes');
     if (tabJogadoresPane) tabJogadoresPane.classList.toggle('hidden', !canAccessTab('jogadores'));
-    if (tabConfigPane) tabConfigPane.classList.toggle('hidden', !canAccessTab('config'));
+    if (tabConfigPane) tabConfigPane.classList.toggle('hidden', !canAccessTab('configuracoes'));
 
     const activeBtn = document.querySelector('.tab-btn.active');
     if (activeBtn && !canAccessTab(activeBtn.dataset.tab)) {
@@ -817,7 +817,8 @@ function initTabs() {
             btn.classList.add('active');
             document.getElementById(`tab-${target}`).classList.add('active');
             if (target === 'calcular') refreshCalcSelects();
-            if (target === 'config')   { renderSIGrids(); if (can('users_manage')) renderUsers(); }
+            if (target === 'regulamento') { renderSIGrids(); }
+            if (target === 'configuracoes' && can('users_manage')) { renderUsers(); }
             if (target === 'grupos')   { renderGrupos(); }
             if (target === 'calendario') renderCalendario();
             if (target === 'classificacao') { 

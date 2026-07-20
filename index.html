@@ -28,7 +28,8 @@
             <button class="tab-btn active" data-tab="classificacao">Classificação</button>
             <button class="tab-btn" data-tab="calendario">Calendário</button>
             <button class="tab-btn" data-tab="calcular">Calcular Handicap</button>
-            <button class="tab-btn" data-tab="config">Handicaps</button>
+            <button class="tab-btn" data-tab="regulamento">Regulamento</button>
+            <button class="tab-btn" data-tab="configuracoes">Configurações</button>
         </nav>
         <!-- Auth: botão entrar / info utilizador -->
         <div class="nav-auth">
@@ -307,10 +308,132 @@
         </div>
     </section>
 
-    <!-- ===== CONFIGURAÇÕES ===== -->
-    <section id="tab-config" class="tab-pane">
+    <!-- ===== REGULAMENTO ===== -->
+    <section id="tab-regulamento" class="tab-pane">
         <div class="pane-header">
-            <h2>Handicaps</h2>
+            <h2>Regulamento</h2>
+        </div>
+
+        <div class="card">
+            <h3>Stroke Index (SI) dos Buracos</h3>
+            <p class="config-desc">O SI é fixo e oficial do Estela Golf Club. Os buracos com SI mais baixo recebem as primeiras pancadas de abono.</p>
+            <div class="si-section-label">Front 9 (Buracos 1–9)</div>
+            <div id="siGridFront" class="si-grid"></div>
+            <div class="si-section-label" style="margin-top:1rem">Back 9 (Buracos 10–18)</div>
+            <div id="siGridBack" class="si-grid"></div>
+        </div>
+
+        <div class="card">
+            <h3>Regulamento – Cálculo de Handicap</h3>
+            <div class="regulation">
+                <ol>
+                    <li>Somam-se os <strong>handicaps de jogo</strong> dos dois jogadores de cada par.</li>
+                    <li>Calcula-se a <strong>diferença</strong> entre os handicaps totais dos dois pares.</li>
+                    <li>O par com handicap total mais elevado recebe <strong>¾ (75%) dessa diferença</strong>, arredondada para a unidade mais próxima.</li>
+                    <li>O par com handicap total mais baixo joga com <strong>0 pancadas de vantagem</strong>.</li>
+                    <li>As pancadas são distribuídas pelos buracos com <strong>Stroke Index mais baixo</strong> (buracos mais difíceis).</li>
+                </ol>
+                <div class="example-box">
+                    <strong>Exemplo:</strong><br>
+                    Par A: 8 + 12 = <strong>20</strong> &nbsp;|&nbsp; Par B: 15 + 17 = <strong>32</strong><br>
+                    Diferença: 32 − 20 = <strong>12</strong><br>
+                    ¾ de 12 = <strong>9 pancadas</strong><br>
+                    ➡️ Par B recebe <strong>9 pancadas</strong> nos buracos com SI 1 a 9. Par A joga sem pancadas.
+                </div>
+            </div>
+        </div>
+
+        <div class="card fpg-card">
+            <div class="fpg-header">
+                <div>
+                    <h3>Federação Portuguesa de Golfe</h3>
+                    <p class="config-desc">Consulte o handicap WHS de qualquer jogador e calcule o handicap de jogo para as <strong>amarelas do Estela Golf Club</strong>.</p>
+                </div>
+            </div>
+            <div class="fpg-links">
+                <a href="https://scoring.fpg.pt/lists/1PreparePage.aspx?user=admin&page=fedsearch&ccode=All"
+                   target="_blank" rel="noopener" class="fpg-link-btn">
+                    <span class="fpg-link-icon">🔍</span>
+                    <span>
+                        <strong>Pesquisa de Handicaps</strong>
+                        <small>Consultar o handicap WHS de qualquer sócio federado</small>
+                    </span>
+                    <span class="fpg-link-arrow">↗</span>
+                </a>
+                <a href="https://portal.fpg.pt/handicaps-course-rating/calculo-de-handicap-de-campo/"
+                   target="_blank" rel="noopener" class="fpg-link-btn">
+                    <span class="fpg-link-icon">⛳</span>
+                    <span>
+                        <strong>Calcular Handicap de Jogo</strong>
+                        <small>Obter o handicap para as amarelas do Estela Golf Club (CR 72,7 · Slope 131)</small>
+                    </span>
+                    <span class="fpg-link-arrow">↗</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Regulamento Taça Manuel André 2026 (Março)</h3>
+            <div class="regulation">
+                <p><strong>1. Enquadramento</strong> A prova oficial do Clube é disputada em formato match play, com transição para modelo por equipas e pares em 2026, mantendo a homenagem ao Eng.º Manuel André.</p>
+                <p><strong>2. Elegibilidade</strong> Aberta a sócios com handicap WHS válido e ativo. A Comissão Técnica pode aceitar ou recusar inscrições por motivos organizativos/disciplinares.</p>
+                <p><strong>3. Inscrições</strong> Prazo até 12 de abril de 2026. A inscrição implica aceitação integral do regulamento.</p>
+                <p><strong>4. Equipas e pares</strong> Cada equipa tem 4 jogadores e cada confronto é jogado em 2 pares (2x2), definidos antes de cada jornada.</p>
+                <p><strong>5. Modalidade</strong> Texas Scramble por pares: ambos batem a saída, escolhe-se a melhor bola e ambos jogam desse ponto até embocar.</p>
+                <ul>
+                    <li>Colocação: até 1 cartão de jogo da bola escolhida, sem melhorar posição/linha/área de swing.</li>
+                    <li>No green, a bola deve ser recolocada no ponto marcado.</li>
+                    <li>Cada jogador do par deve contribuir com mínimo de 6 saídas em 18 buracos.</li>
+                    <li>Ordem de jogo no par é livre em todas as pancadas.</li>
+                </ul>
+                <p><strong>6. Formato</strong> Até 8 equipas: todos-contra-todos. Mais de 8 equipas: fase de grupos + fase final.</p>
+                <p><strong>7. Pontuação</strong> Vitória 3, empate 1, derrota 0 por match. Classificação por pontos, confronto direto, diferença de pancadas, melhor líquido acumulado e sorteio.</p>
+                <p><strong>8. Handicap de jogo</strong> Par com total mais alto recebe ¾ da diferença (arredondado), distribuído por SI mais baixo.</p>
+                <p><strong>9 a 13</strong> Aplicam-se regras R&A/USGA/WHS/regras locais; cartões obrigatórios e confirmados; controlo de ritmo de jogo; conduta e fair play; calendário e emparelhamentos definidos pela organização.</p>
+                <p><strong>14 a 16</strong> Casos omissos decididos pela organização; prémios para equipas finalistas e convite da vencedora ao Expresso BPI Golf Cup; participação implica aceitação integral do regulamento.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Disposição Complementar ao Regulamento (Maio 2026)</h3>
+            <div class="regulation">
+                <p><strong>1. Composição dos grupos</strong> 19 equipas distribuídas por grupos A, B, C e D conforme sorteio de 23 de maio.</p>
+                <ul>
+                    <li>Grupo A: Os Craques, LJMS, Os 4 no Buraco, Estela Birdies, CGGG</li>
+                    <li>Grupo B: AMVJ, VTF, Equipa Eleven, EMJC, Red Hot Chilli Putters</li>
+                    <li>Grupo C: Birdies e Boggeys, Jacaré, Os Golfinhos, Piratas, Masters</li>
+                    <li>Grupo D: MMLH, School, Golfistas da Madrugada, Old Fashion Team</li>
+                </ul>
+                <p><strong>2. Fase de grupos</strong> Apuram-se as 2 melhores equipas de cada grupo para play-off (8 equipas): quartos, meias-finais e final.</p>
+                <p><strong>3. Sistema de pontuação por confronto</strong> Estão em jogo 6 pontos por confronto (2 matches por confronto): possíveis totais 6, 4, 3, 2, 1 ou 0 pontos.</p>
+                <p><strong>4. Desempate</strong> Confronto direto entre empatadas, diferença de pontos nesses confrontos, total de vitórias, total de empates e melhor diferença geral pontos ganhos/perdidos.</p>
+                <p><strong>5. Emparelhamentos da fase final</strong></p>
+                <ul>
+                    <li>Quartos: 1ºA vs 2ºB, 1ºB vs 2ºA, 1ºC vs 2ºD, 1ºD vs 2ºC</li>
+                    <li>Meias: Vencedor 1 vs Vencedor 3, Vencedor 2 vs Vencedor 4</li>
+                    <li>Final: Vencedor 5 vs Vencedor 6</li>
+                </ul>
+                <p><strong>6. Calendário oficial</strong></p>
+                <ul>
+                    <li>1ª Ronda: 20 de junho</li>
+                    <li>2ª Ronda: 26 de julho</li>
+                    <li>3ª Ronda: 30 de agosto</li>
+                    <li>4ª Ronda: 27 de setembro</li>
+                    <li>5ª Ronda: 25 de outubro</li>
+                    <li>Quartos de final: 15 de novembro</li>
+                    <li>Meias-finais: 29 de novembro</li>
+                    <li>Final: 13 de dezembro</li>
+                </ul>
+                <p><strong>7. Substituição excecional</strong> Uma substituição por equipa na fase de grupos e uma na fase eliminatória, com validação prévia da Comissão Técnica e sem duplicação de jogador noutra equipa.</p>
+                <p><strong>8. Disposição final</strong> Mantêm-se em vigor as restantes disposições do regulamento base.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CONFIGURAÇÕES ===== -->
+    <section id="tab-configuracoes" class="tab-pane">
+        <div class="pane-header">
+            <h2>Configurações</h2>
         </div>
 
         <!-- Gestão de Utilizadores — admin only -->
@@ -378,64 +501,6 @@
             </div>
             <div class="form-footer">
                 <button class="btn btn-primary" id="btnChangePwd">Alterar Palavra-passe</button>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3>Stroke Index (SI) dos Buracos</h3>
-            <p class="config-desc">O SI é fixo e oficial do Estela Golf Club. Os buracos com SI mais baixo recebem as primeiras pancadas de abono.</p>
-            <div class="si-section-label">Front 9 (Buracos 1–9)</div>
-            <div id="siGridFront" class="si-grid"></div>
-            <div class="si-section-label" style="margin-top:1rem">Back 9 (Buracos 10–18)</div>
-            <div id="siGridBack" class="si-grid"></div>
-        </div>
-
-        <div class="card">
-            <h3>Regulamento – Cálculo de Handicap</h3>
-            <div class="regulation">
-                <ol>
-                    <li>Somam-se os <strong>handicaps de jogo</strong> dos dois jogadores de cada par.</li>
-                    <li>Calcula-se a <strong>diferença</strong> entre os handicaps totais dos dois pares.</li>
-                    <li>O par com handicap total mais elevado recebe <strong>¾ (75%) dessa diferença</strong>, arredondada para a unidade mais próxima.</li>
-                    <li>O par com handicap total mais baixo joga com <strong>0 pancadas de vantagem</strong>.</li>
-                    <li>As pancadas são distribuídas pelos buracos com <strong>Stroke Index mais baixo</strong> (buracos mais difíceis).</li>
-                </ol>
-                <div class="example-box">
-                    <strong>Exemplo:</strong><br>
-                    Par A: 8 + 12 = <strong>20</strong> &nbsp;|&nbsp; Par B: 15 + 17 = <strong>32</strong><br>
-                    Diferença: 32 − 20 = <strong>12</strong><br>
-                    ¾ de 12 = <strong>9 pancadas</strong><br>
-                    ➡️ Par B recebe <strong>9 pancadas</strong> nos buracos com SI 1 a 9. Par A joga sem pancadas.
-                </div>
-            </div>
-        </div>
-
-        <div class="card fpg-card">
-            <div class="fpg-header">
-                <div>
-                    <h3>Federação Portuguesa de Golfe</h3>
-                    <p class="config-desc">Consulte o handicap WHS de qualquer jogador e calcule o handicap de jogo para as <strong>amarelas do Estela Golf Club</strong>.</p>
-                </div>
-            </div>
-            <div class="fpg-links">
-                <a href="https://scoring.fpg.pt/lists/1PreparePage.aspx?user=admin&page=fedsearch&ccode=All"
-                   target="_blank" rel="noopener" class="fpg-link-btn">
-                    <span class="fpg-link-icon">🔍</span>
-                    <span>
-                        <strong>Pesquisa de Handicaps</strong>
-                        <small>Consultar o handicap WHS de qualquer sócio federado</small>
-                    </span>
-                    <span class="fpg-link-arrow">↗</span>
-                </a>
-                <a href="https://portal.fpg.pt/handicaps-course-rating/calculo-de-handicap-de-campo/"
-                   target="_blank" rel="noopener" class="fpg-link-btn">
-                    <span class="fpg-link-icon">⛳</span>
-                    <span>
-                        <strong>Calcular Handicap de Jogo</strong>
-                        <small>Obter o handicap para as amarelas do Estela Golf Club (CR 72,7 · Slope 131)</small>
-                    </span>
-                    <span class="fpg-link-arrow">↗</span>
-                </a>
             </div>
         </div>
 
@@ -544,6 +609,6 @@
     </div>
 </footer>
 
-<script src="app.js?v=31"></script>
+<script src="app.js?v=32"></script>
 </body>
 </html>
