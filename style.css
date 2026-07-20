@@ -731,7 +731,15 @@ body {
 }
 @media (max-width: 480px) {
     .hero-title     { font-size: 1.6rem; }
-    .hero-tribute { display: none; }
+    .hero-tribute {
+        right: .65rem;
+        bottom: .45rem;
+        padding: .22rem .5rem .22rem .22rem;
+        gap: .35rem;
+        background: rgba(15,15,15,.62);
+    }
+    .hero-tribute-img { width: 24px; height: 24px; }
+    .hero-tribute-name { font-size: .56rem; letter-spacing: .04em; }
     .hcp-input-row  { flex-direction: column; }
     .fpg-link-btn   { padding: .75rem 1rem; }
     .grupos-grid    { grid-template-columns: 1fr; }
