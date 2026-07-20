@@ -1915,7 +1915,7 @@ function bindRoundDatesEditorEvents() {
     });
 }
 
-function renderEliminationClassification(ronda) {
+function buildEliminationClassificationHtml(ronda) {
     const games = buildPlayoffScheduleEntries().filter(g => g.ronda === ronda);
     const grouped = new Map();
 
@@ -1979,7 +1979,19 @@ function renderEliminationClassification(ronda) {
     });
 
     html += '</div>';
-    document.getElementById('classificacaoContainer').innerHTML = html;
+    return html;
+}
+
+function buildEliminationBlockHtml() {
+    return `
+        <div class="class-group" style="margin-top:2rem;">
+            <h3 class="class-title">Fase a Eliminar</h3>
+            <p class="class-desc" style="margin-bottom:1rem;">Resultados dos Quartos de Final, Meias-finais e Final.</p>
+        </div>
+        ${buildEliminationClassificationHtml(6)}
+        ${buildEliminationClassificationHtml(7)}
+        ${buildEliminationClassificationHtml(8)}
+    `;
 }
 
 function calculateStandings(ronda, accumulate) {
@@ -2070,7 +2082,7 @@ function renderClassificacao(ronda) {
 
     const rondaNum = parseInt(ronda, 10);
     if (ronda !== 'total' && !isNaN(rondaNum) && rondaNum >= 6) {
-        renderEliminationClassification(rondaNum);
+        document.getElementById('classificacaoContainer').innerHTML = buildEliminationClassificationHtml(rondaNum);
 
         if (can('classification_manage')) {
             document.querySelectorAll('.btn-result').forEach(btn => {
@@ -2198,6 +2210,10 @@ function renderClassificacao(ronda) {
         `;
     });
     
+    if (ronda === 'total') {
+        html += buildEliminationBlockHtml();
+    }
+
     document.getElementById('classificacaoContainer').innerHTML = html;
     
     // Adicionar listeners aos botões de resultado (apenas se admin)
