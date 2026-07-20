@@ -59,6 +59,32 @@ let authState = {
     users: []
 };
 
+const ROLES = {
+    TOURNAMENT_ADMIN: 'tournament_admin',
+    TOURNAMENT_MANAGER: 'tournament_manager',
+    SCORING_OFFICIAL: 'scoring_official'
+};
+
+const ROLE_LABELS = {
+    [ROLES.TOURNAMENT_ADMIN]: 'Tournament Admin',
+    [ROLES.TOURNAMENT_MANAGER]: 'Tournament Manager',
+    [ROLES.SCORING_OFFICIAL]: 'Scoring Official'
+};
+
+const PERMISSIONS = {
+    users_manage: [ROLES.TOURNAMENT_ADMIN],
+    players_manage: [ROLES.TOURNAMENT_ADMIN, ROLES.TOURNAMENT_MANAGER],
+    teams_manage: [ROLES.TOURNAMENT_ADMIN, ROLES.TOURNAMENT_MANAGER],
+    groups_manage: [ROLES.TOURNAMENT_ADMIN, ROLES.TOURNAMENT_MANAGER],
+    classification_manage: [ROLES.TOURNAMENT_ADMIN, ROLES.TOURNAMENT_MANAGER, ROLES.SCORING_OFFICIAL],
+    calendar_manage: [ROLES.TOURNAMENT_ADMIN, ROLES.TOURNAMENT_MANAGER],
+    handicaps_global_manage: [ROLES.TOURNAMENT_ADMIN],
+    handicaps_operational_manage: [ROLES.TOURNAMENT_ADMIN, ROLES.TOURNAMENT_MANAGER],
+    data_manage: [ROLES.TOURNAMENT_ADMIN],
+    players_view: [ROLES.TOURNAMENT_ADMIN, ROLES.TOURNAMENT_MANAGER, ROLES.SCORING_OFFICIAL],
+    config_view: [ROLES.TOURNAMENT_ADMIN, ROLES.TOURNAMENT_MANAGER, ROLES.SCORING_OFFICIAL]
+};
+
 // ════════════════════════════════════════════════════════════
 //  AUTENTICAÇÃO
 // ════════════════════════════════════════════════════════════
@@ -73,6 +99,13 @@ function loadAuth() {
             if (typeof p.adminPassword === 'string' && p.adminPassword.trim()) {
                 authState.adminPassword = p.adminPassword;
             }
+        }
+        authState.users = authState.users.map(u => ({
+            ...u,
+            role: normalizeRole(u.role)
+        }));
+        if (authState.currentUser) {
+            authState.currentUser.role = normalizeRole(authState.currentUser.role);
         }
         ensureDefaultAdminUser();
     } catch (e) { console.error('loadAuth:', e); }
@@ -96,6 +129,30 @@ function normalizeUsername(username) {
     return (username || '').trim().toLowerCase();
 }
 
+function normalizeRole(role) {
+    const r = (role || '').toString().trim().toLowerCase();
+    if (r === ROLES.TOURNAMENT_ADMIN || r === 'admin') return ROLES.TOURNAMENT_ADMIN;
+    if (r === ROLES.SCORING_OFFICIAL || r === 'scoring') return ROLES.SCORING_OFFICIAL;
+    if (r === ROLES.TOURNAMENT_MANAGER || r === 'manager' || r === 'user') return ROLES.TOURNAMENT_MANAGER;
+    return ROLES.TOURNAMENT_MANAGER;
+}
+
+function roleLabel(role) {
+    return ROLE_LABELS[normalizeRole(role)] || ROLE_LABELS[ROLES.TOURNAMENT_MANAGER];
+}
+
+function can(permission) {
+    if (!authState.currentUser) return false;
+    const allowedRoles = PERMISSIONS[permission] || [];
+    return allowedRoles.includes(normalizeRole(authState.currentUser.role));
+}
+
+function canAccessTab(tabName) {
+    if (tabName === 'jogadores') return can('players_view');
+    if (tabName === 'config') return can('config_view');
+    return true;
+}
+
 function ensureDefaultAdminUser() {
     const existingAdmin = authState.users.find(u => normalizeUsername(u.username) === 'admin');
     if (existingAdmin) {
@@ -103,7 +160,7 @@ function ensureDefaultAdminUser() {
             existingAdmin.passwordHash = hashPassword(authState.adminPassword || 'estela2026');
         }
         existingAdmin.displayName = existingAdmin.displayName || 'Administrador';
-        existingAdmin.role = existingAdmin.role || 'admin';
+        existingAdmin.role = ROLES.TOURNAMENT_ADMIN;
         return;
     }
 
@@ -111,7 +168,7 @@ function ensureDefaultAdminUser() {
         id: 'admin-default',
         username: 'admin',
         displayName: 'Administrador',
-        role: 'admin',
+        role: ROLES.TOURNAMENT_ADMIN,
         passwordHash: hashPassword(authState.adminPassword || 'estela2026')
     });
     saveAuth();
@@ -123,7 +180,7 @@ function getUserByUsername(username) {
 }
 
 const isLoggedIn = () => !!authState.currentUser;
-const isAdmin    = () => !!authState.currentUser && authState.currentUser.role === 'admin';
+const isAdmin    = () => can('users_manage');
 
 function doLogin(username, password) {
     const user = getUserByUsername(username);
@@ -150,8 +207,8 @@ function doLogout() {
 // ── UI Auth ──────────────────────────────────────────────────
 
 function updateAuthUI() {
-    const admin = isAdmin();
     const logged = isLoggedIn();
+    const isTournamentAdmin = isAdmin();
 
     // Nav
     document.getElementById('btnOpenLogin').classList.toggle('hidden', logged);
@@ -159,32 +216,51 @@ function updateAuthUI() {
     if (logged) {
         document.getElementById('navUsername').textContent = authState.currentUser.displayName;
         const roleEl = document.getElementById('navUserRole');
-        roleEl.textContent = admin ? 'Admin' : 'User';
-        roleEl.className = `nav-role-badge ${admin ? 'badge-admin' : 'badge-user'}`;
+        roleEl.textContent = roleLabel(authState.currentUser.role);
+        roleEl.className = `nav-role-badge ${isTournamentAdmin ? 'badge-admin' : 'badge-user'}`;
     }
 
-    // Botões de adicionar: só para admin
+    // Botões de adicionar conforme permissões
     const addPlayerBtn = document.getElementById('btnShowPlayerForm');
     const addTeamBtn   = document.getElementById('btnShowTeamForm');
-    addPlayerBtn.classList.toggle('hidden', !admin);
-    addTeamBtn.classList.toggle('hidden', !admin);
+    addPlayerBtn.classList.toggle('hidden', !can('players_manage'));
+    addTeamBtn.classList.toggle('hidden', !can('teams_manage'));
 
-    // Esconder formulários se logout
-    if (!admin) {
+    // Esconder formulários se não tiver permissão de edição
+    if (!can('players_manage')) {
         document.getElementById('playerForm').classList.add('hidden');
+    }
+    if (!can('teams_manage')) {
         document.getElementById('teamForm').classList.add('hidden');
     }
 
     // Secções admin-only
     const adminOnlyEls = document.querySelectorAll('.admin-only');
     adminOnlyEls.forEach(el => {
-        el.classList.toggle('hidden', !admin);
+        el.classList.toggle('hidden', !isTournamentAdmin);
     });
 
     // Secções auth-only
     document.querySelectorAll('.auth-only').forEach(el => {
         el.classList.toggle('hidden', !logged);
     });
+
+    // Tabs por permissão
+    const tabJogadoresBtn = document.querySelector('.tab-btn[data-tab="jogadores"]');
+    const tabConfigBtn = document.querySelector('.tab-btn[data-tab="config"]');
+    if (tabJogadoresBtn) tabJogadoresBtn.classList.toggle('hidden', !canAccessTab('jogadores'));
+    if (tabConfigBtn) tabConfigBtn.classList.toggle('hidden', !canAccessTab('config'));
+
+    const tabJogadoresPane = document.getElementById('tab-jogadores');
+    const tabConfigPane = document.getElementById('tab-config');
+    if (tabJogadoresPane) tabJogadoresPane.classList.toggle('hidden', !canAccessTab('jogadores'));
+    if (tabConfigPane) tabConfigPane.classList.toggle('hidden', !canAccessTab('config'));
+
+    const activeBtn = document.querySelector('.tab-btn.active');
+    if (activeBtn && !canAccessTab(activeBtn.dataset.tab)) {
+        const fallbackBtn = document.querySelector('.tab-btn[data-tab="classificacao"]');
+        if (fallbackBtn) fallbackBtn.click();
+    }
 
     // Re-render listas para actualizar botões editar/apagar
     renderPlayers();
@@ -404,19 +480,21 @@ function renderUsers() {
     list.innerHTML = sorted.map(u => {
         const isCurrent = authState.currentUser && authState.currentUser.username === u.username;
         const canDelete = normalizeUsername(u.username) !== 'admin' && !isCurrent;
-        const adminCount = authState.users.filter(x => x.role === 'admin').length;
-        const canDemote = !(u.role === 'admin' && adminCount <= 1);
+        const adminCount = authState.users.filter(x => normalizeRole(x.role) === ROLES.TOURNAMENT_ADMIN).length;
+        const role = normalizeRole(u.role);
+        const canDemote = !(role === ROLES.TOURNAMENT_ADMIN && adminCount <= 1);
 
         return `
             <div class="user-item">
                 <div class="user-info">
                     <span class="user-name">${esc(u.displayName)}</span>
-                    <span class="user-meta">@${esc(u.username)} · ${u.role === 'admin' ? 'Administrador' : 'Utilizador'} ${isCurrent ? '<span class="current-user-tag">(sessão atual)</span>' : ''}</span>
+                    <span class="user-meta">@${esc(u.username)} · ${roleLabel(role)} ${isCurrent ? '<span class="current-user-tag">(sessão atual)</span>' : ''}</span>
                 </div>
                 <div class="user-actions" style="display:flex; gap:.4rem; align-items:center;">
                     <select class="role-select" data-user-id="${u.id}" ${isCurrent ? 'disabled' : ''}>
-                        <option value="user" ${u.role === 'user' ? 'selected' : ''}>Utilizador</option>
-                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Administrador</option>
+                        <option value="${ROLES.TOURNAMENT_MANAGER}" ${role === ROLES.TOURNAMENT_MANAGER ? 'selected' : ''}>Tournament Manager</option>
+                        <option value="${ROLES.SCORING_OFFICIAL}" ${role === ROLES.SCORING_OFFICIAL ? 'selected' : ''}>Scoring Official</option>
+                        <option value="${ROLES.TOURNAMENT_ADMIN}" ${role === ROLES.TOURNAMENT_ADMIN ? 'selected' : ''}>Tournament Admin</option>
                     </select>
                     <button class="btn btn-sm btn-danger btn-delete-user" data-user-id="${u.id}" ${canDelete ? '' : 'disabled'}>Remover</button>
                     ${canDemote ? '' : '<span class="current-user-tag">Admin obrigatório</span>'}
@@ -438,12 +516,12 @@ function renderUsers() {
 }
 
 function saveNewUser() {
-    if (!isAdmin()) return;
+    if (!can('users_manage')) return;
 
     const displayName = document.getElementById('inputNewDisplayName').value.trim();
     const username = normalizeUsername(document.getElementById('inputNewUsername').value);
     const password = document.getElementById('inputNewPassword').value;
-    const role = document.getElementById('inputNewRole').value;
+    const role = normalizeRole(document.getElementById('inputNewRole').value);
 
     if (!displayName || !username || !password) {
         showToast('Preencha nome, utilizador e palavra-passe.', 'error');
@@ -466,7 +544,7 @@ function saveNewUser() {
         id: genId(),
         username,
         displayName,
-        role: role === 'admin' ? 'admin' : 'user',
+        role,
         passwordHash: hashPassword(password)
     });
 
@@ -475,21 +553,21 @@ function saveNewUser() {
     document.getElementById('inputNewDisplayName').value = '';
     document.getElementById('inputNewUsername').value = '';
     document.getElementById('inputNewPassword').value = '';
-    document.getElementById('inputNewRole').value = 'user';
+    document.getElementById('inputNewRole').value = ROLES.TOURNAMENT_MANAGER;
     renderUsers();
     showToast('Utilizador criado com sucesso.');
 }
 
 function updateUserRole(userId, nextRole) {
-    if (!isAdmin()) return;
+    if (!can('users_manage')) return;
     const user = authState.users.find(u => u.id === userId);
     if (!user) return;
 
-    const role = nextRole === 'admin' ? 'admin' : 'user';
+    const role = normalizeRole(nextRole);
     if (user.role === role) return;
 
-    const adminCount = authState.users.filter(u => u.role === 'admin').length;
-    if (user.role === 'admin' && role !== 'admin' && adminCount <= 1) {
+    const adminCount = authState.users.filter(u => normalizeRole(u.role) === ROLES.TOURNAMENT_ADMIN).length;
+    if (normalizeRole(user.role) === ROLES.TOURNAMENT_ADMIN && role !== ROLES.TOURNAMENT_ADMIN && adminCount <= 1) {
         showToast('Tem de existir pelo menos um administrador.', 'error');
         renderUsers();
         return;
@@ -508,7 +586,7 @@ function updateUserRole(userId, nextRole) {
 }
 
 function deleteUser(userId) {
-    if (!isAdmin()) return;
+    if (!can('users_manage')) return;
     const user = authState.users.find(u => u.id === userId);
     if (!user) return;
 
@@ -730,12 +808,16 @@ function initTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const target = btn.dataset.tab;
+            if (!canAccessTab(target)) {
+                showToast('Sem permissões para aceder a este separador.', 'error');
+                return;
+            }
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             btn.classList.add('active');
             document.getElementById(`tab-${target}`).classList.add('active');
             if (target === 'calcular') refreshCalcSelects();
-            if (target === 'config')   { renderSIGrids(); if (isAdmin()) renderUsers(); }
+            if (target === 'config')   { renderSIGrids(); if (can('users_manage')) renderUsers(); }
             if (target === 'grupos')   { renderGrupos(); }
             if (target === 'calendario') renderCalendario();
             if (target === 'classificacao') { 
@@ -755,7 +837,7 @@ function renderPlayers() {
     if (!state.players.length) {
         el.innerHTML = `<div class="empty-state">
             <p>Nenhum jogador registado.</p>
-            <p class="empty-hint">${isLoggedIn() ? 'Clique em "+ Adicionar Jogador" para começar.' : 'Entre com a sua conta para adicionar jogadores.'}</p>
+            <p class="empty-hint">${can('players_manage') ? 'Clique em "+ Adicionar Jogador" para começar.' : 'Sem permissões para gerir jogadores.'}</p>
         </div>`;
         return;
     }
@@ -770,7 +852,7 @@ function renderPlayers() {
                     <span class="player-hcp">Jogo: <strong>${p.handicap}</strong></span>
                 </div>
             </div>
-            ${isLoggedIn() ? `
+            ${can('players_manage') ? `
             <div class="player-actions">
                 <button class="btn btn-sm btn-ghost" onclick="openEditPlayer('${p.id}')">Editar</button>
                 <button class="btn btn-sm btn-danger" onclick="deletePlayer('${p.id}')">✕</button>
@@ -781,6 +863,7 @@ function renderPlayers() {
 
 function openAddPlayer() {
     if (!isLoggedIn()) { openLoginModal(); return; }
+    if (!can('players_manage')) { showToast('Sem permissões para gerir jogadores.', 'error'); return; }
     document.getElementById('playerFormTitle').textContent = 'Novo Jogador';
     document.getElementById('inputPlayerName').value = '';
     document.getElementById('inputPlayerName').value = '';
@@ -795,6 +878,7 @@ function openAddPlayer() {
 
 function openEditPlayer(id) {
     if (!isLoggedIn()) { openLoginModal(); return; }
+    if (!can('players_manage')) { showToast('Sem permissões para editar jogadores.', 'error'); return; }
     const p = getPlayer(id);
     if (!p) return;
     document.getElementById('playerFormTitle').textContent = 'Editar Jogador';
@@ -812,6 +896,7 @@ function openEditPlayer(id) {
 
 function savePlayer() {
     if (!isLoggedIn()) { openLoginModal(); return; }
+    if (!can('players_manage')) { showToast('Sem permissões para guardar jogadores.', 'error'); return; }
     const name           = document.getElementById('inputPlayerName').value.trim();
     const numeroFederado = document.getElementById('inputPlayerNumFederado').value.trim();
     const hcpWhsRaw      = document.getElementById('inputPlayerHcpWhs').value;
@@ -840,7 +925,7 @@ function savePlayer() {
 }
 
 function deletePlayer(id) {
-    if (!isLoggedIn()) return;
+    if (!can('players_manage')) return;
     if (!confirm('Remover este jogador? Será também removido das equipas.')) return;
     state.players = state.players.filter(p => p.id !== id);
     state.teams.forEach(t => { t.playerIds = (t.playerIds || []).filter(pid => pid !== id); });
@@ -859,7 +944,7 @@ function renderTeams() {
     if (!state.teams.length) {
         el.innerHTML = `<div class="empty-state">
             <p>Nenhuma equipa criada.</p>
-            <p class="empty-hint">${isLoggedIn() ? 'Clique em "+ Nova Equipa" para criar uma equipa.' : 'Entre com a sua conta para criar equipas.'}</p>
+            <p class="empty-hint">${can('teams_manage') ? 'Clique em "+ Nova Equipa" para criar uma equipa.' : 'Sem permissões para gerir equipas.'}</p>
         </div>`;
         return;
     }
@@ -897,7 +982,7 @@ function renderTeams() {
                         <span class="team-name">${esc(t.name)}</span>
                         <span class="team-hcp">HCP: ${teamHcp}</span>
                     </div>
-                    ${isLoggedIn() ? `
+                    ${can('teams_manage') ? `
                     <div class="team-actions">
                         <button class="btn btn-sm btn-ghost" onclick="openEditTeam('${t.id}')">Editar</button>
                         <button class="btn btn-sm btn-danger" onclick="deleteTeam('${t.id}')">✕</button>
@@ -910,6 +995,7 @@ function renderTeams() {
 
 function openAddTeam() {
     if (!isLoggedIn()) { openLoginModal(); return; }
+    if (!can('teams_manage')) { showToast('Sem permissões para gerir equipas.', 'error'); return; }
     if (!state.players.length) { showToast('Adicione jogadores antes de criar equipas.', 'warn'); return; }
     document.getElementById('teamFormTitle').textContent = 'Nova Equipa';
     document.getElementById('inputTeamName').value = '';
@@ -921,6 +1007,7 @@ function openAddTeam() {
 
 function openEditTeam(id) {
     if (!isLoggedIn()) { openLoginModal(); return; }
+    if (!can('teams_manage')) { showToast('Sem permissões para editar equipas.', 'error'); return; }
     const t = state.teams.find(t => t.id === id);
     if (!t) return;
     document.getElementById('teamFormTitle').textContent = 'Editar Equipa';
@@ -988,6 +1075,7 @@ function getCheckedPlayerIds() {
 
 function saveTeam() {
     if (!isLoggedIn()) { openLoginModal(); return; }
+    if (!can('teams_manage')) { showToast('Sem permissões para guardar equipas.', 'error'); return; }
     const name      = document.getElementById('inputTeamName').value.trim();
     const playerIds = getCheckedPlayerIds();
     const captainId = document.getElementById('inputTeamCaptain').value || null;
@@ -1009,7 +1097,7 @@ function saveTeam() {
 }
 
 function deleteTeam(id) {
-    if (!isLoggedIn()) return;
+    if (!can('teams_manage')) return;
     if (!confirm('Remover esta equipa?')) return;
     state.teams = state.teams.filter(t => t.id !== id);
     saveState();
@@ -1383,7 +1471,7 @@ function siCell(idx) {
 // ════════════════════════════════════════════════════════════
 
 function exportData() {
-    if (!isAdmin()) return;
+    if (!can('data_manage')) return;
     // Sincroniza o state com localStorage antes de exportar
     saveState();
     saveGameResults();
@@ -1405,7 +1493,7 @@ function exportData() {
 }
 
 function importData(file) {
-    if (!isAdmin() || !file) return;
+    if (!can('data_manage') || !file) return;
     const reader = new FileReader();
     reader.onload = e => {
         try {
@@ -1421,7 +1509,7 @@ function importData(file) {
 }
 
 function clearAll() {
-    if (!isAdmin()) return;
+    if (!can('data_manage')) return;
     if (!confirm('Apagar todos os dados do torneio?\nEsta acção não pode ser desfeita.')) return;
     state = { players:[], teams:[], strokeIndex:[...DEFAULT_SI], gameResults:[] };
     saveState(); renderPlayers(); renderTeams(); renderSIGrids();
@@ -1635,7 +1723,7 @@ function calculateStandings(ronda, accumulate) {
 function renderClassificacao(ronda) {
     // Recarregar resultados do localStorage
     loadGameResults();
-    const showScheduledGamesColumn = isAdmin();
+    const showScheduledGamesColumn = can('classification_manage');
     
     // Se ronda === 'total', calcular soma das 5 rondas (acumulado)
     // Convert ronda to number for comparison (dropdown sends strings like '1', '2', etc.)
@@ -1696,7 +1784,7 @@ function renderClassificacao(ronda) {
         }
         
         // Mostrar secção de edição de resultados apenas para administrador
-        if (isAdmin()) {
+        if (can('classification_manage')) {
             html += `
             <div class="games-input" style="margin-top:1.5rem;">
                 <h4 style="margin-bottom:0.75rem; color:var(--primary);">Registar Resultados dos Jogos:</h4>
@@ -1733,7 +1821,7 @@ function renderClassificacao(ronda) {
     document.getElementById('classificacaoContainer').innerHTML = html;
     
     // Adicionar listeners aos botões de resultado (apenas se admin)
-    if (isAdmin()) {
+    if (can('classification_manage')) {
         document.querySelectorAll('.btn-result').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const ronda = parseInt(e.target.dataset.ronda, 10);
@@ -1773,7 +1861,7 @@ function renderClassificacao(ronda) {
 function renderGrupos() {
     const container = document.getElementById('gruposContainer');
     const grupos = ['A', 'B', 'C', 'D'];
-    const isAdminUser = isAdmin();
+    const isAdminUser = can('groups_manage');
     
     let html = '';
     grupos.forEach(g => {
@@ -1954,7 +2042,7 @@ function renderCalendario() {
                         ${scoreLabel}
                         <span class="team-away${awayClass}">${esc(away)}</span>
                         ${invalid ? '<span class="jogo-warning" title="Uma ou ambas as equipas não existem">⚠️</span>' : ''}
-                        ${isAdmin() ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
+                        ${can('calendar_manage') ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
                     </div>
                     ${hasAnyResult ? `<div class="jogo-pars">${parBadges}</div>` : ''}
                 </li>`;
@@ -1967,13 +2055,13 @@ function renderCalendario() {
     });
 
     if (!html) {
-        html = `<div class="empty-state"><p>Calendário vazio. ${isAdmin() ? 'Use o formulário abaixo para adicionar jogos.' : ''}</p></div>`;
+        html = `<div class="empty-state"><p>Calendário vazio. ${can('calendar_manage') ? 'Use o formulário abaixo para adicionar jogos.' : ''}</p></div>`;
     }
 
     container.innerHTML = html;
 
     // Listeners para remover jogos (admin)
-    if (isAdmin()) {
+    if (can('calendar_manage')) {
         container.querySelectorAll('.btn-del-match').forEach(btn => {
             btn.addEventListener('click', () => {
                 const ronda = parseInt(btn.dataset.ronda, 10);
@@ -2019,7 +2107,7 @@ function updateAddMatchDropdowns() {
 }
 
 function addCalendarMatch() {
-    if (!isAdmin()) return;
+    if (!can('calendar_manage')) return;
     const ronda = parseInt(document.getElementById('addMatchRonda').value, 10);
     const grupo = document.getElementById('addMatchGrupo').value;
     const home  = document.getElementById('addMatchHome').value;
