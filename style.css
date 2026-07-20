@@ -133,19 +133,27 @@ body {
     bottom: 1rem;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    gap: .6rem;
     background: rgba(15,15,15,.55);
     border: 1px solid rgba(196,163,67,.45);
     border-radius: 999px;
-    padding: .3rem;
+    padding: .35rem .8rem .35rem .35rem;
     backdrop-filter: blur(2px);
 }
 .hero-tribute-img {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     object-fit: cover;
     border: 1px solid rgba(228,202,122,.65);
+}
+.hero-tribute-name {
+    font-family: var(--font-head);
+    font-size: .72rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.9);
+    white-space: nowrap;
 }
 
 /* ── MAIN CONTENT ──────────────────────── */
@@ -703,9 +711,11 @@ body {
     .hero-tribute {
         right: 1rem;
         bottom: .65rem;
-        padding: .24rem;
+        padding: .3rem .65rem .3rem .3rem;
+        gap: .5rem;
     }
-    .hero-tribute-img { width: 31px; height: 31px; }
+    .hero-tribute-img { width: 30px; height: 30px; }
+    .hero-tribute-name { font-size: .66rem; }
     .match-setup { grid-template-columns: 1fr; }
     .vs-badge    { margin: .5rem auto; }
     .form-grid   { grid-template-columns: 1fr; }
