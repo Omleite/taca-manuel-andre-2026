@@ -2117,6 +2117,38 @@ function isGroupStageFullyScored() {
     });
 }
 
+// Helper function to get the winner of a specific match in elimination rounds
+function getMatchWinner(ronda, matchNo) {
+    // Find all playoff schedule entries for the given round and match
+    const allEntries = buildPlayoffScheduleEntries().filter(e => e.ronda === ronda && e.grupo === String(matchNo));
+    
+    if (!allEntries.length) return null;
+    
+    // Get home and away team names from first entry (they're the same for both pars)
+    const home = allEntries[0].home;
+    const away = allEntries[0].away;
+    
+    // If it's still a placeholder, it means the previous round isn't complete
+    if (home.startsWith('Vencedor') || away.startsWith('Vencedor')) return null;
+    
+    // Count wins for each team across both pars
+    let homeWins = 0;
+    let awayWins = 0;
+    
+    allEntries.forEach(entry => {
+        const result = getGameResult(entry.ronda, entry.par, entry.home, entry.away);
+        if (result && result.result) {
+            if (result.result === 'home') homeWins++;
+            if (result.result === 'away') awayWins++;
+        }
+    });
+    
+    // Return winner, or null if match is not complete
+    if (homeWins > awayWins) return home;
+    if (awayWins > homeWins) return away;
+    return null; // Match not complete yet
+}
+
 function buildPlayoffScheduleEntries() {
     const completedGroups = isGroupStageFullyScored();
     const standings = completedGroups ? calculateStandings(5, true) : null;
@@ -2130,14 +2162,24 @@ function buildPlayoffScheduleEntries() {
     const d1 = standings?.D?.[0]?.name || '1ºD';
     const d2 = standings?.D?.[1]?.name || '2ºD';
 
+    // Get winners from quarter-finals (ronda 6)
+    const w1 = getMatchWinner(6, 1) || 'Vencedor 1';
+    const w2 = getMatchWinner(6, 2) || 'Vencedor 2';
+    const w3 = getMatchWinner(6, 3) || 'Vencedor 3';
+    const w4 = getMatchWinner(6, 4) || 'Vencedor 4';
+    
+    // Get winners from semi-finals (ronda 7)
+    const w5 = getMatchWinner(7, 5) || 'Vencedor 5';
+    const w6 = getMatchWinner(7, 6) || 'Vencedor 6';
+
     const finalMatches = [
         { ronda: 6, grupo: '1', matchNo: 1, home: a1, away: b2 },
         { ronda: 6, grupo: '2', matchNo: 2, home: b1, away: a2 },
         { ronda: 6, grupo: '3', matchNo: 3, home: c1, away: d2 },
         { ronda: 6, grupo: '4', matchNo: 4, home: d1, away: c2 },
-        { ronda: 7, grupo: '5', matchNo: 5, home: 'Vencedor 1', away: 'Vencedor 3' },
-        { ronda: 7, grupo: '6', matchNo: 6, home: 'Vencedor 2', away: 'Vencedor 4' },
-        { ronda: 8, grupo: '7', matchNo: 7, home: 'Vencedor 5', away: 'Vencedor 6' }
+        { ronda: 7, grupo: '5', matchNo: 5, home: w1, away: w3 },
+        { ronda: 7, grupo: '6', matchNo: 6, home: w2, away: w4 },
+        { ronda: 8, grupo: '7', matchNo: 7, home: w5, away: w6 }
     ];
 
     const entries = [];
