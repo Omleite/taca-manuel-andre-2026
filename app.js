@@ -2118,38 +2118,43 @@ function isGroupStageFullyScored() {
 }
 
 // Helper function to get the winner of a specific match in elimination rounds
-function getMatchWinner(ronda, matchNo) {
-    // Find all playoff schedule entries for the given round and match
-    const allEntries = buildPlayoffScheduleEntries().filter(e => e.ronda === ronda && e.grupo === String(matchNo));
+function getEliminationMatchWinner(ronda, matchNo) {
+    // Find all games for this match by group/matchNo
+    const relevantGames = state.gameResults.filter(r => {
+        // For playoff schedule, matches are stored with grupo as string of matchNo
+        // We need to search carefully
+        return r.ronda === ronda;
+    });
     
-    if (!allEntries.length) return null;
+    // We need to check against current playoff schedule
+    const allPlayoffEntries = buildPlayoffScheduleEntriesUncached();
+    const thisMatchEntries = allPlayoffEntries.filter(e => e.ronda === ronda && parseInt(e.grupo, 10) === matchNo);
     
-    // Get home and away team names from first entry (they're the same for both pars)
-    const home = allEntries[0].home;
-    const away = allEntries[0].away;
+    if (!thisMatchEntries.length) return null;
     
-    // If it's still a placeholder, it means the previous round isn't complete
+    const home = thisMatchEntries[0].home;
+    const away = thisMatchEntries[0].away;
+    
+    // If either is a placeholder, round isn't ready
     if (home.startsWith('Vencedor') || away.startsWith('Vencedor')) return null;
     
-    // Count wins for each team across both pars
-    let homeWins = 0;
-    let awayWins = 0;
-    
-    allEntries.forEach(entry => {
-        const result = getGameResult(entry.ronda, entry.par, entry.home, entry.away);
+    // Count wins
+    let homeWins = 0, awayWins = 0;
+    thisMatchEntries.forEach(entry => {
+        const result = getGameResult(entry.ronda, entry.par, home, away);
         if (result && result.result) {
             if (result.result === 'home') homeWins++;
             if (result.result === 'away') awayWins++;
         }
     });
     
-    // Return winner, or null if match is not complete
     if (homeWins > awayWins) return home;
     if (awayWins > homeWins) return away;
-    return null; // Match not complete yet
+    return null;
 }
 
-function buildPlayoffScheduleEntries() {
+// Cached version of buildPlayoffScheduleEntries - called without recursion
+function buildPlayoffScheduleEntriesUncached() {
     const completedGroups = isGroupStageFullyScored();
     const standings = completedGroups ? calculateStandings(5, true) : null;
 
@@ -2162,15 +2167,15 @@ function buildPlayoffScheduleEntries() {
     const d1 = standings?.D?.[0]?.name || '1ºD';
     const d2 = standings?.D?.[1]?.name || '2ºD';
 
-    // Get winners from quarter-finals (ronda 6)
-    const w1 = getMatchWinner(6, 1) || 'Vencedor 1';
-    const w2 = getMatchWinner(6, 2) || 'Vencedor 2';
-    const w3 = getMatchWinner(6, 3) || 'Vencedor 3';
-    const w4 = getMatchWinner(6, 4) || 'Vencedor 4';
+    // Get winners from quarter-finals
+    const w1 = getEliminationMatchWinner(6, 1) || 'Vencedor 1';
+    const w2 = getEliminationMatchWinner(6, 2) || 'Vencedor 2';
+    const w3 = getEliminationMatchWinner(6, 3) || 'Vencedor 3';
+    const w4 = getEliminationMatchWinner(6, 4) || 'Vencedor 4';
     
-    // Get winners from semi-finals (ronda 7)
-    const w5 = getMatchWinner(7, 5) || 'Vencedor 5';
-    const w6 = getMatchWinner(7, 6) || 'Vencedor 6';
+    // Get winners from semi-finals
+    const w5 = getEliminationMatchWinner(7, 5) || 'Vencedor 5';
+    const w6 = getEliminationMatchWinner(7, 6) || 'Vencedor 6';
 
     const finalMatches = [
         { ronda: 6, grupo: '1', matchNo: 1, home: a1, away: b2 },
@@ -2189,6 +2194,10 @@ function buildPlayoffScheduleEntries() {
     });
 
     return entries;
+}
+
+function buildPlayoffScheduleEntries() {
+    return buildPlayoffScheduleEntriesUncached();
 }
 
 function getRoundLabel(ronda) {
