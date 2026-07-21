@@ -1024,6 +1024,10 @@ body {
 .class-table {
     width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;
     font-size: 0.95rem;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--r-md) var(--r-md);
+    overflow: hidden;
 }
 
 .class-table thead {
@@ -1063,7 +1067,15 @@ body {
 }
 
 .class-table tbody tr:last-child td {
-    border-bottom: none;
+    border-bottom: 1px solid var(--border);
+}
+
+.class-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: var(--r-md);
+}
+
+.class-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: var(--r-md);
 }
 
 .class-row-qualified {
