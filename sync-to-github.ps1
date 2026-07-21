@@ -1,124 +1,123 @@
 # ============================================================
-#  TAÇA MANUEL ANDRÉ 2026 - Sincronizar dados com GitHub
-#  Uso: Clique com o botão direito → "Run with PowerShell"
+#  TACA MANUEL ANDRE 2026 - Sincronizar dados com GitHub
+#  Uso recomendado: correr no terminal PowerShell
 # ============================================================
 
+$ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $false
+
 $projectPath = $PSScriptRoot
-$backupFile  = Join-Path $projectPath "data-backup.json"
-$downloadsPath = "$env:USERPROFILE\Downloads"
+$backupFile = Join-Path $projectPath 'data-backup.json'
+$downloadsPath = Join-Path $env:USERPROFILE 'Downloads'
 
-Write-Host ""
-Write-Host "=======================================" -ForegroundColor Green
-Write-Host "  TAÇA MANUEL ANDRÉ - Sync GitHub" -ForegroundColor Green
-Write-Host "=======================================" -ForegroundColor Green
-Write-Host ""
+function Write-Info([string]$m) { Write-Host $m -ForegroundColor Cyan }
+function Write-Ok([string]$m) { Write-Host $m -ForegroundColor Green }
+function Write-WarnMsg([string]$m) { Write-Host $m -ForegroundColor Yellow }
+function Write-ErrMsg([string]$m) { Write-Host $m -ForegroundColor Red }
 
-# Verificar se há um ficheiro novo nos Downloads
-$downloadedFile = Get-ChildItem "$downloadsPath\taca-manuel-andre-2026*.json" |
-                  Sort-Object LastWriteTime -Descending |
-                  Select-Object -First 1
+function Wait-And-Exit([int]$code) {
+    Write-Host ''
+    Write-Host 'Pressione qualquer tecla para fechar...'
+    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+    exit $code
+}
+
+function Assert-BackupHasUsers([string]$path) {
+    $json = Get-Content $path -Raw | ConvertFrom-Json
+    $hasUsers = $false
+    if ($json.auth -and $json.auth.users -and $json.auth.users.Count -gt 0) { $hasUsers = $true }
+    if ($json.users -and $json.users.Count -gt 0) { $hasUsers = $true }
+    if (-not $hasUsers) {
+        throw 'Backup sem utilizadores (auth.users/users vazio).'
+    }
+}
+
+function Get-GitCommand() {
+    $gitFromPath = Get-Command git -ErrorAction SilentlyContinue
+    if ($gitFromPath) { return 'git' }
+
+    $gitExe = 'C:\Users\oleite\AppData\Local\Programs\Git\cmd\git.exe'
+    if (Test-Path $gitExe) { return $gitExe }
+
+    throw 'Git nao encontrado. Instale Git ou ajuste o PATH.'
+}
+
+Write-Host ''
+Write-Host '=======================================' -ForegroundColor Green
+Write-Host '  TACA MANUEL ANDRE - Sync GitHub' -ForegroundColor Green
+Write-Host '=======================================' -ForegroundColor Green
+Write-Host ''
+
+# 1) Encontrar ultimo ficheiro exportado
+$downloadedFile = Get-ChildItem "$downloadsPath\taca-manuel-andre-2026*.json" -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
 
 if ($downloadedFile) {
     $fileAge = (Get-Date) - $downloadedFile.LastWriteTime
-    if ($fileAge.TotalMinutes -lt 30) {
-        Write-Host "✓ Ficheiro encontrado: $($downloadedFile.Name)" -ForegroundColor Cyan
-        Write-Host "  Exportado há $([int]$fileAge.TotalMinutes) minutos"
-        Write-Host ""
-        
-        # Copiar para o projeto
-        Copy-Item $downloadedFile.FullName $backupFile -Force
-        Write-Host "✓ data-backup.json atualizado!" -ForegroundColor Green
+    Write-Info "Ficheiro encontrado: $($downloadedFile.Name)"
+    Write-Info "Exportado ha $([int]$fileAge.TotalMinutes) minutos"
+    Write-Host ''
 
-        # Validação mínima do backup exportado
-        try {
-            $backupJson = Get-Content $backupFile -Raw | ConvertFrom-Json
-            $hasUsers = $false
-            if ($backupJson.auth -and $backupJson.auth.users -and $backupJson.auth.users.Count -gt 0) { $hasUsers = $true }
-            if ($backupJson.users -and $backupJson.users.Count -gt 0) { $hasUsers = $true }
-
-            if (-not $hasUsers) {
-                Write-Host "" 
-                Write-Host "❌ Backup incompleto: não contém utilizadores." -ForegroundColor Red
-                Write-Host "   Exporte novamente em Configurações > Exportar Dados e volte a correr o script." -ForegroundColor Yellow
-                Write-Host "" 
-                Write-Host "Pressione qualquer tecla para fechar..."
-                $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-                exit 1
-            }
-        }
-        catch {
-            Write-Host "" 
-            Write-Host "❌ O ficheiro exportado não é um JSON válido." -ForegroundColor Red
-            Write-Host "   Exporte novamente na aplicação e volte a correr o script." -ForegroundColor Yellow
-            Write-Host "" 
-            Write-Host "Pressione qualquer tecla para fechar..."
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-            exit 1
-        }
-    } else {
-        Write-Host "⚠ Ficheiro encontrado mas tem mais de 30 minutos." -ForegroundColor Yellow
-        Write-Host "  Exporte novamente na app antes de sincronizar." -ForegroundColor Yellow
-        Write-Host ""
-        Write-Host "Pressione qualquer tecla para continuar de qualquer forma, ou Ctrl+C para cancelar..."
-        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-        Copy-Item $downloadedFile.FullName $backupFile -Force
+    if ($fileAge.TotalMinutes -ge 30) {
+        Write-WarnMsg 'Ficheiro com mais de 30 minutos.'
+        Write-WarnMsg 'Sugestao: exportar novamente antes do sync.'
+        Write-Host ''
+        Write-Host 'Pressione qualquer tecla para continuar, ou Ctrl+C para cancelar...'
+        $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
     }
-} else {
-    Write-Host "ℹ Nenhum ficheiro exportado encontrado nos Downloads." -ForegroundColor Yellow
-    Write-Host "  Usando data-backup.json existente no projeto." -ForegroundColor Yellow
+
+    Copy-Item $downloadedFile.FullName $backupFile -Force
+    Write-Ok 'data-backup.json atualizado a partir de Downloads.'
+}
+else {
+    Write-WarnMsg 'Nenhum ficheiro exportado encontrado em Downloads.'
+    Write-WarnMsg 'Vou usar data-backup.json existente no projeto.'
 }
 
-# Validação também quando não houve novo ficheiro em Downloads
+# 2) Validar backup antes do push
 try {
-    $backupJson = Get-Content $backupFile -Raw | ConvertFrom-Json
-    $hasUsers = $false
-    if ($backupJson.auth -and $backupJson.auth.users -and $backupJson.auth.users.Count -gt 0) { $hasUsers = $true }
-    if ($backupJson.users -and $backupJson.users.Count -gt 0) { $hasUsers = $true }
-
-    if (-not $hasUsers) {
-        Write-Host "" 
-        Write-Host "❌ data-backup.json atual não contém utilizadores." -ForegroundColor Red
-        Write-Host "   É necessário exportar dados na aplicação antes do sync." -ForegroundColor Yellow
-        Write-Host "" 
-        Write-Host "Pressione qualquer tecla para fechar..."
-        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-        exit 1
-    }
+    Assert-BackupHasUsers $backupFile
+    Write-Ok 'Validacao OK: backup contem utilizadores.'
 }
 catch {
-    Write-Host "" 
-    Write-Host "❌ data-backup.json inválido ou corrompido." -ForegroundColor Red
-    Write-Host "" 
-    Write-Host "Pressione qualquer tecla para fechar..."
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-    exit 1
+    Write-ErrMsg "Erro de validacao: $($_.Exception.Message)"
+    Write-WarnMsg 'Exporte novamente em Configuracoes > Exportar Dados e volte a correr o script.'
+    Wait-And-Exit 1
 }
 
-Write-Host ""
-Write-Host "A fazer git commit e push..." -ForegroundColor Cyan
+# 3) Git add/commit/push
+Write-Host ''
+Write-Info 'A fazer git add/commit/push...'
 
 Push-Location $projectPath
-
 try {
-    git add data-backup.json
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm"
-    git commit -m "Sincronizar dados [$timestamp]" 2>&1
-    git push origin master 2>&1
-    
-    Write-Host ""
-    Write-Host "✅ CONCLUÍDO! Dados sincronizados com GitHub." -ForegroundColor Green
-    Write-Host ""
-    Write-Host "O GitHub Pages vai atualizar o site em 1-3 minutos." -ForegroundColor Cyan
-    Write-Host "URL: https://omleite.github.io/taca-manuel-andre-2026/" -ForegroundColor Cyan
+    $git = Get-GitCommand
+
+    & $git add data-backup.json
+    if ($LASTEXITCODE -ne 0) { throw 'git add falhou.' }
+
+    $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
+    & $git commit -m "Sincronizar dados [$timestamp]"
+    if ($LASTEXITCODE -ne 0) {
+        # Sem alteracoes para commitar nao e erro fatal; continuar para push.
+        Write-WarnMsg 'git commit sem alteracoes novas (ou outro aviso). Vou tentar push na mesma.'
+    }
+
+    & $git push origin master
+    if ($LASTEXITCODE -ne 0) { throw 'git push falhou.' }
+
+    Write-Host ''
+    Write-Ok 'CONCLUIDO! Dados sincronizados com GitHub.'
+    Write-Info 'GitHub Pages atualiza em 1-3 minutos.'
+    Write-Info 'URL: https://omleite.github.io/taca-manuel-andre-2026/'
+    Wait-And-Exit 0
 }
 catch {
-    Write-Host ""
-    Write-Host "❌ Erro: $_" -ForegroundColor Red
+    Write-Host ''
+    Write-ErrMsg "Erro: $($_.Exception.Message)"
+    Wait-And-Exit 1
 }
 finally {
     Pop-Location
 }
-
-Write-Host ""
-Write-Host "Pressione qualquer tecla para fechar..."
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
