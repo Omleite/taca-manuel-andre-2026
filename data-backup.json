@@ -1556,6 +1556,14 @@
         "role": "tournament_manager",
         "passwordHash": "5d7f13d0",
         "mustResetPassword": false
+      },
+      {
+        "id": "mrujf1unethsq",
+        "username": "teste",
+        "displayName": "Teste",
+        "role": "tournament_admin",
+        "passwordHash": "267a6ba1",
+        "mustResetPassword": false
       }
     ]
   },
@@ -1582,6 +1590,14 @@
       "displayName": "Estela",
       "role": "tournament_manager",
       "passwordHash": "5d7f13d0",
+      "mustResetPassword": false
+    },
+    {
+      "id": "mrujf1unethsq",
+      "username": "teste",
+      "displayName": "Teste",
+      "role": "tournament_admin",
+      "passwordHash": "267a6ba1",
       "mustResetPassword": false
     }
   ]
