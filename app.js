@@ -2159,18 +2159,22 @@ function getEliminationMatchWinner(ronda, matchNo, home, away) {
     if (!home || !away) return null;
     if (home.startsWith('Vencedor') || away.startsWith('Vencedor')) return null;
     
-    // Count wins for both pars
+    // Count wins and accumulate X+Y for each team
     let homeWins = 0, awayWins = 0;
+    let homeXY = 0, awayXY = 0;
     for (let par = 1; par <= 2; par++) {
         const result = getGameResult(ronda, par, home, away);
         if (result && result.result) {
-            if (result.result === 'home') homeWins++;
-            if (result.result === 'away') awayWins++;
+            if (result.result === 'home') { homeWins++; homeXY += parseScoreXY(result.score); }
+            if (result.result === 'away') { awayWins++; awayXY += parseScoreXY(result.score); }
         }
     }
     
     if (homeWins > awayWins) return home;
     if (awayWins > homeWins) return away;
+    // 1-1: tiebreaker by X+Y sum
+    if (homeXY > awayXY) return home;
+    if (awayXY > homeXY) return away;
     return null;
 }
 
