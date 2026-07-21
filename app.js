@@ -2273,17 +2273,21 @@ function buildEliminationClassificationHtml(ronda) {
             html += `
                 <div class="elim-match-result">
                     <div class="winner-badge">${progressLabel}</div>
-                    <div class="winner-name">${esc(winner)}</div>
             `;
             
             // Special celebration for final
             if (ronda === 8) {
                 html += `
+                    <div class="celebration-text">CAMPEÃO DE MATCH PLAY DA TAÇA MANUEL ANDRÉ 2026!</div>
                     <div class="final-celebration">
-                        <div class="celebration-emojis">🎉 🏆 🎊</div>
-                        <div class="celebration-text">CAMPEÃO DE MATCH PLAY DA TAÇA MANUEL ANDRÉ 2026!</div>
-                        <div class="celebration-emojis">🎉 🏆 🎊</div>
+                        <div class="celebration-emojis">🎉 🏆</div>
+                        <div class="winner-name-celebration">${esc(winner)}</div>
+                        <div class="celebration-emojis">🏆 🎊</div>
                     </div>
+                `;
+            } else {
+                html += `
+                    <div class="winner-name">${esc(winner)}</div>
                 `;
             }
             
