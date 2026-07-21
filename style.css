@@ -1022,6 +1022,17 @@ body {
     padding: 0.9rem 0.8rem; border-bottom: 1px solid var(--border);
 }
 
+.class-table th:nth-child(2),
+.class-table td:nth-child(2) {
+    text-align: left;
+}
+
+.class-table td:nth-child(2) .class-team-link {
+    display: block;
+    width: 100%;
+    text-align: left;
+}
+
 .class-table tbody tr:hover {
     background: var(--accent-pale);
 }
