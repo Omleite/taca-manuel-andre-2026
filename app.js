@@ -2036,6 +2036,25 @@ function setParScore(ronda, par, home, away, score) {
     return true;
 }
 
+// Guarda todos os scores visíveis antes de qualquer re-render
+function saveAllPendingScores() {
+    if (!can('classification_manage')) return;
+    document.querySelectorAll('.group-score-input, .elim-score-input').forEach(input => {
+        const ronda = parseInt(input.dataset.ronda, 10);
+        const par = parseInt(input.dataset.par, 10);
+        const home = input.dataset.home;
+        const away = input.dataset.away;
+        const score = input.value.trim();
+        const existing = getGameResult(ronda, par, home, away);
+        if (existing) {
+            existing.score = score;
+        } else if (score) {
+            state.gameResults.push({ ronda, par, home, away, result: null, score });
+        }
+    });
+    saveGameResults();
+}
+
 function parseScoreXY(scoreStr) {
     if (!scoreStr) return 0;
     const s = scoreStr.trim();
@@ -2498,6 +2517,7 @@ function renderClassificacao(ronda) {
                     const away = e.target.dataset.away;
                     const result = e.target.dataset.result;
 
+                    saveAllPendingScores();
                     if (!setGameResult(rr, par, home, away, result)) return;
                     const selectedView = document.getElementById('selRondaClass').value;
                     renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
@@ -2512,6 +2532,7 @@ function renderClassificacao(ronda) {
                     const home = e.target.dataset.home;
                     const away = e.target.dataset.away;
 
+                    saveAllPendingScores();
                     if (!setGameResult(rr, par, home, away, null)) return;
                     const selectedView = document.getElementById('selRondaClass').value;
                     renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
@@ -2520,7 +2541,16 @@ function renderClassificacao(ronda) {
             });
 
             document.querySelectorAll('.elim-score-input').forEach(input => {
-                input.addEventListener('input', (e) => { validateScoreInput(e.target); });
+                input.addEventListener('input', (e) => {
+                    const target = e.target;
+                    if (isValidScore(target.value.trim())) {
+                        target.classList.remove('score-input-error');
+                        clearTimeout(target._validTimer);
+                    } else {
+                        clearTimeout(target._validTimer);
+                        target._validTimer = setTimeout(() => validateScoreInput(target), 600);
+                    }
+                });
                 input.addEventListener('change', (e) => {
                     const rr = parseInt(e.target.dataset.ronda, 10);
                     const par = parseInt(e.target.dataset.par, 10);
@@ -2665,6 +2695,7 @@ function renderClassificacao(ronda) {
                 const away = e.target.dataset.away;
                 const result = e.target.dataset.result;
                 
+                saveAllPendingScores();
                 if (!setGameResult(ronda, par, home, away, result)) return;
                 const selectedView = document.getElementById('selRondaClass').value;
                 renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
@@ -2680,6 +2711,7 @@ function renderClassificacao(ronda) {
                 const home = e.target.dataset.home;
                 const away = e.target.dataset.away;
                 
+                saveAllPendingScores();
                 if (!setGameResult(ronda, par, home, away, null)) return;
                 const selectedView = document.getElementById('selRondaClass').value;
                 renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
@@ -2688,7 +2720,16 @@ function renderClassificacao(ronda) {
         });
 
         document.querySelectorAll('.group-score-input').forEach(input => {
-            input.addEventListener('input', (e) => { validateScoreInput(e.target); });
+            input.addEventListener('input', (e) => {
+                const target = e.target;
+                if (isValidScore(target.value.trim())) {
+                    target.classList.remove('score-input-error');
+                    clearTimeout(target._validTimer);
+                } else {
+                    clearTimeout(target._validTimer);
+                    target._validTimer = setTimeout(() => validateScoreInput(target), 600);
+                }
+            });
             input.addEventListener('change', (e) => {
                 const ronda = parseInt(e.target.dataset.ronda, 10);
                 const par = parseInt(e.target.dataset.par, 10);
