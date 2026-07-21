@@ -2040,6 +2040,19 @@ function resultPoints(result) {
     return { home: 0, away: 0 };
 }
 
+function getTeamAverageHandicap(teamName) {
+    const team = state.teams.find(t => t.name === teamName);
+    if (!team || !team.playerIds || team.playerIds.length === 0) return 999; // Fallback
+    
+    const handicaps = team.playerIds
+        .map(playerId => state.players.find(p => p.id === playerId))
+        .filter(p => p && p.handicapWhs)
+        .map(p => p.handicapWhs);
+    
+    if (handicaps.length === 0) return 999;
+    return handicaps.reduce((sum, h) => sum + h, 0) / handicaps.length;
+}
+
 function applyGroupTieBreak(groupTeams, group, gamesForScope) {
     const pointBuckets = new Map();
 
@@ -2083,11 +2096,10 @@ function applyGroupTieBreak(groupTeams, group, gamesForScope) {
             if (b.wins !== a.wins) return b.wins - a.wins;
             if (b.draws !== a.draws) return b.draws - a.draws;
 
-            const diffA = a.pointsFor - a.pointsAgainst;
-            const diffB = b.pointsFor - b.pointsAgainst;
-            if (diffB !== diffA) return diffB - diffA;
-
-            return a.name.localeCompare(b.name, 'pt');
+            // Tiebreaker: Lower average handicap wins
+            const avgHandicapA = getTeamAverageHandicap(a.name);
+            const avgHandicapB = getTeamAverageHandicap(b.name);
+            return avgHandicapA - avgHandicapB; // Lower handicap wins (comes first)
         });
 
         ranked.push(...bucket);
@@ -2201,7 +2213,7 @@ function buildEliminationClassificationHtml(ronda) {
     });
 
     let html = `
-        <div class="class-group class-group-knockout class-group-knockout-r${ronda}">
+        <div class="ronda-block-highlight ronda-block-elim ronda-block-r${ronda}">
             <h3 class="class-title">${getRoundLabel(ronda)}</h3>
     `;
 
@@ -2224,6 +2236,13 @@ function buildEliminationClassificationHtml(ronda) {
             if (res.result === 'home') homeWins++;
             if (res.result === 'away') awayWins++;
         });
+
+        const matchComplete = homeWins + awayWins > 0;
+        const winner = homeWins > awayWins ? home : (awayWins > homeWins ? away : null);
+        const nextRoundLabel = getRoundLabel(ronda + 1);
+        
+        // For final, use different language
+        const progressLabel = ronda === 8 ? '🏆 CAMPEÃ!' : `Apurada para ${nextRoundLabel}`;
 
         html += `
             <div class="card elim-match-card">
@@ -2248,6 +2267,30 @@ function buildEliminationClassificationHtml(ronda) {
                 </div>
             `;
         });
+
+        // Add winner/progress section
+        if (matchComplete && winner) {
+            html += `
+                <div class="elim-match-result">
+                    <div class="winner-badge">${progressLabel}</div>
+                    <div class="winner-name">${esc(winner)}</div>
+            `;
+            
+            // Special celebration for final
+            if (ronda === 8) {
+                html += `
+                    <div class="final-celebration">
+                        <div class="celebration-emojis">🎉 🏆 🎊</div>
+                        <div class="celebration-text">CAMPEÃO DE MATCH PLAY DA TAÇA MANUEL ANDRÉ 2026!</div>
+                        <div class="celebration-emojis">🎉 🏆 🎊</div>
+                    </div>
+                `;
+            }
+            
+            html += `
+                </div>
+            `;
+        }
 
         html += `
                 </div>
@@ -2425,10 +2468,14 @@ function renderClassificacao(ronda) {
         `;
         
         teams.forEach((team, idx) => {
+            const isQualified = ronda === 'total' && idx < 2; // First 2 teams in group stage qualify
+            const rowClass = isQualified ? 'class-row-qualified' : '';
+            const teamNameStyle = isQualified ? 'style="color: #b8860b; font-weight: bold; font-size: 1.05rem;"' : '';
+            
             html += `
-                    <tr>
+                    <tr class="${rowClass}">
                         <td>${idx + 1}</td>
-                        <td><button type="button" class="class-team-link" data-team-id="${team.id}"><strong>${esc(team.name)}</strong></button></td>
+                        <td><button type="button" class="class-team-link" data-team-id="${team.id}" ${teamNameStyle}><strong>${esc(team.name)}</strong></button></td>
                         ${showScheduledGamesColumn ? `<td>${team.played}</td>` : ''}
                         <td>${team.wins}</td>
                         <td>${team.draws}</td>

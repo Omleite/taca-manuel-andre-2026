@@ -1056,6 +1056,21 @@ body {
     border-bottom: none;
 }
 
+.class-row-qualified {
+    background: rgba(184, 134, 11, 0.08) !important;
+    border-left: 4px solid #b8860b;
+}
+
+.class-row-qualified td {
+    color: #654321;
+    font-weight: 500;
+}
+
+.class-row-qualified td strong {
+    color: #b8860b;
+    font-weight: 700;
+}
+
 .class-group-knockout {
     text-align: center;
 }
@@ -1291,6 +1306,96 @@ body {
     flex: 0 0 auto; padding-top: 1.2rem;
 }
 
+/* ── Resultados de Eliminação (Quartos, Meias, Final) ── */
+.ronda-block-elim {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
+    border-radius: var(--r);
+    margin-bottom: 2rem;
+}
+
+.elim-match-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #fff9e6 0%, #fff3cc 100%);
+    border: 3px solid #b8860b;
+    border-radius: var(--r);
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.winner-badge {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    background: #b8860b;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+}
+
+.winner-name {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #b8860b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ── Celebração Final ── */
+.final-celebration {
+    width: 100%;
+    padding: 2rem;
+    background: linear-gradient(135deg, #2d4f44 0%, #3b5f50 50%, #2d4f44 100%);
+    border-radius: var(--r-md);
+    border: 4px solid #3b5f50;
+    animation: celebration-pulse 1s ease-in-out infinite;
+}
+
+.celebration-emojis {
+    font-size: 3rem;
+    line-height: 1;
+    margin: 0.5rem 0;
+    animation: bounce 0.6s ease-in-out infinite;
+}
+
+.celebration-text {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--card-bg);
+    font-family: var(--font-head);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 1rem 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes celebration-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(59, 95, 80, 0.4);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 20px 10px rgba(59, 95, 80, 0.2);
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
 @media (max-width: 768px) {
     .game-result-row {
         flex-wrap: wrap;
@@ -1360,6 +1465,30 @@ body {
         width: auto;
         font-size: .8rem;
         text-align: left;
+    }
+    
+    .ronda-block-elim {
+        grid-template-columns: 1fr;
+    }
+    
+    .elim-match-result {
+        padding: 1rem;
+    }
+    
+    .winner-name {
+        font-size: 1.3rem;
+    }
+    
+    .final-celebration {
+        padding: 1rem;
+    }
+    
+    .celebration-emojis {
+        font-size: 2rem;
+    }
+    
+    .celebration-text {
+        font-size: 1.3rem;
     }
 }
 
