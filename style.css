@@ -735,6 +735,21 @@ body {
 .team-away.team-winner { color: #16a34a; }
 .team-home.team-loser  { color: #9ca3af; font-weight: 500; }
 .team-away.team-loser  { color: #9ca3af; font-weight: 500; }
+.calendar-team-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    width: 100%;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.calendar-team-link:hover {
+    color: var(--accent);
+}
 .jogo-vs {
     font-family: var(--font-head); font-size: .65rem; font-weight: 800;
     letter-spacing: .08em; color: var(--card-bg);
@@ -1417,4 +1432,48 @@ select#inputPlayerGenero {
 .grupo-team-item.view-only .grupo-team-name {
     font-size: 0.9rem;
     color: #333;
+}
+
+/* ── MOBILE OVERRIDE HOTFIX ───────────────────────────────── */
+@media (max-width: 900px) {
+    .ronda-block-semi .grupos-grid,
+    .ronda-block-final .grupos-grid {
+        grid-template-columns: 1fr !important;
+        gap: .75rem !important;
+        padding: .65rem !important;
+    }
+
+    .ronda-block-highlight .grupo-card {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        padding: .9rem !important;
+    }
+
+    .ronda-block-highlight .jogo-teams {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+        gap: .35rem !important;
+    }
+
+    .ronda-block-highlight .team-home,
+    .ronda-block-highlight .team-away,
+    .ronda-block-highlight .calendar-team-link {
+        font-size: .84rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.2 !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .class-table td:nth-child(2),
+    .class-table td:nth-child(2) .class-team-link {
+        text-align: left !important;
+    }
+
+    .team-nav-back-btn {
+        font-size: .62rem;
+        padding: .18rem .42rem;
+    }
 }

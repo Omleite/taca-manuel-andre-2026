@@ -2706,6 +2706,8 @@ function renderCalendario() {
                 const homeExists = !shouldValidateTeams || state.teams.some(t => t.name === home);
                 const awayExists = !shouldValidateTeams || state.teams.some(t => t.name === away);
                 const invalid = shouldValidateTeams && (!homeExists || !awayExists);
+                const homeTeam = state.teams.find(t => t.name === home);
+                const awayTeam = state.teams.find(t => t.name === away);
 
                 // Calcular resultado total do confronto (soma dos 2 pares)
                 const results = games.map(g =>
@@ -2731,12 +2733,18 @@ function renderCalendario() {
 
                 const homeClass = hasAnyResult ? (homeWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
                 const awayClass = hasAnyResult ? (awayWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
+                const homeLabel = homeTeam
+                    ? `<button type="button" class="calendar-team-link team-home${homeClass}" data-team-id="${homeTeam.id}">${esc(home)}</button>`
+                    : `<span class="team-home${homeClass}">${esc(home)}</span>`;
+                const awayLabel = awayTeam
+                    ? `<button type="button" class="calendar-team-link team-away${awayClass}" data-team-id="${awayTeam.id}">${esc(away)}</button>`
+                    : `<span class="team-away${awayClass}">${esc(away)}</span>`;
 
                 html += `<li class="jogo${invalid ? ' jogo-invalid' : ''}${hasAnyResult ? ' jogo-done' : ''}">
                     <div class="jogo-teams">
-                        <span class="team-home${homeClass}">${esc(home)}</span>
+                        ${homeLabel}
                         ${scoreLabel}
-                        <span class="team-away${awayClass}">${esc(away)}</span>
+                        ${awayLabel}
                         ${invalid ? '<span class="jogo-warning" title="Uma ou ambas as equipas não existem">⚠️</span>' : ''}
                         ${(can('calendar_manage') && ronda <= 5) ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
                     </div>
@@ -2755,6 +2763,12 @@ function renderCalendario() {
 
     container.innerHTML = html;
     bindRoundDatesEditorEvents();
+
+    container.querySelectorAll('.calendar-team-link[data-team-id]').forEach(link => {
+        link.addEventListener('click', () => {
+            openTeamFromClassification(link.dataset.teamId, 'calendario');
+        });
+    });
 
     // Listeners para remover jogos (admin)
     if (can('calendar_manage')) {
