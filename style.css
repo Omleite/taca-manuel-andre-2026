@@ -999,10 +999,19 @@ body {
 }
 
 .class-group {
-    background: var(--card-bg); border-radius: 0; padding: 2rem;
-    margin-bottom: 2rem; box-shadow: var(--sh-sm); border: 1px solid var(--border);
-    border-top-left-radius: var(--r-lg);
-    border-top-right-radius: var(--r-lg);
+    background: transparent; margin-bottom: 2rem;
+}
+
+.class-group > *:not(.class-table) {
+    padding: 0 2rem;
+}
+
+.class-group > :first-child {
+    padding-top: 2rem;
+}
+
+.class-group > :last-child {
+    padding-bottom: 2rem;
 }
 
 .class-title {
@@ -1022,11 +1031,12 @@ body {
 }
 
 .class-table {
-    width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;
-    font-size: 0.95rem;
+    width: calc(100% - 4rem); margin: 0 2rem 2rem 2rem; font-size: 0.95rem;
     border: 1px solid var(--border);
-    border-top: none;
-    border-radius: 0 0 var(--r-md) var(--r-md);
+    border-collapse: separate; border-spacing: 0;
+    border-radius: var(--r-md);
+    background: var(--card-bg);
+    box-shadow: var(--sh-sm);
     overflow: hidden;
 }
 
@@ -1037,14 +1047,6 @@ body {
 .class-table th {
     padding: 0.8rem; text-align: left; font-weight: 600; border-bottom: 2px solid var(--primary);
     font-family: var(--font-head);
-}
-
-.class-table th:first-child {
-    border-top-left-radius: var(--r-md);
-}
-
-.class-table th:last-child {
-    border-top-right-radius: var(--r-md);
 }
 
 .class-table td {
@@ -1068,14 +1070,6 @@ body {
 
 .class-table tbody tr:last-child td {
     border-bottom: 1px solid var(--border);
-}
-
-.class-table tbody tr:last-child td:first-child {
-    border-bottom-left-radius: var(--r-md);
-}
-
-.class-table tbody tr:last-child td:last-child {
-    border-bottom-right-radius: var(--r-md);
 }
 
 .class-row-qualified {
