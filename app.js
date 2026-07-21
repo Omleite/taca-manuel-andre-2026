@@ -2036,6 +2036,25 @@ function setParScore(ronda, par, home, away, score) {
     return true;
 }
 
+function isValidScore(v) {
+    if (!v) return false;
+    const s = v.trim();
+    if (s === '1' || s === '2') return true;
+    const m = s.match(/^(\d+)&(\d+)$/);
+    if (m) {
+        const a = parseInt(m[1], 10), b = parseInt(m[2], 10);
+        return a >= 1 && a <= 10 && b >= 0 && b <= 8;
+    }
+    return false;
+}
+
+function validateScoreInput(input) {
+    const rb = input.closest('.result-buttons');
+    if (!rb) return;
+    const hasActive = !!rb.querySelector('.btn-result.active');
+    input.classList.toggle('score-input-error', hasActive && !isValidScore(input.value.trim()));
+}
+
 function isGroupStageGame(game) {
     return game && game.ronda >= 1 && game.ronda <= 5 && ['A', 'B', 'C', 'D'].includes(game.grupo);
 }
@@ -2303,7 +2322,7 @@ function buildEliminationClassificationHtml(ronda) {
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
                         <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
-                        <input type="text" class="elim-score-input" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="ex: 3&amp;2" value="${esc(result && result.score ? result.score : '')}" maxlength="10">
+                        <input type="text" class="elim-score-input${(result && result.result) && !isValidScore(result && result.score ? result.score : '') ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="ex: 3&amp;2" value="${esc(result && result.score ? result.score : '')}" maxlength="10">
                         <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                         ` : (result && result.score ? `<span class="elim-score-display">${esc(result.score)}</span>` : '')}
                     </div>
@@ -2483,6 +2502,7 @@ function renderClassificacao(ronda) {
             });
 
             document.querySelectorAll('.elim-score-input').forEach(input => {
+                input.addEventListener('input', (e) => { validateScoreInput(e.target); });
                 input.addEventListener('change', (e) => {
                     const rr = parseInt(e.target.dataset.ronda, 10);
                     const par = parseInt(e.target.dataset.par, 10);
@@ -2490,6 +2510,7 @@ function renderClassificacao(ronda) {
                     const away = e.target.dataset.away;
                     const score = e.target.value.trim();
                     setParScore(rr, par, home, away, score);
+                    validateScoreInput(e.target);
                 });
             });
         }
@@ -2584,7 +2605,7 @@ function renderClassificacao(ronda) {
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence A</button>
                         <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Vence B</button>
-                        <input type="text" class="group-score-input" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="2&amp;1" value="${esc(result && result.score ? result.score : '')}" maxlength="10">
+                        <input type="text" class="group-score-input${(result && result.result) && !isValidScore(result && result.score ? result.score : '') ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="2&amp;1" value="${esc(result && result.score ? result.score : '')}" maxlength="10">
                         <button class="btn-result-clear btn-del" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                     </div>
                     <span class="team-name result-team-b"><span class="team-ab-label">B:</span>${awayLabel}</span>
@@ -2648,6 +2669,7 @@ function renderClassificacao(ronda) {
         });
 
         document.querySelectorAll('.group-score-input').forEach(input => {
+            input.addEventListener('input', (e) => { validateScoreInput(e.target); });
             input.addEventListener('change', (e) => {
                 const ronda = parseInt(e.target.dataset.ronda, 10);
                 const par = parseInt(e.target.dataset.par, 10);
@@ -2655,6 +2677,7 @@ function renderClassificacao(ronda) {
                 const away = e.target.dataset.away;
                 const score = e.target.value.trim();
                 setParScore(ronda, par, home, away, score);
+                validateScoreInput(e.target);
             });
         });
     }
