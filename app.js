@@ -2014,16 +2014,23 @@ function setGameResult(ronda, par, home, away, result) {
     // Segurança: só perfis com permissão podem alterar resultados.
     if (!can('classification_manage')) return false;
 
-    // Na fase a eliminar (rondas 6-8) não existe empate.
-    if (ronda >= 6 && result === 'draw') {
-        result = null;
-    }
-
     const existing = getGameResult(ronda, par, home, away);
     if (existing) {
         existing.result = result;
     } else {
         state.gameResults.push({ ronda, par, home, away, result });
+    }
+    saveGameResults();
+    return true;
+}
+
+function setParScore(ronda, par, home, away, score) {
+    if (!can('classification_manage')) return false;
+    const existing = getGameResult(ronda, par, home, away);
+    if (existing) {
+        existing.score = score;
+    } else {
+        state.gameResults.push({ ronda, par, home, away, result: null, score });
     }
     saveGameResults();
     return true;
@@ -2294,10 +2301,14 @@ function buildEliminationClassificationHtml(ronda) {
                     <div class="result-buttons${canManageClassification ? '' : ' result-buttons-readonly'}">
                         ${canManageClassification ? `
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
+                        <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
                         <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
                         ` : ''}
                     </div>
+                    ${canManageClassification ? `
+                    <input type="text" class="elim-score-input" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="ex: 3&amp;2" value="${esc(result && result.score ? result.score : '')}" maxlength="10">
+                    ` : (result && result.score ? `<span class="elim-score-display">${esc(result.score)}</span>` : '')}
                     <span class="team-name elim-team-name">${esc(game.away)}</span>
                 </div>
             `;
@@ -2470,6 +2481,17 @@ function renderClassificacao(ronda) {
                     const selectedView = document.getElementById('selRondaClass').value;
                     renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
                     showToast(`Resultado limpo - Par ${par}: ${home} vs ${away}`);
+                });
+            });
+
+            document.querySelectorAll('.elim-score-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const rr = parseInt(e.target.dataset.ronda, 10);
+                    const par = parseInt(e.target.dataset.par, 10);
+                    const home = e.target.dataset.home;
+                    const away = e.target.dataset.away;
+                    const score = e.target.value.trim();
+                    setParScore(rr, par, home, away, score);
                 });
             });
         }

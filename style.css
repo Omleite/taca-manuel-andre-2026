@@ -1157,6 +1157,47 @@ body {
     text-align: center;
     line-height: 1.25;
 }
+
+.elim-score-input {
+    flex: 0 0 72px;
+    width: 72px;
+    padding: 0.35rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    font-size: 0.85rem;
+    text-align: center;
+    font-family: var(--font-head);
+    font-weight: 700;
+    color: var(--primary);
+    background: var(--page-bg);
+}
+
+.elim-score-input:focus {
+    outline: 2px solid var(--primary);
+    border-color: var(--primary);
+}
+
+.elim-score-display {
+    flex: 0 0 auto;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary);
+    font-family: var(--font-head);
+    background: var(--accent-pale);
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--r-sm);
+    white-space: nowrap;
+}
+
+.btn-result-draw {
+    border-color: #94a3b8;
+    color: #64748b;
+}
+.btn-result-draw.active {
+    background: #64748b;
+    color: white;
+    border-color: #64748b;
+}
 .elim-result-text {
     flex: 0 1 auto;
     font-size: .8rem;
