@@ -1069,7 +1069,7 @@ body {
 }
 
 .class-table tbody tr:last-child td {
-    border-bottom: 1px solid var(--border);
+    border-bottom: none;
 }
 
 .class-row-qualified {
