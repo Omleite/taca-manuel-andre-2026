@@ -1159,8 +1159,9 @@ body {
 }
 
 .elim-score-input {
-    flex: 0 0 72px;
-    width: 72px;
+    flex: 1 1 52px;
+    min-width: 46px;
+    max-width: 80px;
     padding: 0.35rem 0.4rem;
     border: 1px solid var(--border);
     border-radius: var(--r-sm);
@@ -1252,10 +1253,10 @@ body {
 }
 
 .btn-result-clear {
-    padding: 0.3rem 0.5rem; border: 2px solid var(--border); background: #f0f0f0;
-    color: var(--txt-dark); border-radius: var(--r-sm); cursor: pointer;
-    font-family: var(--font-body); font-size: 0.78rem; font-weight: 600;
-    transition: all 0.2s ease; margin-left: 0; min-width: 36px; text-align: center;
+    padding: 0.3rem 0.4rem; border: 2px solid #e0e0e0; background: #f0f0f0;
+    color: #888; border-radius: var(--r-sm); cursor: pointer;
+    font-family: var(--font-body); font-size: 0.72rem; font-weight: 600;
+    transition: all 0.2s ease; min-width: 28px; max-width: 36px; text-align: center;
 }
 
 .btn-result-clear:hover {
@@ -1283,8 +1284,9 @@ body {
 }
 
 .group-score-input {
-    flex: 0 0 58px;
-    width: 58px;
+    flex: 1 1 52px;
+    min-width: 46px;
+    max-width: 80px;
     padding: 0.25rem 0.3rem;
     border: 1px solid var(--border);
     border-radius: var(--r-sm);
