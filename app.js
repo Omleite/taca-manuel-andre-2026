@@ -209,7 +209,10 @@ function getUsersBackupSnapshot() {
             id: u.id || genId(),
             username: normalizeUsername(u.username),
             displayName: (u.displayName || u.username || 'Utilizador').trim(),
-            role: normalizeRole(u.role)
+            role: normalizeRole(u.role),
+            // Permite mobilidade entre dispositivos sem guardar password em claro.
+            passwordHash: u.passwordHash || null,
+            mustResetPassword: !!u.mustResetPassword
         }))
         .filter(u => !!u.username);
 }
@@ -222,8 +225,8 @@ function hydrateUsersFromBackup(rawUsers) {
             username: normalizeUsername(u.username),
             displayName: (u.displayName || u.username || 'Utilizador').trim(),
             role: normalizeRole(u.role),
-            passwordHash: null,
-            mustResetPassword: true
+            passwordHash: typeof u.passwordHash === 'string' && u.passwordHash.trim() ? u.passwordHash : null,
+            mustResetPassword: typeof u.mustResetPassword === 'boolean' ? u.mustResetPassword : !(typeof u.passwordHash === 'string' && u.passwordHash.trim())
         }))
         .filter(u => !!u.username);
 }
@@ -455,7 +458,7 @@ async function handleGithubSync(e) {
             auth: {
                 users: usersSnapshot
             },
-            // Compatibilidade com versões antigas (sem passwords)
+            // Compatibilidade com versões antigas
             users: usersSnapshot
         };
 
@@ -1637,7 +1640,7 @@ function exportData() {
         auth: {
             users: usersSnapshot
         },
-        // Compatibilidade com versões antigas (sem passwords)
+        // Compatibilidade com versões antigas
         users: usersSnapshot
     };
     
@@ -1676,7 +1679,8 @@ function importData(file) {
                         id: refreshedCurrent.id,
                         username: refreshedCurrent.username,
                         displayName: refreshedCurrent.displayName,
-                        role: normalizeRole(refreshedCurrent.role)
+                        role: normalizeRole(refreshedCurrent.role),
+                        mustResetPassword: !!refreshedCurrent.mustResetPassword
                     }
                     : null;
             }
