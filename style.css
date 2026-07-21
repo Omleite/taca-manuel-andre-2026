@@ -1034,8 +1034,6 @@ body {
     width: calc(100% - 4rem); margin: 0 2rem 2rem 2rem; font-size: 0.95rem;
     border: 1px solid var(--border);
     border-collapse: separate; border-spacing: 0;
-    table-layout: fixed;
-    box-sizing: border-box;
     border-radius: var(--r-md);
     background: var(--card-bg);
     box-shadow: var(--sh-sm);
@@ -1049,12 +1047,10 @@ body {
 .class-table th {
     padding: 0.8rem; text-align: left; font-weight: 600; border-bottom: 2px solid var(--primary);
     font-family: var(--font-head);
-    box-sizing: border-box;
 }
 
 .class-table td {
     padding: 0.9rem 0.8rem; border-bottom: 1px solid var(--border);
-    box-sizing: border-box;
 }
 
 .class-table th:nth-child(2),
