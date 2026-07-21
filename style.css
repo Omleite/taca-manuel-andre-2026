@@ -1034,6 +1034,7 @@ body {
     width: calc(100% - 4rem); margin: 0 2rem 2rem 2rem; font-size: 0.95rem;
     border: 1px solid var(--border);
     border-collapse: separate; border-spacing: 0;
+    table-layout: fixed;
     border-radius: var(--r-md);
     background: var(--card-bg);
     box-shadow: var(--sh-sm);
