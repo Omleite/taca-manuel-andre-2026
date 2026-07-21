@@ -2524,7 +2524,8 @@ function renderClassificacao(ronda) {
                     const away = e.target.dataset.away;
                     const score = e.target.value.trim();
                     setParScore(rr, par, home, away, score);
-                    validateScoreInput(e.target);
+                    const selView = document.getElementById('selRondaClass').value;
+                    renderClassificacao(selView === 'total' ? 'total' : parseInt(selView, 10));
                 });
             });
         }
@@ -2691,7 +2692,8 @@ function renderClassificacao(ronda) {
                 const away = e.target.dataset.away;
                 const score = e.target.value.trim();
                 setParScore(ronda, par, home, away, score);
-                validateScoreInput(e.target);
+                const selView = document.getElementById('selRondaClass').value;
+                renderClassificacao(selView === 'total' ? 'total' : parseInt(selView, 10));
             });
         });
     }
