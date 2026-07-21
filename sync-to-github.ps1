@@ -28,6 +28,33 @@ if ($downloadedFile) {
         # Copiar para o projeto
         Copy-Item $downloadedFile.FullName $backupFile -Force
         Write-Host "✓ data-backup.json atualizado!" -ForegroundColor Green
+
+        # Validação mínima do backup exportado
+        try {
+            $backupJson = Get-Content $backupFile -Raw | ConvertFrom-Json
+            $hasUsers = $false
+            if ($backupJson.auth -and $backupJson.auth.users -and $backupJson.auth.users.Count -gt 0) { $hasUsers = $true }
+            if ($backupJson.users -and $backupJson.users.Count -gt 0) { $hasUsers = $true }
+
+            if (-not $hasUsers) {
+                Write-Host "" 
+                Write-Host "❌ Backup incompleto: não contém utilizadores." -ForegroundColor Red
+                Write-Host "   Exporte novamente em Configurações > Exportar Dados e volte a correr o script." -ForegroundColor Yellow
+                Write-Host "" 
+                Write-Host "Pressione qualquer tecla para fechar..."
+                $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+                exit 1
+            }
+        }
+        catch {
+            Write-Host "" 
+            Write-Host "❌ O ficheiro exportado não é um JSON válido." -ForegroundColor Red
+            Write-Host "   Exporte novamente na aplicação e volte a correr o script." -ForegroundColor Yellow
+            Write-Host "" 
+            Write-Host "Pressione qualquer tecla para fechar..."
+            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            exit 1
+        }
     } else {
         Write-Host "⚠ Ficheiro encontrado mas tem mais de 30 minutos." -ForegroundColor Yellow
         Write-Host "  Exporte novamente na app antes de sincronizar." -ForegroundColor Yellow
@@ -39,6 +66,32 @@ if ($downloadedFile) {
 } else {
     Write-Host "ℹ Nenhum ficheiro exportado encontrado nos Downloads." -ForegroundColor Yellow
     Write-Host "  Usando data-backup.json existente no projeto." -ForegroundColor Yellow
+}
+
+# Validação também quando não houve novo ficheiro em Downloads
+try {
+    $backupJson = Get-Content $backupFile -Raw | ConvertFrom-Json
+    $hasUsers = $false
+    if ($backupJson.auth -and $backupJson.auth.users -and $backupJson.auth.users.Count -gt 0) { $hasUsers = $true }
+    if ($backupJson.users -and $backupJson.users.Count -gt 0) { $hasUsers = $true }
+
+    if (-not $hasUsers) {
+        Write-Host "" 
+        Write-Host "❌ data-backup.json atual não contém utilizadores." -ForegroundColor Red
+        Write-Host "   É necessário exportar dados na aplicação antes do sync." -ForegroundColor Yellow
+        Write-Host "" 
+        Write-Host "Pressione qualquer tecla para fechar..."
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        exit 1
+    }
+}
+catch {
+    Write-Host "" 
+    Write-Host "❌ data-backup.json inválido ou corrompido." -ForegroundColor Red
+    Write-Host "" 
+    Write-Host "Pressione qualquer tecla para fechar..."
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit 1
 }
 
 Write-Host ""
