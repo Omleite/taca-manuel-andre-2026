@@ -1542,27 +1542,11 @@
         "mustResetPassword": false
       },
       {
-        "id": "mrte5fmzbb0v4",
-        "username": "manager",
-        "displayName": "Tournament Manager",
-        "role": "tournament_manager",
-        "passwordHash": "7526d317",
-        "mustResetPassword": false
-      },
-      {
         "id": "mrte6796bjj5n",
         "username": "scoring",
         "displayName": "Scoring",
         "role": "scoring_official",
         "passwordHash": "84861f31",
-        "mustResetPassword": false
-      },
-      {
-        "id": "mrte7lonsml3v",
-        "username": "tadmin",
-        "displayName": "Tournament Admin",
-        "role": "tournament_admin",
-        "passwordHash": "b22cb179",
         "mustResetPassword": false
       },
       {
@@ -1585,27 +1569,11 @@
       "mustResetPassword": false
     },
     {
-      "id": "mrte5fmzbb0v4",
-      "username": "manager",
-      "displayName": "Tournament Manager",
-      "role": "tournament_manager",
-      "passwordHash": "7526d317",
-      "mustResetPassword": false
-    },
-    {
       "id": "mrte6796bjj5n",
       "username": "scoring",
       "displayName": "Scoring",
       "role": "scoring_official",
       "passwordHash": "84861f31",
-      "mustResetPassword": false
-    },
-    {
-      "id": "mrte7lonsml3v",
-      "username": "tadmin",
-      "displayName": "Tournament Admin",
-      "role": "tournament_admin",
-      "passwordHash": "b22cb179",
       "mustResetPassword": false
     },
     {
