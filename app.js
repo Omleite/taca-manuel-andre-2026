@@ -6,6 +6,7 @@
 
 const STORAGE_KEY = 'taca-manuel-andre-2026';
 const AUTH_KEY    = 'tma-2026-auth';
+const AUTH_SESSION_KEY = 'tma-2026-auth-session';
 const GITHUB_TOKEN_SESSION_KEY = 'tma-2026-gh-token';
 const SALT        = 'egc:tma:2026:estela';
 const EMERGENCY_ADMIN_USERNAME = 'admin';
@@ -97,7 +98,6 @@ function loadAuth() {
         const raw = localStorage.getItem(AUTH_KEY);
         if (raw) {
             const p = JSON.parse(raw);
-            authState.currentUser = p.currentUser || null;
             authState.users = Array.isArray(p.users) ? p.users : [];
         }
         authState.users = authState.users.map(u => ({
@@ -105,15 +105,41 @@ function loadAuth() {
             role: normalizeRole(u.role),
             mustResetPassword: !!u.mustResetPassword
         }));
-        if (authState.currentUser) {
-            authState.currentUser.role = normalizeRole(authState.currentUser.role);
-        }
         ensureDefaultAdminUser();
+
+        // Sessão autenticada vive apenas durante a sessão do browser.
+        authState.currentUser = null;
+        const sessionRaw = sessionStorage.getItem(AUTH_SESSION_KEY);
+        if (sessionRaw) {
+            const sessionUser = JSON.parse(sessionRaw);
+            const found = authState.users.find(u =>
+                (sessionUser.id && u.id === sessionUser.id) ||
+                (sessionUser.username && normalizeUsername(u.username) === normalizeUsername(sessionUser.username))
+            );
+            if (found) {
+                authState.currentUser = {
+                    id: found.id,
+                    username: found.username,
+                    displayName: found.displayName,
+                    role: normalizeRole(found.role),
+                    mustResetPassword: !!found.mustResetPassword
+                };
+            }
+        }
     } catch (e) { console.error('loadAuth:', e); }
 }
 
 function saveAuth() {
-    localStorage.setItem(AUTH_KEY, JSON.stringify(authState));
+    const authToStore = {
+        users: authState.users
+    };
+    localStorage.setItem(AUTH_KEY, JSON.stringify(authToStore));
+
+    if (authState.currentUser) {
+        sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(authState.currentUser));
+    } else {
+        sessionStorage.removeItem(AUTH_SESSION_KEY);
+    }
 }
 
 function hashPassword(password) {
@@ -1906,6 +1932,9 @@ function getGameResult(ronda, par, home, away) {
 }
 
 function setGameResult(ronda, par, home, away, result) {
+    // Segurança: só perfis com permissão podem alterar resultados.
+    if (!can('classification_manage')) return false;
+
     // Na fase a eliminar (rondas 6-8) não existe empate.
     if (ronda >= 6 && result === 'draw') {
         result = null;
@@ -1918,6 +1947,7 @@ function setGameResult(ronda, par, home, away, result) {
         state.gameResults.push({ ronda, par, home, away, result });
     }
     saveGameResults();
+    return true;
 }
 
 function isGroupStageGame(game) {
@@ -2106,6 +2136,7 @@ function buildEliminationClassificationHtml(ronda) {
         let homeWins = 0;
         let awayWins = 0;
         let hasAnyResult = false;
+        const canManageClassification = can('classification_manage');
 
         matchGames.forEach(g => {
             const res = getGameResult(g.ronda, g.par, g.home, g.away);
@@ -2124,14 +2155,19 @@ function buildEliminationClassificationHtml(ronda) {
 
         matchGames.forEach(game => {
             const result = getGameResult(game.ronda, game.par, game.home, game.away);
+            const resultText = !result || !result.result
+                ? 'Por disputar'
+                : (result.result === 'home' ? `Vence ${esc(game.home)}` : `Vence ${esc(game.away)}`);
             html += `
                 <div class="game-result-row">
                     <span class="team-name" style="font-size: 0.85rem; color: var(--txt-light);">Par ${game.par}</span>
                     <span class="team-name">${esc(game.home)}</span>
                     <div class="result-buttons">
+                        ${canManageClassification ? `
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
                         <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
+                        ` : `<span class="team-name" style="font-size:0.85rem; color:var(--txt-light);">${resultText}</span>`}
                     </div>
                     <span class="team-name">${esc(game.away)}</span>
                 </div>
@@ -2259,7 +2295,7 @@ function renderClassificacao(ronda) {
                     const away = e.target.dataset.away;
                     const result = e.target.dataset.result;
 
-                    setGameResult(rr, par, home, away, result);
+                    if (!setGameResult(rr, par, home, away, result)) return;
                     const selectedView = document.getElementById('selRondaClass').value;
                     renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
                     showToast(`Resultado registado - Par ${par}: ${home} vs ${away}`);
@@ -2273,7 +2309,7 @@ function renderClassificacao(ronda) {
                     const home = e.target.dataset.home;
                     const away = e.target.dataset.away;
 
-                    setGameResult(rr, par, home, away, null);
+                    if (!setGameResult(rr, par, home, away, null)) return;
                     const selectedView = document.getElementById('selRondaClass').value;
                     renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
                     showToast(`Resultado limpo - Par ${par}: ${home} vs ${away}`);
@@ -2393,7 +2429,7 @@ function renderClassificacao(ronda) {
                 const away = e.target.dataset.away;
                 const result = e.target.dataset.result;
                 
-                setGameResult(ronda, par, home, away, result);
+                if (!setGameResult(ronda, par, home, away, result)) return;
                 const selectedView = document.getElementById('selRondaClass').value;
                 renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
                 showToast(`Resultado registado - Par ${par}: ${home} vs ${away}`);
@@ -2408,7 +2444,7 @@ function renderClassificacao(ronda) {
                 const home = e.target.dataset.home;
                 const away = e.target.dataset.away;
                 
-                setGameResult(ronda, par, home, away, null);
+                if (!setGameResult(ronda, par, home, away, null)) return;
                 const selectedView = document.getElementById('selRondaClass').value;
                 renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
                 showToast(`Resultado limpo - Par ${par}: ${home} vs ${away}`);
