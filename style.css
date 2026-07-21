@@ -1320,6 +1320,16 @@ body {
     border-color: var(--primary);
 }
 
+.score-input-error {
+    border-color: #e53935 !important;
+    background: #fff0f0 !important;
+    color: #c62828 !important;
+}
+.score-input-error:focus {
+    outline: 2px solid #e53935 !important;
+    border-color: #e53935 !important;
+}
+
 .class-team-link {
     background: transparent;
     border: none;
