@@ -2303,8 +2303,8 @@ function buildEliminationClassificationHtml(ronda) {
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
                         <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
-                        <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                         <input type="text" class="elim-score-input" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="ex: 3&amp;2" value="${esc(result && result.score ? result.score : '')}" maxlength="10">
+                        <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                         ` : (result && result.score ? `<span class="elim-score-display">${esc(result.score)}</span>` : '')}
                     </div>
                     <span class="team-name elim-team-name">${esc(game.away)}</span>
@@ -2584,8 +2584,8 @@ function renderClassificacao(ronda) {
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence A</button>
                         <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Vence B</button>
-                        <button class="btn-result-clear btn-del" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                         <input type="text" class="group-score-input" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="2&amp;1" value="${esc(result && result.score ? result.score : '')}" maxlength="10">
+                        <button class="btn-result-clear btn-del" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                     </div>
                     <span class="team-name result-team-b"><span class="team-ab-label">B:</span>${awayLabel}</span>
                 </div>
