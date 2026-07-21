@@ -62,6 +62,17 @@ let authState = {
     users: []
 };
 
+let teamNavReturnTab = null;
+let teamNavTargetTeamId = null;
+const TEAM_NAV_RETURN_LABELS = {
+    calendario: 'Voltar ao Calendário',
+    grupos: 'Voltar aos Grupos'
+};
+const TEAM_NAV_RETURN_SHORT_LABELS = {
+    calendario: '← Calendário',
+    grupos: '← Grupos'
+};
+
 const ROLES = {
     TOURNAMENT_ADMIN: 'tournament_admin',
     TOURNAMENT_MANAGER: 'tournament_manager',
@@ -957,13 +968,36 @@ function initTabs() {
             if (target === 'regulamento') { renderSIGrids(); }
             if (target === 'configuracoes' && can('users_manage')) { renderUsers(); }
             if (target === 'grupos')   { renderGrupos(); }
+            if (target === 'equipas') renderTeams();
             if (target === 'calendario') renderCalendario();
             if (target === 'classificacao') { 
                 const val = document.getElementById('selRondaClass').value;
                 renderClassificacao(val === 'total' ? 'total' : (parseInt(val, 10) || 1));
             }
+            if (target !== 'equipas') {
+                teamNavReturnTab = null;
+                teamNavTargetTeamId = null;
+            }
         });
     });
+}
+
+function getTeamReturnLabel(compact = false) {
+    if (compact) {
+        return TEAM_NAV_RETURN_SHORT_LABELS[teamNavReturnTab] || TEAM_NAV_RETURN_SHORT_LABELS.calendario;
+    }
+    return TEAM_NAV_RETURN_LABELS[teamNavReturnTab] || TEAM_NAV_RETURN_LABELS.calendario;
+}
+
+function returnFromTeamNavigation() {
+    const targetTab = teamNavReturnTab || 'calendario';
+    const targetTabBtn = document.querySelector(`.tab-btn[data-tab="${targetTab}"]`);
+    if (!targetTabBtn) return;
+
+    teamNavReturnTab = null;
+    teamNavTargetTeamId = null;
+    renderTeams();
+    targetTabBtn.click();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1124,22 +1158,61 @@ function renderTeams() {
                 </li>`;
             }).join('')
             : '<li class="team-player-item"><span style="color:#9ca3af">Sem jogadores associados</span></li>';
+
+        const showReturnButton = !!teamNavReturnTab && teamNavTargetTeamId === t.id;
+        const returnButtonHtml = showReturnButton
+            ? `<button class="btn btn-sm btn-ghost team-nav-back-btn" onclick="returnFromTeamNavigation()">${esc(getTeamReturnLabel(true))}</button>`
+            : '';
+        const managementButtons = can('teams_manage')
+            ? `<button class="btn btn-sm btn-ghost" onclick="openEditTeam('${t.id}')">Editar</button>
+               <button class="btn btn-sm btn-danger" onclick="deleteTeam('${t.id}')">✕</button>`
+            : '';
+        const teamActions = (returnButtonHtml || managementButtons)
+            ? `<div class="team-actions">${returnButtonHtml}${managementButtons}</div>`
+            : '';
+
         return `
-            <div class="card team-card">
+            <div class="card team-card" id="team-card-${t.id}" data-team-id="${t.id}">
                 <div class="team-card-header">
                     <div class="team-header-info">
                         <span class="team-name">${esc(t.name)}</span>
                         <span class="team-hcp">HCP Médio: ${teamHcp}</span>
                     </div>
-                    ${can('teams_manage') ? `
-                    <div class="team-actions">
-                        <button class="btn btn-sm btn-ghost" onclick="openEditTeam('${t.id}')">Editar</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteTeam('${t.id}')">✕</button>
-                    </div>` : ''}
+                    ${teamActions}
                 </div>
                 <ul class="team-players-list">${rows}</ul>
             </div>`;
     }).join('');
+}
+
+function openTeamFromClassification(teamId, sourceTab = 'calendario') {
+    if (!teamId) return;
+
+    teamNavReturnTab = sourceTab;
+    teamNavTargetTeamId = teamId;
+
+    const tabBtn = document.querySelector('.tab-btn[data-tab="equipas"]');
+    if (!tabBtn) return;
+
+    tabBtn.click();
+    renderTeams();
+
+    let attempts = 0;
+    const maxAttempts = 8;
+    const tryFocus = () => {
+        const card = document.getElementById(`team-card-${teamId}`);
+        if (!card) {
+            attempts += 1;
+            if (attempts < maxAttempts) setTimeout(tryFocus, 70);
+            return;
+        }
+
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('team-highlight');
+        setTimeout(() => card.classList.remove('team-highlight'), 1400);
+    };
+
+    setTimeout(tryFocus, 50);
 }
 
 function openAddTeam() {
@@ -2126,7 +2199,7 @@ function buildEliminationClassificationHtml(ronda) {
     });
 
     let html = `
-        <div class="class-group">
+        <div class="class-group class-group-knockout class-group-knockout-r${ronda}">
             <h3 class="class-title">${getRoundLabel(ronda)}</h3>
     `;
 
@@ -2151,10 +2224,10 @@ function buildEliminationClassificationHtml(ronda) {
         });
 
         html += `
-            <div class="card" style="margin-bottom:1rem;">
-                <h4 style="margin:0 0 .75rem 0; color:var(--primary);">Match ${matchNo}: ${esc(home)} vs ${esc(away)}</h4>
-                <p class="class-desc" style="margin-bottom:.75rem;">Resultado do confronto: <strong>${hasAnyResult ? `${homeWins}-${awayWins}` : 'por disputar'}</strong></p>
-                <div class="games-input">
+            <div class="card elim-match-card">
+                <h4 class="elim-match-title">Match ${matchNo}: ${esc(home)} vs ${esc(away)}</h4>
+                <p class="class-desc elim-match-summary">Resultado do confronto: <strong>${hasAnyResult ? `${homeWins}-${awayWins}` : 'por disputar'}</strong></p>
+                <div class="games-input elim-games-input">
         `;
 
         matchGames.forEach(game => {
@@ -2163,17 +2236,17 @@ function buildEliminationClassificationHtml(ronda) {
                 ? 'Por disputar'
                 : (result.result === 'home' ? `Vence ${esc(game.home)}` : `Vence ${esc(game.away)}`);
             html += `
-                <div class="game-result-row">
-                    <span class="team-name" style="font-size: 0.85rem; color: var(--txt-light);">Par ${game.par}</span>
-                    <span class="team-name">${esc(game.home)}</span>
+                <div class="game-result-row elim-game-result-row">
+                    <span class="team-name elim-par-label">Par ${game.par}</span>
+                    <span class="team-name elim-team-name">${esc(game.home)}</span>
                     <div class="result-buttons">
                         ${canManageClassification ? `
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
                         <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
-                        ` : `<span class="team-name" style="font-size:0.85rem; color:var(--txt-light);">${resultText}</span>`}
+                        ` : `<span class="team-name elim-result-text">${resultText}</span>`}
                     </div>
-                    <span class="team-name">${esc(game.away)}</span>
+                    <span class="team-name elim-team-name">${esc(game.away)}</span>
                 </div>
             `;
         });
@@ -2357,7 +2430,7 @@ function renderClassificacao(ronda) {
             html += `
                     <tr>
                         <td>${idx + 1}</td>
-                        <td><strong>${esc(team.name)}</strong></td>
+                        <td><button type="button" class="class-team-link" data-team-id="${team.id}"><strong>${esc(team.name)}</strong></button></td>
                         ${showScheduledGamesColumn ? `<td>${team.played}</td>` : ''}
                         <td>${team.wins}</td>
                         <td>${team.draws}</td>
@@ -2391,17 +2464,25 @@ function renderClassificacao(ronda) {
             groupGames.forEach(game => {
                 const result = getGameResult(game.ronda, game.par, game.home, game.away);
                 const isKnockoutRound = game.ronda >= 6;
+                const homeTeam = state.teams.find(t => t.name === game.home);
+                const awayTeam = state.teams.find(t => t.name === game.away);
+                const homeLabel = homeTeam
+                    ? `<button type="button" class="class-team-link" data-team-id="${homeTeam.id}">${esc(game.home)}</button>`
+                    : esc(game.home);
+                const awayLabel = awayTeam
+                    ? `<button type="button" class="class-team-link" data-team-id="${awayTeam.id}">${esc(game.away)}</button>`
+                    : esc(game.away);
                 const resultHtml = `
                 <div class="game-result-row">
                     <span class="team-name" style="font-size: 0.85rem; color: var(--txt-light);">Par ${game.par}</span>
-                    <span class="team-name">${esc(game.home)}</span>
+                    <span class="team-name">${homeLabel}</span>
                     <div class="result-buttons">
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
                         ${!isKnockoutRound ? `<button class="btn-result ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">Empate</button>` : ''}
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
                         <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
                     </div>
-                    <span class="team-name">${esc(game.away)}</span>
+                    <span class="team-name">${awayLabel}</span>
                 </div>
                 `;
                 html += resultHtml;
@@ -2422,6 +2503,12 @@ function renderClassificacao(ronda) {
     }
 
     document.getElementById('classificacaoContainer').innerHTML = html;
+
+    document.querySelectorAll('.class-team-link[data-team-id]').forEach(link => {
+        link.addEventListener('click', () => {
+            openTeamFromClassification(link.dataset.teamId);
+        });
+    });
     
     // Adicionar listeners aos botões de resultado (apenas se admin)
     if (can('classification_manage')) {
@@ -2479,7 +2566,7 @@ function renderGrupos() {
                 html += `<div class="grupo-teams-list">`;
                 teamsInGrupo.forEach(team => {
                     html += `<div class="grupo-team-item" data-team-id="${team.id}">
-                        <span class="grupo-team-name">${team.name}</span>
+                        <button type="button" class="grupo-team-link" data-team-id="${team.id}">${esc(team.name)}</button>
                         <div class="grupo-team-actions">
                             <button class="btn-grupo-remove" data-team-id="${team.id}" data-grupo="${g}">Remover</button>
                         </div>
@@ -2511,7 +2598,7 @@ function renderGrupos() {
                 html += `<div class="grupo-teams-list">`;
                 teamsInGrupo.forEach(team => {
                     html += `<div class="grupo-team-item view-only">
-                        <span class="grupo-team-name">${team.name}</span>
+                        <button type="button" class="grupo-team-link" data-team-id="${team.id}">${esc(team.name)}</button>
                     </div>`;
                 });
                 html += `</div>`;
@@ -2524,6 +2611,12 @@ function renderGrupos() {
     });
     
     container.innerHTML = html;
+
+    container.querySelectorAll('.grupo-team-link[data-team-id]').forEach(link => {
+        link.addEventListener('click', () => {
+            openTeamFromClassification(link.dataset.teamId, 'grupos');
+        });
+    });
     
     // Event listeners APENAS se for admin
     if (isAdminUser) {
@@ -2580,7 +2673,13 @@ function renderCalendario() {
             ? ['A', 'B', 'C', 'D']
             : [...new Set(rondaGames.map(g => g.grupo))].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
 
-        html += `<div class="ronda-block">
+        const extraRoundClass = ronda === 7
+            ? ' ronda-block-highlight ronda-block-semi'
+            : ronda === 8
+                ? ' ronda-block-highlight ronda-block-final'
+                : '';
+
+        html += `<div class="ronda-block${extraRoundClass}">
             <div class="ronda-header">
                 <span class="ronda-num">${getRoundLabel(ronda)}</span>
                 <span class="ronda-date">${formatRoundDateLabel(ronda, state.roundDates[ronda])}</span>
