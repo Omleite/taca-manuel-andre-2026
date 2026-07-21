@@ -1013,6 +1013,20 @@
       "home": "Jacaré",
       "away": "Masters",
       "result": "away"
+    },
+    {
+      "ronda": 5,
+      "par": 1,
+      "home": "Os Golfinhos",
+      "away": "Jacaré",
+      "result": "home"
+    },
+    {
+      "ronda": 5,
+      "par": 2,
+      "home": "Os Golfinhos",
+      "away": "Jacaré",
+      "result": "home"
     }
   ],
   "calendar": [
@@ -1479,20 +1493,6 @@
       "away": "Piratas"
     },
     {
-      "ronda": 3,
-      "grupo": "C",
-      "par": 1,
-      "home": "Birdies e Boggies",
-      "away": "Jacaré"
-    },
-    {
-      "ronda": 3,
-      "grupo": "C",
-      "par": 2,
-      "home": "Birdies e Boggies",
-      "away": "Jacaré"
-    },
-    {
       "ronda": 5,
       "grupo": "C",
       "par": 1,
@@ -1507,18 +1507,32 @@
       "away": "Masters"
     },
     {
+      "ronda": 3,
+      "grupo": "C",
+      "par": 1,
+      "home": "Birdies e Boggies",
+      "away": "Piratas"
+    },
+    {
+      "ronda": 3,
+      "grupo": "C",
+      "par": 2,
+      "home": "Birdies e Boggies",
+      "away": "Piratas"
+    },
+    {
       "ronda": 5,
       "grupo": "C",
       "par": 1,
       "home": "Os Golfinhos",
-      "away": "Piratas"
+      "away": "Jacaré"
     },
     {
       "ronda": 5,
       "grupo": "C",
       "par": 2,
       "home": "Os Golfinhos",
-      "away": "Piratas"
+      "away": "Jacaré"
     }
   ],
   "roundDates": {
