@@ -1078,24 +1078,31 @@ body {
     margin-bottom: 1.25rem;
 }
 .elim-match-card {
-    margin: 0 auto 1rem;
-    max-width: 980px;
+    margin: 0 0 0 0;
+    max-width: 100%;
+    background: var(--card-bg);
+    border-radius: var(--r-lg);
+    padding: 2rem;
+    box-shadow: var(--sh-sm);
+    border: 1px solid var(--border);
 }
 .elim-match-title {
-    margin: 0 0 .85rem 0;
-    color: #fff;
-    background: var(--primary);
-    border: 1px solid #20432b;
-    border-radius: var(--r-md);
-    padding: .6rem .95rem;
+    margin: 0 0 1.5rem 0;
+    color: var(--primary);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    padding: 0 0 0.75rem 0;
     font-family: var(--font-head);
-    font-size: .98rem;
+    font-size: 1.1rem;
     font-weight: 800;
     letter-spacing: .05em;
     text-transform: uppercase;
-    text-align: center;
+    text-align: left;
     display: block;
     width: 100%;
+    padding-bottom: 0.75rem;
 }
 .elim-match-summary {
     margin-bottom: .9rem;
@@ -1308,12 +1315,12 @@ body {
 
 /* ── Resultados de Eliminação (Quartos, Meias, Final) ── */
 .ronda-block-elim {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-    gap: 1.5rem;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
-    border-radius: var(--r);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
     margin-bottom: 2rem;
 }
 
