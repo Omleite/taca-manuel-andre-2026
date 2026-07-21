@@ -2228,7 +2228,6 @@ function buildEliminationClassificationHtml(ronda) {
         html += `
             <div class="card elim-match-card">
                 <h4 class="elim-match-title">Match ${matchNo}: ${esc(home)} vs ${esc(away)}</h4>
-                <p class="class-desc elim-match-summary">Resultado do confronto: <strong>${hasAnyResult ? `${homeWins}-${awayWins}` : 'por disputar'}</strong></p>
                 <div class="games-input elim-games-input">
         `;
 
