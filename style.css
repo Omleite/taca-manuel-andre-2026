@@ -999,8 +999,10 @@ body {
 }
 
 .class-group {
-    background: var(--card-bg); border-radius: var(--r-lg); padding: 2rem;
+    background: var(--card-bg); border-radius: 0; padding: 2rem;
     margin-bottom: 2rem; box-shadow: var(--sh-sm); border: 1px solid var(--border);
+    border-top-left-radius: var(--r-lg);
+    border-top-right-radius: var(--r-lg);
 }
 
 .class-title {
@@ -1031,6 +1033,14 @@ body {
 .class-table th {
     padding: 0.8rem; text-align: left; font-weight: 600; border-bottom: 2px solid var(--primary);
     font-family: var(--font-head);
+}
+
+.class-table th:first-child {
+    border-top-left-radius: var(--r-md);
+}
+
+.class-table th:last-child {
+    border-top-right-radius: var(--r-md);
 }
 
 .class-table td {
@@ -1088,12 +1098,11 @@ body {
 }
 .elim-match-title {
     margin: 0 0 1.5rem 0;
-    color: var(--primary);
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    border-radius: 0;
-    padding: 0 0 0.75rem 0;
+    color: #fff;
+    background: #10b981;
+    border: 2px solid #059669;
+    border-radius: 0.4rem;
+    padding: 0.75rem 1rem;
     font-family: var(--font-head);
     font-size: 1.1rem;
     font-weight: 800;
@@ -1470,7 +1479,7 @@ body {
 
     .class-group-knockout .elim-match-title {
         font-size: .86rem;
-        padding: .5rem .6rem;
+        padding: .65rem .75rem;
     }
     .class-group-knockout .elim-game-result-row {
         flex-direction: row;
