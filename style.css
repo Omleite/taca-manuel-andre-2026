@@ -1244,10 +1244,14 @@ body {
 .result-buttons .group-score-input,
 .result-buttons .elim-score-input {
     grid-column: 1 / 3;
+    max-width: none;
+    width: 100%;
 }
 
 .result-buttons .btn-result-clear {
     grid-column: 3;
+    max-width: none;
+    width: 100%;
 }
 
 .btn-result {
@@ -1571,14 +1575,15 @@ body {
     .team-name { flex: 1; width: 100%; }
     .result-buttons {
         width: 100%;
-        justify-content: stretch;
         gap: 0.45rem;
     }
-    .result-buttons .btn-result,
-    .result-buttons .btn-result-clear {
-        flex: 1 1 calc(50% - 0.25rem);
-        min-width: 0;
+    .result-buttons .btn-result {
         padding: 0.55rem 0.4rem;
+        min-width: 0;
+    }
+    .result-buttons .btn-result-clear {
+        padding: 0.55rem 0.4rem;
+        min-width: 0;
     }
 
     .class-group-knockout .elim-match-title {
