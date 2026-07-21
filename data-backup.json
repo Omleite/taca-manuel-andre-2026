@@ -1530,5 +1530,91 @@
     "6": "2026-11-15",
     "7": "2026-11-29",
     "8": "2026-12-13"
-  }
+  },
+  "auth": {
+    "users": [
+      {
+        "id": "admin-default",
+        "username": "admin",
+        "displayName": "Administrador",
+        "role": "tournament_admin",
+        "passwordHash": "4e44790e",
+        "mustResetPassword": false
+      },
+      {
+        "id": "mrte5fmzbb0v4",
+        "username": "manager",
+        "displayName": "Tournament Manager",
+        "role": "tournament_manager",
+        "passwordHash": "7526d317",
+        "mustResetPassword": false
+      },
+      {
+        "id": "mrte6796bjj5n",
+        "username": "scoring",
+        "displayName": "Scoring",
+        "role": "scoring_official",
+        "passwordHash": "84861f31",
+        "mustResetPassword": false
+      },
+      {
+        "id": "mrte7lonsml3v",
+        "username": "tadmin",
+        "displayName": "Tournament Admin",
+        "role": "tournament_admin",
+        "passwordHash": "b22cb179",
+        "mustResetPassword": false
+      },
+      {
+        "id": "mruh42kyddnuq",
+        "username": "estela",
+        "displayName": "Estela",
+        "role": "tournament_manager",
+        "passwordHash": "5d7f13d0",
+        "mustResetPassword": false
+      }
+    ]
+  },
+  "users": [
+    {
+      "id": "admin-default",
+      "username": "admin",
+      "displayName": "Administrador",
+      "role": "tournament_admin",
+      "passwordHash": "4e44790e",
+      "mustResetPassword": false
+    },
+    {
+      "id": "mrte5fmzbb0v4",
+      "username": "manager",
+      "displayName": "Tournament Manager",
+      "role": "tournament_manager",
+      "passwordHash": "7526d317",
+      "mustResetPassword": false
+    },
+    {
+      "id": "mrte6796bjj5n",
+      "username": "scoring",
+      "displayName": "Scoring",
+      "role": "scoring_official",
+      "passwordHash": "84861f31",
+      "mustResetPassword": false
+    },
+    {
+      "id": "mrte7lonsml3v",
+      "username": "tadmin",
+      "displayName": "Tournament Admin",
+      "role": "tournament_admin",
+      "passwordHash": "b22cb179",
+      "mustResetPassword": false
+    },
+    {
+      "id": "mruh42kyddnuq",
+      "username": "estela",
+      "displayName": "Estela",
+      "role": "tournament_manager",
+      "passwordHash": "5d7f13d0",
+      "mustResetPassword": false
+    }
+  ]
 }
