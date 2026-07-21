@@ -2580,15 +2580,16 @@ function renderClassificacao(ronda) {
                     : esc(game.away);
                 const resultHtml = `
                 <div class="game-result-row">
-                    <span class="team-name" style="font-size: 0.85rem; color: var(--txt-light);">Par ${game.par}</span>
-                    <span class="team-name">${homeLabel}</span>
+                    <span class="team-name result-par-label">Par ${game.par}</span>
+                    <span class="team-name result-team-a"><span class="team-ab-label">A:</span>${homeLabel}</span>
                     <div class="result-buttons">
-                        <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
-                        ${!isKnockoutRound ? `<button class="btn-result ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">Empate</button>` : ''}
-                        <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
-                        <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
+                        <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence A</button>
+                        <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
+                        <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Vence B</button>
+                        <button class="btn-result-clear btn-del" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                     </div>
-                    <span class="team-name">${awayLabel}</span>
+                    <input type="text" class="group-score-input" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="2&amp;1" value="${esc(result && result.score ? result.score : '')}" maxlength="10">
+                    <span class="team-name result-team-b"><span class="team-ab-label">B:</span>${awayLabel}</span>
                 </div>
                 `;
                 html += resultHtml;
@@ -2633,7 +2634,7 @@ function renderClassificacao(ronda) {
             });
         });
         
-        // Adicionar listeners ao botão "Limpar"
+        // Adicionar listeners ao botão "Del"
         document.querySelectorAll('.btn-result-clear').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const ronda = parseInt(e.target.dataset.ronda, 10);
@@ -2645,6 +2646,17 @@ function renderClassificacao(ronda) {
                 const selectedView = document.getElementById('selRondaClass').value;
                 renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
                 showToast(`Resultado limpo - Par ${par}: ${home} vs ${away}`);
+            });
+        });
+
+        document.querySelectorAll('.group-score-input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const ronda = parseInt(e.target.dataset.ronda, 10);
+                const par = parseInt(e.target.dataset.par, 10);
+                const home = e.target.dataset.home;
+                const away = e.target.dataset.away;
+                const score = e.target.value.trim();
+                setParScore(ronda, par, home, away, score);
             });
         });
     }
