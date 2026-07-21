@@ -1289,6 +1289,7 @@ body {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        text-align: left;
     }
 }
 
@@ -1332,6 +1333,7 @@ body {
         flex: 1 1 0;
         width: auto;
         font-size: .8rem;
+        text-align: left;
     }
 }
 
