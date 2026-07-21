@@ -2036,6 +2036,16 @@ function setParScore(ronda, par, home, away, score) {
     return true;
 }
 
+function parseScoreXY(scoreStr) {
+    if (!scoreStr) return 0;
+    const s = scoreStr.trim();
+    if (s === '1') return 1;
+    if (s === '2') return 2;
+    const m = s.match(/^(\d+)&(\d+)$/);
+    if (m) return parseInt(m[1], 10) + parseInt(m[2], 10);
+    return 0;
+}
+
 function isValidScore(v) {
     if (!v) return false;
     const s = v.trim();
@@ -2120,6 +2130,7 @@ function applyGroupTieBreak(groupTeams, group, gamesForScope) {
             if (h2h[b.name].points !== h2h[a.name].points) return h2h[b.name].points - h2h[a.name].points;
             if (h2h[b.name].diff !== h2h[a.name].diff) return h2h[b.name].diff - h2h[a.name].diff;
             if (b.wins !== a.wins) return b.wins - a.wins;
+            if (b.scoreXY !== a.scoreXY) return b.scoreXY - a.scoreXY;
             if (b.draws !== a.draws) return b.draws - a.draws;
 
             // Tiebreaker: Lower average handicap wins
@@ -2399,7 +2410,8 @@ function calculateStandings(ronda, accumulate) {
                 played: 0,
                 wins: 0,
                 draws: 0,
-                losses: 0
+                losses: 0,
+                scoreXY: 0
             });
         }
     });
@@ -2429,6 +2441,7 @@ function calculateStandings(ronda, accumulate) {
                     homeTeam.points += 3;
                     homeTeam.pointsFor += 3;
                     homeTeam.pointsAgainst += 0;
+                    homeTeam.scoreXY += parseScoreXY(gameResult.score);
                     awayTeam.pointsFor += 0;
                     awayTeam.pointsAgainst += 3;
                     awayTeam.losses++;
@@ -2437,6 +2450,7 @@ function calculateStandings(ronda, accumulate) {
                     awayTeam.points += 3;
                     awayTeam.pointsFor += 3;
                     awayTeam.pointsAgainst += 0;
+                    awayTeam.scoreXY += parseScoreXY(gameResult.score);
                     homeTeam.pointsFor += 0;
                     homeTeam.pointsAgainst += 3;
                     homeTeam.losses++;
@@ -2537,7 +2551,7 @@ function renderClassificacao(ronda) {
                     <tr>
                         <th style="width:5%">Pos</th>
                         <th style="width:40%">Equipa</th>
-                        ${showScheduledGamesColumn ? '<th style="width:15%">Jogos Agendados</th>' : ''}
+                        ${showScheduledGamesColumn ? '<th style="width:12%" title="Soma X+Y das vitórias (desempate)">X&amp;Y</th>' : ''}
                         <th style="width:12%">V</th>
                         <th style="width:12%">E</th>
                         <th style="width:12%">D</th>
@@ -2556,7 +2570,7 @@ function renderClassificacao(ronda) {
                     <tr class="${rowClass}">
                         <td>${idx + 1}</td>
                         <td><button type="button" class="class-team-link" data-team-id="${team.id}" ${teamNameStyle}><strong>${esc(team.name)}</strong></button></td>
-                        ${showScheduledGamesColumn ? `<td>${team.played}</td>` : ''}
+                        ${showScheduledGamesColumn ? `<td>${team.scoreXY}</td>` : ''}
                         <td>${team.wins}</td>
                         <td>${team.draws}</td>
                         <td>${team.losses}</td>
