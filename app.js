@@ -66,11 +66,13 @@ let teamNavReturnTab = null;
 let teamNavTargetTeamId = null;
 const TEAM_NAV_RETURN_LABELS = {
     calendario: 'Voltar ao Calendário',
-    grupos: 'Voltar aos Grupos'
+    grupos: 'Voltar aos Grupos',
+    classificacao: 'Voltar à Classificação'
 };
 const TEAM_NAV_RETURN_SHORT_LABELS = {
     calendario: '← Calendário',
-    grupos: '← Grupos'
+    grupos: '← Grupos',
+    classificacao: '← Classificação'
 };
 
 const ROLES = {
@@ -2232,19 +2234,16 @@ function buildEliminationClassificationHtml(ronda) {
 
         matchGames.forEach(game => {
             const result = getGameResult(game.ronda, game.par, game.home, game.away);
-            const resultText = !result || !result.result
-                ? 'Por disputar'
-                : (result.result === 'home' ? `Vence ${esc(game.home)}` : `Vence ${esc(game.away)}`);
             html += `
                 <div class="game-result-row elim-game-result-row">
                     <span class="team-name elim-par-label">Par ${game.par}</span>
                     <span class="team-name elim-team-name">${esc(game.home)}</span>
-                    <div class="result-buttons">
+                    <div class="result-buttons${canManageClassification ? '' : ' result-buttons-readonly'}">
                         ${canManageClassification ? `
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
                         <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Limpar</button>
-                        ` : `<span class="team-name elim-result-text">${resultText}</span>`}
+                        ` : ''}
                     </div>
                     <span class="team-name elim-team-name">${esc(game.away)}</span>
                 </div>
@@ -2506,7 +2505,7 @@ function renderClassificacao(ronda) {
 
     document.querySelectorAll('.class-team-link[data-team-id]').forEach(link => {
         link.addEventListener('click', () => {
-            openTeamFromClassification(link.dataset.teamId);
+            openTeamFromClassification(link.dataset.teamId, 'classificacao');
         });
     });
     

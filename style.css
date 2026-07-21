@@ -803,6 +803,23 @@ body {
     grid-template-columns: minmax(320px, 480px);
 }
 
+@media (max-width: 900px) {
+    .ronda-block-semi .grupos-grid,
+    .ronda-block-final .grupos-grid {
+        grid-template-columns: 1fr;
+        justify-content: stretch;
+        padding: .75rem;
+    }
+    .ronda-block-highlight .grupo-card {
+        width: 100%;
+        padding: 1rem;
+    }
+    .ronda-block-highlight .team-home,
+    .ronda-block-highlight .team-away {
+        font-size: .92rem;
+    }
+}
+
 /* ── RESPONSIVE ────────────────────────── */
 @media (max-width: 640px) {
     .nav-inner { padding: 0 0.5rem; gap: 0.5rem; }
@@ -1056,6 +1073,10 @@ body {
     justify-content: center;
     min-width: 130px;
 }
+.elim-game-result-row .result-buttons.result-buttons-readonly {
+    display: none;
+    min-width: 0;
+}
 .elim-par-label {
     flex: 0 0 72px;
     font-size: .9rem;
@@ -1251,6 +1272,24 @@ body {
     .team-name { flex: 0 0 calc(33% - 0.5rem); }
     .result-buttons { flex: 0 0 calc(34%); }
     .game-result-row .team-name:last-child { flex: 0 0 calc(33% - 0.5rem); }
+
+    .class-group-knockout .elim-game-result-row {
+        flex-wrap: nowrap;
+        gap: .5rem;
+        padding: .7rem .65rem;
+    }
+    .class-group-knockout .elim-par-label {
+        flex: 0 0 48px;
+        font-size: .74rem;
+    }
+    .class-group-knockout .elim-team-name {
+        flex: 1 1 0;
+        width: auto;
+        font-size: .88rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1274,6 +1313,25 @@ body {
         flex: 1 1 calc(50% - 0.25rem);
         min-width: 0;
         padding: 0.55rem 0.4rem;
+    }
+
+    .class-group-knockout .elim-match-title {
+        font-size: .86rem;
+        padding: .5rem .6rem;
+    }
+    .class-group-knockout .elim-game-result-row {
+        flex-direction: row;
+        gap: .4rem;
+        padding: .6rem .45rem;
+    }
+    .class-group-knockout .elim-par-label {
+        flex: 0 0 42px;
+        font-size: .7rem;
+    }
+    .class-group-knockout .elim-team-name {
+        flex: 1 1 0;
+        width: auto;
+        font-size: .8rem;
     }
 }
 
