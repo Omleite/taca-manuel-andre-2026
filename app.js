@@ -1496,7 +1496,77 @@ function calculate() {
     setTimeout(() => document.getElementById('calcResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
 }
 
-function renderResultSummary(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar) {
+function calculateElimination() {
+    // Validações básicas (igual ao calculate)
+    const teamAId = document.getElementById('selTeamA').value;
+    const teamBId = document.getElementById('selTeamB').value;
+    const teamA = state.teams.find(t => t.id === teamAId);
+    const teamB = state.teams.find(t => t.id === teamBId);
+    
+    if (!teamAId || !teamBId) { showToast('Seleccione as duas equipas.', 'error'); return; }
+    if (teamAId === teamBId) { showToast('Seleccione duas equipas diferentes.', 'error'); return; }
+    
+    const pA1 = getPlayer(document.getElementById('selA1').value);
+    const pA2 = getPlayer(document.getElementById('selA2').value);
+    const pB1 = getPlayer(document.getElementById('selB1').value);
+    const pB2 = getPlayer(document.getElementById('selB2').value);
+    
+    if (!pA1 || !pA2 || !pB1 || !pB2) { showToast('Seleccione todos os jogadores nos dois pares.', 'error'); return; }
+    
+    const ids = [pA1.id, pA2.id, pB1.id, pB2.id];
+    if (new Set(ids).size < 4) { showToast('Um jogador não pode pertencer a dois pares em simultâneo.', 'error'); return; }
+    
+    // Nova fórmula para fase eliminatórias:
+    // Handicap da Equipa = 60% * HCP_menor + 40% * HCP_maior (arredondado)
+    const hcpA1 = pA1.handicap;
+    const hcpA2 = pA2.handicap;
+    const hcpB1 = pB1.handicap;
+    const hcpB2 = pB2.handicap;
+    
+    const minA = Math.min(hcpA1, hcpA2);
+    const maxA = Math.max(hcpA1, hcpA2);
+    const minB = Math.min(hcpB1, hcpB2);
+    const maxB = Math.max(hcpB1, hcpB2);
+    
+    const totalA = Math.round(0.6 * minA + 0.4 * maxA);
+    const totalB = Math.round(0.6 * minB + 0.4 * maxB);
+    
+    const diff = Math.abs(totalA - totalB);
+    const strokes = Math.round(diff * 0.75);
+    const higherPar = totalA > totalB ? 'A' : (totalB > totalA ? 'B' : null);
+    
+    document.getElementById('parATotal').querySelector('strong').textContent = totalA;
+    document.getElementById('parBTotal').querySelector('strong').textContent = totalB;
+    
+    renderResultSummaryElim(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar, minA, maxA, minB, maxB);
+    renderStrokeTable(strokes, higherPar, teamA?.name, teamB?.name);
+    document.getElementById('calcResult').classList.remove('hidden');
+    setTimeout(() => document.getElementById('calcResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+function renderResultSummaryElim(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar, minA, maxA, minB, maxB) {
+    const el = document.getElementById('resultSummary');
+    if (!higherPar) {
+        el.innerHTML = `<div class="result-equal">⚖️ Os dois pares têm o mesmo handicap total (${totalA}).<br>Nenhum par recebe pancadas de abono — jogo a zero.</div>`;
+        return;
+    }
+    const wLabel = `Par ${higherPar}`;
+    const lLabel = higherPar === 'A' ? 'Par B' : 'Par A';
+    const wPlayers = higherPar === 'A' ? `${esc(pA1.name)} &amp; ${esc(pA2.name)}` : `${esc(pB1.name)} &amp; ${esc(pB2.name)}`;
+    
+    el.innerHTML = `
+        <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} (${minA}) &amp; ${esc(pA2.name)} (${maxA})</span><span class="val" style="color:var(--blue)">Total: <strong>${totalA}</strong></span></div>
+        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 60% × ${minA} + 40% × ${maxA} = ${totalA}</span></div>
+        <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} (${minB}) &amp; ${esc(pB2.name)} (${maxB})</span><span class="val" style="color:var(--red)">Total: <strong>${totalB}</strong></span></div>
+        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 60% × ${minB} + 40% × ${maxB} = ${totalB}</span></div>
+        <div class="result-row"><span class="lbl">Diferença de handicap</span><span class="val">${diff}</span></div>
+        <div class="result-row"><span class="lbl">75% da diferença <span style="font-size:.78rem;color:var(--txt-light)">(arredondado)</span></span><span class="val">${strokes} pancada${strokes !== 1 ? 's' : ''}</span></div>
+        <div class="result-winner">
+            <span>➡️ <span class="winner-name">${wLabel}</span> recebe ${strokes} pancada${strokes !== 1 ? 's' : ''} de abono<br><small style="font-weight:400;color:var(--txt-light)">${wPlayers}</small></span>
+            <span class="winner-val">+${strokes}</span>
+        </div>
+        <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} joga sem pancadas de abono</span><span>0</span></div>`;
+}
     const el = document.getElementById('resultSummary');
     if (!higherPar) {
         el.innerHTML = `<div class="result-equal">⚖️ Os dois pares têm o mesmo handicap total (${totalA}).<br>Nenhum par recebe pancadas de abono — jogo a zero.</div>`;
@@ -3252,6 +3322,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('selTeamB').addEventListener('change', () => { updateTeamSelects(); updateCalcPlayerSelects(); });
     ['selA1','selA2','selB1','selB2'].forEach(id => document.getElementById(id).addEventListener('change', () => { updateCalcPlayerSelects(); updateParTotals(); }));
     document.getElementById('btnCalculate').addEventListener('click', calculate);
+    const btnCalculateElim = document.getElementById('btnCalculateElim');
+    if (btnCalculateElim) {
+        btnCalculateElim.addEventListener('click', calculateElimination);
+    }
     document.getElementById('btnPrintStroke').addEventListener('click', printStrokeTable);
 
     // Classificação
