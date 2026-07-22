@@ -821,16 +821,22 @@ async function loadDataBackup() {
                 : (Array.isArray(data.users) ? data.users : []);
             const importedUsers = hydrateUsersFromBackup(importedUsersRaw);
 
+            // Preserve local results if they are more up-to-date (more entries) than backup
+            const existingResultsRaw = localStorage.getItem(STORAGE_KEY + '-results');
+            const existingResults = existingResultsRaw ? JSON.parse(existingResultsRaw) : [];
+            const backupResults = data.gameResults || [];
+            const resultsToUse = existingResults.length >= backupResults.length ? existingResults : backupResults;
             // Carregar dados do servidor (sem permitir SI customizado)
             const sanitizedData = {
                 players: data.players,
                 teams: data.teams,
-                gameResults: data.gameResults || [],
+                gameResults: resultsToUse,
                 calendar: data.calendar || [],
                 roundDates: importedRoundDates
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizedData));
-            localStorage.setItem(STORAGE_KEY + '-results', JSON.stringify(data.gameResults || []));
+            state.gameResults = resultsToUse;
+            localStorage.setItem(STORAGE_KEY + '-results', JSON.stringify(resultsToUse));
             localStorage.setItem(STORAGE_KEY + '-calendar', JSON.stringify(data.calendar || []));
             localStorage.setItem(STORAGE_KEY + '-round-dates', JSON.stringify(importedRoundDates));
 
@@ -845,7 +851,6 @@ async function loadDataBackup() {
             state.players = data.players;
             state.teams = data.teams;
             state.strokeIndex = [...DEFAULT_SI];
-            state.gameResults = data.gameResults || [];
             state.calendar = data.calendar || [];
             state.roundDates = importedRoundDates;
             console.log('✓ Dados carregados do backup no servidor.');
@@ -2402,20 +2407,28 @@ function buildEliminationClassificationHtml(ronda) {
 
         matchGames.forEach(game => {
             const result = getGameResult(game.ronda, game.par, game.home, game.away);
+            const homeTeamObj = state.teams.find(t => t.name === game.home);
+            const awayTeamObj = state.teams.find(t => t.name === game.away);
+            const homeLbl = homeTeamObj
+                ? `<button type="button" class="class-team-link" data-team-id="${homeTeamObj.id}">${esc(game.home)}</button>`
+                : esc(game.home);
+            const awayLbl = awayTeamObj
+                ? `<button type="button" class="class-team-link" data-team-id="${awayTeamObj.id}">${esc(game.away)}</button>`
+                : esc(game.away);
             html += `
-                <div class="game-result-row elim-game-result-row">
-                    <span class="team-name elim-par-label">Par ${game.par}</span>
-                    <span class="team-name elim-team-name">${esc(game.home)}</span>
+                <div class="game-result-row">
+                    <span class="team-name result-par-label">Par ${game.par}</span>
+                    <span class="team-name result-team-a"><span class="team-ab-label">A:</span>${homeLbl}</span>
                     <div class="result-buttons${canManageClassification ? '' : ' result-buttons-readonly'}">
                         ${canManageClassification ? `
-                        <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence</button>
+                        <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence A</button>
                         <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
-                        <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Perde</button>
-                        <input type="text" class="elim-score-input${result && result.result === 'draw' ? ' score-input-na' : (result && result.result) && !isValidScore(result && result.score ? result.score : '') ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="${result && result.result === 'draw' ? 'N/A' : 'ex: 3&2'}" value="${result && result.result === 'draw' ? '' : esc(result && result.score ? result.score : '')}" ${result && result.result === 'draw' ? 'disabled' : ''} maxlength="10">
-                        <button class="btn-result-clear" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
+                        <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Vence B</button>
+                        <input type="text" class="elim-score-input${result && result.result === 'draw' ? ' score-input-na' : (result && result.result) && !isValidScore(result && result.score ? result.score : '') ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="${result && result.result === 'draw' ? 'N/A' : '2&1'}" value="${result && result.result === 'draw' ? '' : esc(result && result.score ? result.score : '')}" ${result && result.result === 'draw' ? 'disabled' : ''} maxlength="10">
+                        <button class="btn-result-clear btn-del" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                         ` : (result && result.score ? `<span class="elim-score-display">${esc(result.score)}</span>` : '')}
                     </div>
-                    <span class="team-name elim-team-name">${esc(game.away)}</span>
+                    <span class="team-name result-team-b"><span class="team-ab-label">B:</span>${awayLbl}</span>
                 </div>
             `;
         });
