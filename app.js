@@ -2209,8 +2209,9 @@ function getEliminationMatchWinner(ronda, matchNo, home, away) {
 
 // Build playoff schedule without recursion
 function buildPlayoffScheduleEntriesUncached() {
-    const completedGroups = isGroupStageFullyScored();
-    const standings = completedGroups ? calculateStandings(5, true) : null;
+    // Always calculate standings even if group stage isn't fully scored
+    // This allows teams to advance as results come in
+    const standings = calculateStandings(5, true);
 
     const a1 = standings?.A?.[0]?.name || '1ºA';
     const a2 = standings?.A?.[1]?.name || '2ºA';
