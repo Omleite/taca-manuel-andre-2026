@@ -2579,8 +2579,15 @@ function renderClassificacao(ronda) {
             ? state.calendar.filter(g => g.grupo === grupo)
             : state.calendar.filter(g => g.ronda === ronda && g.grupo === grupo))
             .sort((a, b) => {
-                // Se total, ordenar por ronda depois por par; se específica, só por par
+                // Se total, ordenar por ronda primeiro
                 if (ronda === 'total' && a.ronda !== b.ronda) return a.ronda - b.ronda;
+                
+                // Criar chave de match (teams ordenadas, para agrupar mesmos oponentes)
+                const matchKeyA = [a.home, a.away].sort().join('|');
+                const matchKeyB = [b.home, b.away].sort().join('|');
+                
+                // Ordenar por match key, depois por par dentro do match
+                if (matchKeyA !== matchKeyB) return matchKeyA.localeCompare(matchKeyB);
                 return a.par - b.par;
             });
         
