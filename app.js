@@ -1544,6 +1544,27 @@ function calculateElimination() {
     setTimeout(() => document.getElementById('calcResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
 }
 
+function renderResultSummary(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar) {
+    const el = document.getElementById('resultSummary');
+    if (!higherPar) {
+        el.innerHTML = `<div class="result-equal">⚖️ Os dois pares têm o mesmo handicap total (${totalA}).<br>Nenhum par recebe pancadas de abono — jogo a zero.</div>`;
+        return;
+    }
+    const wLabel = `Par ${higherPar}`;
+    const lLabel = higherPar === 'A' ? 'Par B' : 'Par A';
+    const wPlayers = higherPar === 'A' ? `${esc(pA1.name)} &amp; ${esc(pA2.name)}` : `${esc(pB1.name)} &amp; ${esc(pB2.name)}`;
+    el.innerHTML = `
+        <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} &amp; ${esc(pA2.name)}</span><span class="val" style="color:var(--blue)">Total: <strong>${totalA}</strong></span></div>
+        <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} &amp; ${esc(pB2.name)}</span><span class="val" style="color:var(--red)">Total: <strong>${totalB}</strong></span></div>
+        <div class="result-row"><span class="lbl">Diferença de handicap</span><span class="val">${diff}</span></div>
+        <div class="result-row"><span class="lbl">¾ da diferença <span style="font-size:.78rem;color:var(--txt-light)">(arredondado)</span></span><span class="val">${strokes} pancada${strokes !== 1 ? 's' : ''}</span></div>
+        <div class="result-winner">
+            <span>➡️ <span class="winner-name">${wLabel}</span> recebe ${strokes} pancada${strokes !== 1 ? 's' : ''} de abono<br><small style="font-weight:400;color:var(--txt-light)">${wPlayers}</small></span>
+            <span class="winner-val">+${strokes}</span>
+        </div>
+        <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} joga sem pancadas de abono</span><span>0</span></div>`;
+}
+
 function renderResultSummaryElim(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar, minA, maxA, minB, maxB) {
     const el = document.getElementById('resultSummary');
     if (!higherPar) {
