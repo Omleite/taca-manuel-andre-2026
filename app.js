@@ -271,6 +271,12 @@ function doLogin(username, password) {
 function doLogout() {
     authState.currentUser = null;
     saveAuth();
+    
+    // Esconder imediatamente formulários de edição
+    document.getElementById('playerForm').classList.add('hidden');
+    document.getElementById('teamForm').classList.add('hidden');
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+    
     updateAuthUI();
     showToast('Sessão terminada.');
     // Reload após logout para esconder elementos admin-only
