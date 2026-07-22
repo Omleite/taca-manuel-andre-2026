@@ -846,6 +846,11 @@ body {
     .nav-auth {
         margin-left: auto; gap: 0.25rem;
         font-size: 0.7rem;
+        flex-direction: row !important;
+    }
+    .nav-user {
+        flex-direction: row !important;
+        gap: 0.25rem !important;
     }
     .nav-role-badge {
         padding: .12rem .35rem; font-size: .6rem;
