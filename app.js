@@ -2575,9 +2575,14 @@ function renderClassificacao(ronda) {
     Object.keys(standings).sort().forEach(grupo => {
         const teams = standings[grupo];
         // Total: acumula todas as rondas; ronda específica: só jogos dessa ronda
-        const groupGames = ronda === 'total'
+        const groupGames = (ronda === 'total'
             ? state.calendar.filter(g => g.grupo === grupo)
-            : state.calendar.filter(g => g.ronda === ronda && g.grupo === grupo);
+            : state.calendar.filter(g => g.ronda === ronda && g.grupo === grupo))
+            .sort((a, b) => {
+                // Se total, ordenar por ronda depois por par; se específica, só por par
+                if (ronda === 'total' && a.ronda !== b.ronda) return a.ronda - b.ronda;
+                return a.par - b.par;
+            });
         
         html += `
         <div class="class-group">
@@ -2636,7 +2641,14 @@ function renderClassificacao(ronda) {
                 <h4 style="margin-bottom:0.75rem; color:var(--primary);">Registar Resultados dos Jogos:</h4>
             `;
             
+            let lastRonda = null;
             groupGames.forEach(game => {
+                // Adicionar cabeçalho quando muda de ronda (modo total)
+                if (ronda === 'total' && game.ronda !== lastRonda) {
+                    if (lastRonda !== null) html += `</div>`; // Fechar div anterior
+                    html += `<div style="margin-top:1rem; padding-top:0.75rem; border-top:2px solid var(--border);"><h5 style="margin:0 0 0.75rem 0; color:var(--primary); font-size:0.95rem;">Ronda ${game.ronda}</h5>`;
+                    lastRonda = game.ronda;
+                }
                 const result = getGameResult(game.ronda, game.par, game.home, game.away);
                 const isKnockoutRound = game.ronda >= 6;
                 const homeTeam = state.teams.find(t => t.name === game.home);
@@ -2663,6 +2675,8 @@ function renderClassificacao(ronda) {
                 `;
                 html += resultHtml;
             });
+            
+            if (ronda === 'total' && lastRonda !== null) html += `</div>`;
             
             html += `
             </div>
