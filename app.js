@@ -2903,7 +2903,7 @@ function renderCalendario() {
 
     const calendarEntries = [...state.calendar.filter(isGroupStageGame), ...buildPlayoffScheduleEntries()];
     const rondes = [...new Set(calendarEntries.map(g => g.ronda))].sort((a, b) => a - b);
-    let html = renderRoundDatesEditor();
+    let html = '';
 
     rondes.forEach(ronda => {
         const rondaGames = calendarEntries.filter(g => g.ronda === ronda);
@@ -2998,6 +2998,9 @@ function renderCalendario() {
 
         html += `</div></div>`;
     });
+
+    // Adicionar Datas das Rondas no final
+    html += renderRoundDatesEditor();
 
     if (!html) {
         html = `<div class="empty-state"><p>Calendário vazio. ${can('calendar_manage') ? 'Use o formulário abaixo para adicionar jogos.' : ''}</p></div>`;
