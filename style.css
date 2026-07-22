@@ -1202,6 +1202,51 @@ body {
     white-space: nowrap;
 }
 
+.par-result-readonly {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.par-result-badge {
+    padding: 0.28rem 0.9rem;
+    border-radius: var(--r-sm);
+    font-weight: 700;
+    font-size: 0.82rem;
+    font-family: var(--font-head);
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+}
+
+.par-result-badge-win {
+    background: var(--primary);
+    color: white;
+}
+
+.par-result-badge-draw {
+    background: #64748b;
+    color: white;
+}
+
+.par-result-badge-pending {
+    background: var(--border);
+    color: var(--txt-light);
+    font-size: 1rem;
+}
+
+.par-result-score {
+    font-weight: 700;
+    font-family: var(--font-head);
+    color: var(--primary);
+    font-size: 0.9rem;
+    background: var(--accent-pale);
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--r-sm);
+    white-space: nowrap;
+}
+
 .btn-result-draw {
     border-color: #94a3b8;
     color: #64748b;
