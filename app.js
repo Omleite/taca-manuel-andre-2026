@@ -2427,7 +2427,7 @@ function buildEliminationClassificationHtml(ronda) {
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence A</button>
                         <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Vence B</button>
-                        <input type="text" class="elim-score-input${result && result.result === 'draw' ? ' score-input-na' : (result && result.result) && !isValidScore(result && result.score ? result.score : '') ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="${result && result.result === 'draw' ? 'N/A' : '2&1'}" value="${result && result.result === 'draw' ? '' : esc(result && result.score ? result.score : '')}" ${result && result.result === 'draw' ? 'disabled' : ''} maxlength="10">
+                        <input type="text" class="elim-score-input${result && result.result === 'draw' ? ' score-input-na' : (result && result.result) && isValidScore(result && result.score ? result.score : '') ? ' score-input-valid' : (result && result.result) ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="${result && result.result === 'draw' ? 'N/A' : '2&1'}" value="${result && result.result === 'draw' ? '' : esc(result && result.score ? result.score : '')}" ${result && result.result === 'draw' ? 'disabled' : ''} maxlength="10">
                         <button class="btn-result-clear btn-del" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                     </div>
                     <span class="team-name result-team-b"><span class="team-ab-label">B:</span>${awayLbl}</span>
@@ -2629,8 +2629,10 @@ function renderClassificacao(ronda) {
                     const target = e.target;
                     if (isValidScore(target.value.trim())) {
                         target.classList.remove('score-input-error');
+                        target.classList.add('score-input-valid');
                         clearTimeout(target._validTimer);
                     } else {
+                        target.classList.remove('score-input-valid');
                         clearTimeout(target._validTimer);
                         target._validTimer = setTimeout(() => validateScoreInput(target), 600);
                     }
@@ -2778,7 +2780,7 @@ function renderClassificacao(ronda) {
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence A</button>
                         <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Vence B</button>
-                        <input type="text" class="group-score-input${result && result.result === 'draw' ? ' score-input-na' : (result && result.result) && !isValidScore(result && result.score ? result.score : '') ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="${result && result.result === 'draw' ? 'N/A' : '2&1'}" value="${result && result.result === 'draw' ? '' : esc(result && result.score ? result.score : '')}" ${result && result.result === 'draw' ? 'disabled' : ''} maxlength="10">
+                        <input type="text" class="group-score-input${result && result.result === 'draw' ? ' score-input-na' : (result && result.result) && isValidScore(result && result.score ? result.score : '') ? ' score-input-valid' : (result && result.result) ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="${result && result.result === 'draw' ? 'N/A' : '2&1'}" value="${result && result.result === 'draw' ? '' : esc(result && result.score ? result.score : '')}" ${result && result.result === 'draw' ? 'disabled' : ''} maxlength="10">
                         <button class="btn-result-clear btn-del" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                     </div>
                     <span class="team-name result-team-b"><span class="team-ab-label">B:</span>${awayLabel}</span>
@@ -2851,8 +2853,10 @@ function renderClassificacao(ronda) {
                 const target = e.target;
                 if (isValidScore(target.value.trim())) {
                     target.classList.remove('score-input-error');
+                    target.classList.add('score-input-valid');
                     clearTimeout(target._validTimer);
                 } else {
+                    target.classList.remove('score-input-valid');
                     clearTimeout(target._validTimer);
                     target._validTimer = setTimeout(() => validateScoreInput(target), 600);
                 }
