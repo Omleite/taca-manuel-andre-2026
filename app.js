@@ -2884,27 +2884,30 @@ function renderGrupos() {
     grupos.forEach(g => {
         const teamsInGrupo = state.teams.filter(t => t.grupo === g);
         
-        // MODO ADMIN: Com controles de edição
-        if (isAdminUser) {
-            html += `<div class="grupo-edit-card">
-                <div class="grupo-edit-title">Grupo ${g}</div>`;
-            
-            if (teamsInGrupo.length > 0) {
-                html += `<div class="grupo-teams-list">`;
-                teamsInGrupo.forEach(team => {
-                    html += `<div class="grupo-team-item" data-team-id="${team.id}">
-                        <button type="button" class="grupo-team-link" data-team-id="${team.id}">${esc(team.name)}</button>
-                        <div class="grupo-team-actions">
-                            <button class="btn-grupo-remove" data-team-id="${team.id}" data-grupo="${g}">Remover</button>
-                        </div>
+        html += `<div class="class-group">
+            <h3 class="class-title">Grupo ${g}</h3>`;
+        
+        if (teamsInGrupo.length > 0) {
+            html += `<div class="grupo-teams-list">`;
+            teamsInGrupo.forEach(team => {
+                html += `<div class="grupo-team-item" data-team-id="${team.id}">
+                    <button type="button" class="grupo-team-link" data-team-id="${team.id}">${esc(team.name)}</button>`;
+                
+                if (isAdminUser) {
+                    html += `<div class="grupo-team-actions">
+                        <button class="btn-grupo-remove" data-team-id="${team.id}" data-grupo="${g}">Remover</button>
                     </div>`;
-                });
+                }
+                
                 html += `</div>`;
-            } else {
-                html += `<div class="grupo-empty-msg">Nenhuma equipa neste grupo</div>`;
-            }
-            
-            // Dropdown para adicionar
+            });
+            html += `</div>`;
+        } else {
+            html += `<div class="grupo-empty-msg">Nenhuma equipa neste grupo</div>`;
+        }
+        
+        // Dropdown para adicionar (apenas modo admin)
+        if (isAdminUser) {
             html += `<div class="grupo-add-team">
                 <select class="sel-add-team" data-grupo="${g}">
                     <option value="">+ Adicionar Equipa</option>`;
@@ -2914,27 +2917,10 @@ function renderGrupos() {
                 html += `<option value="${team.id}">${team.name}</option>`;
             });
             
-            html += `</select></div></div>`;
-        } 
-        // MODO VISUALIZAÇÃO: Apenas mostrar (sem edição)
-        else {
-            html += `<div class="grupo-view-card">
-                <div class="grupo-view-title">Grupo ${g}</div>`;
-            
-            if (teamsInGrupo.length > 0) {
-                html += `<div class="grupo-teams-list">`;
-                teamsInGrupo.forEach(team => {
-                    html += `<div class="grupo-team-item view-only">
-                        <button type="button" class="grupo-team-link" data-team-id="${team.id}">${esc(team.name)}</button>
-                    </div>`;
-                });
-                html += `</div>`;
-            } else {
-                html += `<div class="grupo-empty-msg">Nenhuma equipa neste grupo</div>`;
-            }
-            
-            html += `</div>`;
+            html += `</select></div>`;
         }
+        
+        html += `</div>`;
     });
     
     container.innerHTML = html;
