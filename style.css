@@ -1330,6 +1330,18 @@ body {
     border-color: #e53935 !important;
 }
 
+.score-input-na {
+    background: #e8f5e9 !important;
+    border-color: #4caf50 !important;
+    color: #2e7d32 !important;
+    cursor: not-allowed !important;
+    font-weight: 600;
+}
+.score-input-na:focus {
+    outline: 2px solid #4caf50 !important;
+    border-color: #4caf50 !important;
+}
+
 .class-team-link {
     background: transparent;
     border: none;
