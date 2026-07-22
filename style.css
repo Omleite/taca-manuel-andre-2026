@@ -358,7 +358,7 @@ body {
     border-radius: 50%; font-family: var(--font-head); font-size: .72rem; font-weight: 900;
     letter-spacing: .06em; margin-top: 82px; flex-shrink: 0; border: 2px solid var(--accent);
 }
-.calc-actions { text-align: center; margin-bottom: 2.5rem; }
+.calc-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-bottom: 2.5rem; }
 
 /* ── RESULT ────────────────────────────── */
 .result-card { border-top: 3px solid var(--green-ok); }
