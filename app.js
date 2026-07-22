@@ -273,6 +273,8 @@ function doLogout() {
     saveAuth();
     updateAuthUI();
     showToast('Sessão terminada.');
+    // Reload após logout para esconder elementos admin-only
+    setTimeout(() => location.reload(), 500);
 }
 
 // ── UI Auth ──────────────────────────────────────────────────
@@ -384,6 +386,8 @@ function handleLogin(e) {
             if (authState.currentUser.mustResetPassword) {
                 showToast('Password de recuperação ativa. Altere a password em Configurações.', 'warn');
             }
+            // Reload após login bem-sucedido para mostrar elementos admin-only
+            setTimeout(() => location.reload(), 500);
         } else {
             const foundUser = getUserByUsername(username);
             errEl.textContent = (foundUser && !foundUser.passwordHash)
