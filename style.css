@@ -1296,8 +1296,10 @@ body {
 }
 
 .result-team-a, .result-team-b {
-    flex: 1;
+    flex: 0 0 auto;
+    min-width: 140px;
     font-size: 0.88rem;
+    white-space: normal;
 }
 
 .group-score-input {
@@ -1561,6 +1563,7 @@ body {
         flex-wrap: wrap;
     }
     .team-name { flex: 0 0 calc(33% - 0.5rem); }
+    .result-team-a, .result-team-b { flex: 0 0 auto !important; min-width: 120px !important; }
     .result-buttons { flex: 0 0 calc(34%); }
     .game-result-row .team-name:last-child { flex: 0 0 calc(33% - 0.5rem); }
 
