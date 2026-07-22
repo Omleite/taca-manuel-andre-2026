@@ -2877,8 +2877,14 @@ function renderClassificacao(ronda) {
 
 function renderGrupos() {
     const container = document.getElementById('gruposContainer');
+    const adminNotice = document.getElementById('gruposAdminNotice');
     const grupos = ['A', 'B', 'C', 'D'];
     const isAdminUser = can('groups_manage');
+    
+    // Mostrar/esconder aviso baseado em permissões
+    if (adminNotice) {
+        adminNotice.style.display = isAdminUser ? 'block' : 'none';
+    }
     
     let html = '';
     grupos.forEach(g => {
