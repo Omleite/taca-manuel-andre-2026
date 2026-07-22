@@ -1564,6 +1564,17 @@ body {
 }
 
 @media (max-width: 768px) {
+    .nav-auth {
+        flex-direction: row !important;
+        gap: 0.25rem !important;
+        align-items: center !important;
+    }
+    .nav-user {
+        flex-direction: row !important;
+        gap: 0.25rem !important;
+        align-items: center !important;
+    }
+
     .game-result-row {
         flex-wrap: wrap;
     }
