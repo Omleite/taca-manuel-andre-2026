@@ -2324,8 +2324,8 @@ function buildEliminationClassificationHtml(ronda) {
     });
 
     let html = `
-        <div class="ronda-block-highlight ronda-block-elim ronda-block-r${ronda}">
-            <h3 class="class-title">${getRoundLabel(ronda)}</h3>
+        <div class="ronda-block-highlight ronda-block-elim ronda-block-r${ronda}" style="margin-top:1rem;">
+            <h3 class="class-title" style="margin-bottom:1rem;">${getRoundLabel(ronda)}</h3>
     `;
 
     [...grouped.keys()].sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).forEach(matchNo => {
@@ -2490,7 +2490,6 @@ function buildEliminationBlockHtml() {
     return `
         <div class="class-group" style="margin-top:2rem;">
             <h3 class="class-title">Fase a Eliminar</h3>
-            <p class="class-desc" style="margin-bottom:1rem;">Resultados dos Quartos de Final, Meias-finais e Final.</p>
         </div>
         ${buildEliminationClassificationHtml(6)}
         ${buildEliminationClassificationHtml(7)}
