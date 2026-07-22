@@ -1411,6 +1411,16 @@ body {
     border-color: #e53935 !important;
 }
 
+.score-input-valid {
+    border-color: #4caf50 !important;
+    background: #e8f5e9 !important;
+    color: #2e7d32 !important;
+}
+.score-input-valid:focus {
+    outline: 2px solid #4caf50 !important;
+    border-color: #4caf50 !important;
+}
+
 .score-input-na {
     background: #e8f5e9 !important;
     border-color: #4caf50 !important;
