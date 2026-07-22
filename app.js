@@ -2439,7 +2439,7 @@ function buildEliminationClassificationHtml(ronda) {
                         ${result && result.result === 'draw' ? `
                             <span class="par-result-badge par-result-badge-draw">A/S</span>
                         ` : result && result.result ? `
-                            <span class="par-result-badge par-result-badge-win">Vence ${esc(winnerName)}</span>
+                            <span class="par-result-badge par-result-badge-win">${esc(winnerName)}</span>
                             ${result.score ? `<span class="par-result-score">${esc(result.score)}</span>` : ''}
                         ` : '<span class="par-result-badge par-result-badge-pending">—</span>'}
                     </div>
