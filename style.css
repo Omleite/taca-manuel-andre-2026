@@ -1135,6 +1135,7 @@ body {
     gap: .9rem;
 }
 .elim-game-result-row {
+    display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
@@ -1149,18 +1150,24 @@ body {
     min-width: 0;
 }
 .elim-par-label {
-    flex: 0 0 72px;
+    flex: 0 0 72px !important;
     font-size: .9rem;
     color: var(--txt-light);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
 }
 .elim-team-name {
-    flex: 1;
+    flex: 1 !important;
     font-size: 1.05rem;
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
     text-align: center;
     line-height: 1.25;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
 }
 
 .elim-score-input {
