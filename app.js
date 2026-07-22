@@ -2877,16 +2877,16 @@ function renderClassificacao(ronda) {
 
 function renderGrupos() {
     const container = document.getElementById('gruposContainer');
-    const adminNotice = document.getElementById('gruposAdminNotice');
     const grupos = ['A', 'B', 'C', 'D'];
     const isAdminUser = can('groups_manage');
     
-    // Mostrar/esconder aviso baseado em permissões
-    if (adminNotice) {
-        adminNotice.style.display = isAdminUser ? 'block' : 'none';
+    let html = '';
+    
+    // Adicionar aviso apenas para admins
+    if (isAdminUser) {
+        html += `<p style="margin-bottom: 1.5rem; color: var(--txt-light);">Atribua as equipas a cada grupo (A, B, C, D). Apenas estas equipas aparecerão na classificação.</p>`;
     }
     
-    let html = '';
     grupos.forEach(g => {
         const teamsInGrupo = state.teams.filter(t => t.grupo === g);
         
