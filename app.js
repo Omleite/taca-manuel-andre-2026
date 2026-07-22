@@ -2334,6 +2334,8 @@ function buildEliminationClassificationHtml(ronda) {
 
         let homeWins = 0;
         let awayWins = 0;
+        let homeXY = 0;
+        let awayXY = 0;
         let hasAnyResult = false;
         const canManageClassification = can('classification_manage');
 
@@ -2341,13 +2343,30 @@ function buildEliminationClassificationHtml(ronda) {
             const res = getGameResult(g.ronda, g.par, g.home, g.away);
             if (!res || !res.result) return;
             hasAnyResult = true;
-            if (res.result === 'home') homeWins++;
-            if (res.result === 'away') awayWins++;
+            if (res.result === 'home') {
+                homeWins++;
+                homeXY += parseScoreXY(res.score);
+            }
+            if (res.result === 'away') {
+                awayWins++;
+                awayXY += parseScoreXY(res.score);
+            }
         });
 
         const matchComplete = homeWins + awayWins > 0;
         const isDraw = hasAnyResult && homeWins === awayWins;
-        const winner = homeWins > awayWins ? home : (awayWins > homeWins ? away : null);
+        
+        // Determine winner: 1) higher wins, 2) tiebreaker by X+Y, 3) none
+        let winner = null;
+        if (homeWins > awayWins) {
+            winner = home;
+        } else if (awayWins > homeWins) {
+            winner = away;
+        } else if (homeWins === awayWins && homeWins > 0) {
+            // Tiebreaker by X+Y sum
+            if (homeXY > awayXY) winner = home;
+            else if (awayXY > homeXY) winner = away;
+        }
         
         // Score display for elimination matches
         const scoreDisplay = hasAnyResult
@@ -2586,6 +2605,20 @@ function renderClassificacao(ronda) {
                     } else {
                         clearTimeout(target._validTimer);
                         target._validTimer = setTimeout(() => validateScoreInput(target), 600);
+                    }
+                });
+                input.addEventListener('blur', (e) => {
+                    // Auto-save when leaving the input if score is valid
+                    const rr = parseInt(e.target.dataset.ronda, 10);
+                    const par = parseInt(e.target.dataset.par, 10);
+                    const home = e.target.dataset.home;
+                    const away = e.target.dataset.away;
+                    const score = e.target.value.trim();
+                    
+                    if (score && isValidScore(score)) {
+                        setParScore(rr, par, home, away, score);
+                        const selView = document.getElementById('selRondaClass').value;
+                        renderClassificacao(selView === 'total' ? 'total' : parseInt(selView, 10));
                     }
                 });
                 input.addEventListener('change', (e) => {
