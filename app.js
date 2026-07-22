@@ -2575,21 +2575,28 @@ function renderClassificacao(ronda) {
     Object.keys(standings).sort().forEach(grupo => {
         const teams = standings[grupo];
         // Total: acumula todas as rondas; ronda específica: só jogos dessa ronda
-        const groupGames = (ronda === 'total'
+        let groupGames = ronda === 'total'
             ? state.calendar.filter(g => g.grupo === grupo)
-            : state.calendar.filter(g => g.ronda === ronda && g.grupo === grupo))
+            : state.calendar.filter(g => g.ronda === ronda && g.grupo === grupo);
+        
+        // Agrupar por match (mesmas equipas)
+        const matchGroups = new Map();
+        groupGames.forEach(game => {
+            const matchKey = [game.home, game.away].sort().join('|');
+            if (!matchGroups.has(matchKey)) matchGroups.set(matchKey, []);
+            matchGroups.get(matchKey).push(game);
+        });
+        
+        // Ordenar dentro de cada grupo por par, depois ordenar grupos por ronda e matchKey
+        groupGames = Array.from(matchGroups.entries())
             .sort((a, b) => {
-                // Se total, ordenar por ronda primeiro
-                if (ronda === 'total' && a.ronda !== b.ronda) return a.ronda - b.ronda;
-                
-                // Criar chave de match (teams ordenadas, para agrupar mesmos oponentes)
-                const matchKeyA = [a.home, a.away].sort().join('|');
-                const matchKeyB = [b.home, b.away].sort().join('|');
-                
-                // Ordenar por match key, depois por par dentro do match
-                if (matchKeyA !== matchKeyB) return matchKeyA.localeCompare(matchKeyB);
-                return a.par - b.par;
-            });
+                const gamesA = a[1], gamesB = b[1];
+                if (ronda === 'total') {
+                    if (gamesA[0].ronda !== gamesB[0].ronda) return gamesA[0].ronda - gamesB[0].ronda;
+                }
+                return a[0].localeCompare(b[0]);
+            })
+            .flatMap(([, games]) => games.sort((a, b) => a.par - b.par));
         
         html += `
         <div class="class-group">
