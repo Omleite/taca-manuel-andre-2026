@@ -2488,9 +2488,6 @@ function buildEliminationClassificationHtml(ronda) {
 
 function buildEliminationBlockHtml() {
     return `
-        <div class="class-group" style="margin-top:2rem;">
-            <h3 class="class-title">Fase a Eliminar</h3>
-        </div>
         ${buildEliminationClassificationHtml(6)}
         ${buildEliminationClassificationHtml(7)}
         ${buildEliminationClassificationHtml(8)}
