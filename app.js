@@ -2329,6 +2329,8 @@ function buildEliminationClassificationHtml(ronda) {
 
         const home = matchGames[0].home;
         const away = matchGames[0].away;
+        const homeTeam = state.teams.find(t => t.name === home);
+        const awayTeam = state.teams.find(t => t.name === away);
 
         let homeWins = 0;
         let awayWins = 0;
@@ -2344,15 +2346,38 @@ function buildEliminationClassificationHtml(ronda) {
         });
 
         const matchComplete = homeWins + awayWins > 0;
+        const isDraw = hasAnyResult && homeWins === awayWins;
         const winner = homeWins > awayWins ? home : (awayWins > homeWins ? away : null);
+        
+        // Score display for elimination matches
+        const scoreDisplay = hasAnyResult
+            ? `<span class="jogo-score${isDraw ? ' score-draw' : ''}">${homeWins}–${awayWins}</span>`
+            : `<span class="jogo-vs">VS</span>`;
+        
+        // Team styling
+        const homeWinClass = hasAnyResult ? (homeWins > awayWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
+        const awayWinClass = hasAnyResult ? (awayWins > homeWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
+        
+        const homeLabel = homeTeam
+            ? `<span class="team-home${homeWinClass}">${esc(home)}</span>`
+            : `<span class="team-home${homeWinClass}">${esc(home)}</span>`;
+        const awayLabel = awayTeam
+            ? `<span class="team-away${awayWinClass}">${esc(away)}</span>`
+            : `<span class="team-away${awayWinClass}">${esc(away)}</span>`;
+        
         const nextRoundLabel = getRoundLabel(ronda + 1);
         
         // For final, use different language
         const progressLabel = ronda === 8 ? '🏆 CAMPEÃ!' : `Apurada para ${nextRoundLabel}`;
 
         html += `
-            <div class="card elim-match-card">
+            <div class="card elim-match-card${hasAnyResult ? ' jogo-done' : ''}">
                 <h4 class="elim-match-title">Match ${matchNo}: ${esc(home)} vs ${esc(away)}</h4>
+                <div class="jogo-teams elim-match-summary">
+                    ${homeLabel}
+                    ${scoreDisplay}
+                    ${awayLabel}
+                </div>
                 <div class="games-input elim-games-input">
         `;
 
