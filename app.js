@@ -2415,16 +2415,14 @@ function buildEliminationClassificationHtml(ronda) {
             const awayLbl = awayTeamObj
                 ? `<button type="button" class="class-team-link" data-team-id="${awayTeamObj.id}">${esc(game.away)}</button>`
                 : esc(game.away);
-            const resultLabel = !result || !result.result ? '' :
-                result.result === 'home' ? 'Vence A' :
-                result.result === 'draw' ? 'A/S' : 'Vence B';
-            const resultBadgeClass = !result || !result.result ? 'par-result-badge-pending' :
-                result.result === 'draw' ? 'par-result-badge-draw' : 'par-result-badge-win';
+            const winnerName = !result || !result.result ? '' :
+                result.result === 'home' ? game.home :
+                result.result === 'away' ? game.away : '';
             html += `
-                <div class="game-result-row">
+                <div class="game-result-row${canManageClassification ? '' : ' game-result-row-readonly'}">
                     <span class="team-name result-par-label">Par ${game.par}</span>
-                    <span class="team-name result-team-a"><span class="team-ab-label">A:</span>${homeLbl}</span>
                     ${canManageClassification ? `
+                    <span class="team-name result-team-a"><span class="team-ab-label">A:</span>${homeLbl}</span>
                     <div class="result-buttons">
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence A</button>
                         <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
@@ -2432,15 +2430,20 @@ function buildEliminationClassificationHtml(ronda) {
                         <input type="text" class="elim-score-input${result && result.result === 'draw' ? ' score-input-na' : (result && result.result) && !isValidScore(result && result.score ? result.score : '') ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="${result && result.result === 'draw' ? 'N/A' : '2&1'}" value="${result && result.result === 'draw' ? '' : esc(result && result.score ? result.score : '')}" ${result && result.result === 'draw' ? 'disabled' : ''} maxlength="10">
                         <button class="btn-result-clear btn-del" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                     </div>
+                    <span class="team-name result-team-b"><span class="team-ab-label">B:</span>${awayLbl}</span>
                     ` : `
+                    <span class="par-teams-vs-label">
+                        <span class="team-ab-label">A:</span>${homeLbl}<span class="par-vs-sep">VS</span><span class="team-ab-label">B:</span>${awayLbl}
+                    </span>
                     <div class="par-result-readonly">
-                        ${result && result.result ? `
-                            <span class="par-result-badge ${resultBadgeClass}">${resultLabel}</span>
-                            ${result.score && result.result !== 'draw' ? `<span class="par-result-score">${esc(result.score)}</span>` : ''}
+                        ${result && result.result === 'draw' ? `
+                            <span class="par-result-badge par-result-badge-draw">A/S</span>
+                        ` : result && result.result ? `
+                            <span class="par-result-badge par-result-badge-win">Vence ${esc(winnerName)}</span>
+                            ${result.score ? `<span class="par-result-score">${esc(result.score)}</span>` : ''}
                         ` : '<span class="par-result-badge par-result-badge-pending">—</span>'}
                     </div>
                     `}
-                    <span class="team-name result-team-b"><span class="team-ab-label">B:</span>${awayLbl}</span>
                 </div>
             `;
         });

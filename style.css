@@ -1202,11 +1202,33 @@ body {
     white-space: nowrap;
 }
 
-.par-result-readonly {
+.par-teams-vs-label {
     flex: 1;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 0.3rem;
+    font-size: 0.88rem;
+    color: var(--primary);
+    font-weight: 600;
+    flex-wrap: wrap;
+}
+
+.par-vs-sep {
+    color: var(--txt-light);
+    font-weight: 400;
+    font-size: 0.78rem;
+    margin: 0 0.15rem;
+}
+
+.game-result-row-readonly {
+    flex-wrap: nowrap;
+}
+
+.par-result-readonly {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
     gap: 0.5rem;
 }
 
