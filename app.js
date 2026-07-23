@@ -45,6 +45,16 @@ function recalculateAllGameHandicaps() {
 }
 
 // ════════════════════════════════════════════════════════════
+//  RASTREAMENTO DO TIPO DE CÁLCULO
+// ════════════════════════════════════════════════════════════
+let lastCalculationType = 'groups'; // 'groups' ou 'elimination'
+
+// ════════════════════════════════════════════════════════════
+//  RASTREAMENTO DO TIPO DE CÁLCULO
+// ════════════════════════════════════════════════════════════
+let lastCalculationType = 'groups'; // 'groups' ou 'elimination'
+
+// ════════════════════════════════════════════════════════════
 //  ESTADO
 // ════════════════════════════════════════════════════════════
 
@@ -1492,6 +1502,7 @@ function calculate() {
     document.getElementById('parBTotal').querySelector('strong').textContent = totalB;
     renderResultSummary(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar);
     renderStrokeTable(strokes, higherPar, teamA?.name, teamB?.name);
+    lastCalculationType = 'groups';
     document.getElementById('calcResult').classList.remove('hidden');
     setTimeout(() => document.getElementById('calcResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
 }
@@ -1540,6 +1551,7 @@ function calculateElimination() {
     
     renderResultSummaryElim(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar, minA, maxA, minB, maxB);
     renderStrokeTable(strokes, higherPar, teamA?.name, teamB?.name);
+    lastCalculationType = 'elimination';
     document.getElementById('calcResult').classList.remove('hidden');
     setTimeout(() => document.getElementById('calcResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
 }
@@ -1664,9 +1676,16 @@ function printStrokeTable() {
         (g.home === teamB?.name && g.away === teamA?.name)
     );
 
-    const roundText = match?.ronda ? `${match.ronda}ª Ronda` : 'Ronda: não definida';
-    const groupText = match?.grupo ? `Grupo ${match.grupo}` : 'Grupo: —';
-    const parText = match?.par ? `Par ${match.par}` : 'Par: —';
+    let roundText, groupText, parText;
+    if (lastCalculationType === 'elimination') {
+        roundText = 'Fase a Eliminar';
+        groupText = '';
+        parText = '';
+    } else {
+        roundText = match?.ronda ? `${match.ronda}ª Ronda` : 'Ronda: não definida';
+        groupText = match?.grupo ? `Grupo ${match.grupo}` : 'Grupo: —';
+        parText = match?.par ? `Par ${match.par}` : 'Par: —';
+    }
     const teamAText = teamA?.name || '—';
     const teamBText = teamB?.name || '—';
     const pairAText = pA1 && pA2 ? `${pA1.name} e ${pA2.name}` : '—';
@@ -1727,7 +1746,7 @@ function printStrokeTable() {
                 <h1>⛳ Distribuição por Buracos</h1>
                 <div class="print-info">Taça Manuel André 2026 · Estela Golf Club</div>
                 <div class="match-meta">
-                    <p><strong>${roundText}</strong> · <strong>${groupText}</strong> · <strong>${parText}</strong></p>
+                    <p><strong>${roundText}</strong>${groupText ? ' · <strong>' + groupText + '</strong>' : ''}${parText ? ' · <strong>' + parText + '</strong>' : ''}</p>
                     <p><strong>Equipa A:</strong> ${esc(teamAText)} | <strong>Par A:</strong> ${esc(pairAText)}</p>
                     <p><strong>Equipa B:</strong> ${esc(teamBText)} | <strong>Par B:</strong> ${esc(pairBText)}</p>
                 </div>
@@ -1743,7 +1762,7 @@ function printStrokeTable() {
                 <h1>⛳ Distribuição por Buracos</h1>
                 <div class="print-info">Taça Manuel André 2026 · Estela Golf Club</div>
                 <div class="match-meta">
-                    <p><strong>${roundText}</strong> · <strong>${groupText}</strong> · <strong>${parText}</strong></p>
+                    <p><strong>${roundText}</strong>${groupText ? ' · <strong>' + groupText + '</strong>' : ''}${parText ? ' · <strong>' + parText + '</strong>' : ''}</p>
                     <p><strong>Equipa A:</strong> ${esc(teamAText)} | <strong>Par A:</strong> ${esc(pairAText)}</p>
                     <p><strong>Equipa B:</strong> ${esc(teamBText)} | <strong>Par B:</strong> ${esc(pairBText)}</p>
                 </div>
