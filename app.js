@@ -18,7 +18,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '113';
+const APP_VERSION = '114';
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -1988,48 +1988,50 @@ function formatRoundDateLabel(ronda, isoDate) {
 // Calendário inicial predefinido (seed) — editável pelo admin
 const CALENDAR_DATA = [
     // Ronda 1
-    { ronda: 1, grupo: 'A', par: 1, home: 'Os Craques', away: 'LJMS' },
-    { ronda: 1, grupo: 'A', par: 2, home: 'Os Craques', away: 'LJMS' },
     { ronda: 1, grupo: 'A', par: 1, home: 'Os 4 no Buraco', away: 'Estela Birdies' },
     { ronda: 1, grupo: 'A', par: 2, home: 'Os 4 no Buraco', away: 'Estela Birdies' },
-    { ronda: 1, grupo: 'B', par: 1, home: 'AMVJ', away: 'V.T.F.' },
-    { ronda: 1, grupo: 'B', par: 2, home: 'AMVJ', away: 'V.T.F.' },
+    { ronda: 1, grupo: 'A', par: 1, home: 'Os Craques', away: 'Os Últimos' },
+    { ronda: 1, grupo: 'A', par: 2, home: 'Os Craques', away: 'Os Últimos' },
     { ronda: 1, grupo: 'B', par: 1, home: 'Equipa Eleven', away: 'EMJC' },
     { ronda: 1, grupo: 'B', par: 2, home: 'Equipa Eleven', away: 'EMJC' },
+    { ronda: 1, grupo: 'B', par: 1, home: 'Green Legends', away: 'V.T.F.' },
+    { ronda: 1, grupo: 'B', par: 2, home: 'Green Legends', away: 'V.T.F.' },
     { ronda: 1, grupo: 'C', par: 1, home: 'Birdies e Boggies', away: 'Jacaré' },
     { ronda: 1, grupo: 'C', par: 2, home: 'Birdies e Boggies', away: 'Jacaré' },
     { ronda: 1, grupo: 'C', par: 1, home: 'Os Golfinhos', away: 'Piratas' },
     { ronda: 1, grupo: 'C', par: 2, home: 'Os Golfinhos', away: 'Piratas' },
-    { ronda: 1, grupo: 'D', par: 1, home: 'MMLH', away: 'School' },
-    { ronda: 1, grupo: 'D', par: 2, home: 'MMLH', away: 'School' },
     { ronda: 1, grupo: 'D', par: 1, home: 'Golfistas da Madrugada', away: 'Old Fashion Team' },
     { ronda: 1, grupo: 'D', par: 2, home: 'Golfistas da Madrugada', away: 'Old Fashion Team' },
+    { ronda: 1, grupo: 'D', par: 1, home: 'MMLH', away: 'School' },
+    { ronda: 1, grupo: 'D', par: 2, home: 'MMLH', away: 'School' },
+
     // Ronda 2
+    { ronda: 2, grupo: 'A', par: 1, home: 'CGGG', away: 'Os Últimos' },
+    { ronda: 2, grupo: 'A', par: 2, home: 'CGGG', away: 'Os Últimos' },
     { ronda: 2, grupo: 'A', par: 1, home: 'Os Craques', away: 'Os 4 no Buraco' },
     { ronda: 2, grupo: 'A', par: 2, home: 'Os Craques', away: 'Os 4 no Buraco' },
-    { ronda: 2, grupo: 'A', par: 1, home: 'CGGG', away: 'LJMS' },
-    { ronda: 2, grupo: 'A', par: 2, home: 'CGGG', away: 'LJMS' },
-    { ronda: 2, grupo: 'B', par: 1, home: 'AMVJ', away: 'Equipa Eleven' },
-    { ronda: 2, grupo: 'B', par: 2, home: 'AMVJ', away: 'Equipa Eleven' },
+    { ronda: 2, grupo: 'B', par: 1, home: 'Green Legends', away: 'Equipa Eleven' },
+    { ronda: 2, grupo: 'B', par: 2, home: 'Green Legends', away: 'Equipa Eleven' },
     { ronda: 2, grupo: 'B', par: 1, home: 'V.T.F.', away: 'Red Hot Chilli Putters' },
     { ronda: 2, grupo: 'B', par: 2, home: 'V.T.F.', away: 'Red Hot Chilli Putters' },
     { ronda: 2, grupo: 'C', par: 1, home: 'Birdies e Boggies', away: 'Os Golfinhos' },
     { ronda: 2, grupo: 'C', par: 2, home: 'Birdies e Boggies', away: 'Os Golfinhos' },
-    { ronda: 2, grupo: 'C', par: 1, home: 'Masters', away: 'Jacaré' },
-    { ronda: 2, grupo: 'C', par: 2, home: 'Masters', away: 'Jacaré' },
+    { ronda: 2, grupo: 'C', par: 1, home: 'Masters', away: 'Piratas' },
+    { ronda: 2, grupo: 'C', par: 2, home: 'Masters', away: 'Piratas' },
     { ronda: 2, grupo: 'D', par: 1, home: 'MMLH', away: 'Golfistas da Madrugada' },
     { ronda: 2, grupo: 'D', par: 2, home: 'MMLH', away: 'Golfistas da Madrugada' },
     { ronda: 2, grupo: 'D', par: 1, home: 'School', away: 'Old Fashion Team' },
     { ronda: 2, grupo: 'D', par: 2, home: 'School', away: 'Old Fashion Team' },
+
     // Ronda 3
-    { ronda: 3, grupo: 'A', par: 1, home: 'Os Craques', away: 'Estela Birdies' },
-    { ronda: 3, grupo: 'A', par: 2, home: 'Os Craques', away: 'Estela Birdies' },
     { ronda: 3, grupo: 'A', par: 1, home: 'Os 4 no Buraco', away: 'CGGG' },
     { ronda: 3, grupo: 'A', par: 2, home: 'Os 4 no Buraco', away: 'CGGG' },
-    { ronda: 3, grupo: 'B', par: 1, home: 'AMVJ', away: 'EMJC' },
-    { ronda: 3, grupo: 'B', par: 2, home: 'AMVJ', away: 'EMJC' },
+    { ronda: 3, grupo: 'A', par: 1, home: 'Os Craques', away: 'Estela Birdies' },
+    { ronda: 3, grupo: 'A', par: 2, home: 'Os Craques', away: 'Estela Birdies' },
     { ronda: 3, grupo: 'B', par: 1, home: 'Equipa Eleven', away: 'Red Hot Chilli Putters' },
     { ronda: 3, grupo: 'B', par: 2, home: 'Equipa Eleven', away: 'Red Hot Chilli Putters' },
+    { ronda: 3, grupo: 'B', par: 1, home: 'Green Legends', away: 'EMJC' },
+    { ronda: 3, grupo: 'B', par: 2, home: 'Green Legends', away: 'EMJC' },
     { ronda: 3, grupo: 'C', par: 1, home: 'Birdies e Boggies', away: 'Piratas' },
     { ronda: 3, grupo: 'C', par: 2, home: 'Birdies e Boggies', away: 'Piratas' },
     { ronda: 3, grupo: 'C', par: 1, home: 'Masters', away: 'Os Golfinhos' },
@@ -2038,32 +2040,34 @@ const CALENDAR_DATA = [
     { ronda: 3, grupo: 'D', par: 2, home: 'MMLH', away: 'Old Fashion Team' },
     { ronda: 3, grupo: 'D', par: 1, home: 'School', away: 'Golfistas da Madrugada' },
     { ronda: 3, grupo: 'D', par: 2, home: 'School', away: 'Golfistas da Madrugada' },
+
     // Ronda 4
     { ronda: 4, grupo: 'A', par: 1, home: 'Os Craques', away: 'CGGG' },
     { ronda: 4, grupo: 'A', par: 2, home: 'Os Craques', away: 'CGGG' },
-    { ronda: 4, grupo: 'A', par: 1, home: 'LJMS', away: 'Estela Birdies' },
-    { ronda: 4, grupo: 'A', par: 2, home: 'LJMS', away: 'Estela Birdies' },
-    { ronda: 4, grupo: 'B', par: 1, home: 'AMVJ', away: 'Red Hot Chilli Putters' },
-    { ronda: 4, grupo: 'B', par: 2, home: 'AMVJ', away: 'Red Hot Chilli Putters' },
+    { ronda: 4, grupo: 'A', par: 1, home: 'Os Últimos', away: 'Estela Birdies' },
+    { ronda: 4, grupo: 'A', par: 2, home: 'Os Últimos', away: 'Estela Birdies' },
+    { ronda: 4, grupo: 'B', par: 1, home: 'Green Legends', away: 'Red Hot Chilli Putters' },
+    { ronda: 4, grupo: 'B', par: 2, home: 'Green Legends', away: 'Red Hot Chilli Putters' },
     { ronda: 4, grupo: 'B', par: 1, home: 'V.T.F.', away: 'EMJC' },
     { ronda: 4, grupo: 'B', par: 2, home: 'V.T.F.', away: 'EMJC' },
     { ronda: 4, grupo: 'C', par: 1, home: 'Birdies e Boggies', away: 'Masters' },
     { ronda: 4, grupo: 'C', par: 2, home: 'Birdies e Boggies', away: 'Masters' },
     { ronda: 4, grupo: 'C', par: 1, home: 'Jacaré', away: 'Piratas' },
     { ronda: 4, grupo: 'C', par: 2, home: 'Jacaré', away: 'Piratas' },
+
     // Ronda 5
-    { ronda: 5, grupo: 'A', par: 1, home: 'LJMS', away: 'Os 4 no Buraco' },
-    { ronda: 5, grupo: 'A', par: 2, home: 'LJMS', away: 'Os 4 no Buraco' },
     { ronda: 5, grupo: 'A', par: 1, home: 'Estela Birdies', away: 'CGGG' },
     { ronda: 5, grupo: 'A', par: 2, home: 'Estela Birdies', away: 'CGGG' },
-    { ronda: 5, grupo: 'B', par: 1, home: 'V.T.F.', away: 'Equipa Eleven' },
-    { ronda: 5, grupo: 'B', par: 2, home: 'V.T.F.', away: 'Equipa Eleven' },
+    { ronda: 5, grupo: 'A', par: 1, home: 'Os Últimos', away: 'Os 4 no Buraco' },
+    { ronda: 5, grupo: 'A', par: 2, home: 'Os Últimos', away: 'Os 4 no Buraco' },
     { ronda: 5, grupo: 'B', par: 1, home: 'EMJC', away: 'Red Hot Chilli Putters' },
     { ronda: 5, grupo: 'B', par: 2, home: 'EMJC', away: 'Red Hot Chilli Putters' },
-    { ronda: 5, grupo: 'C', par: 1, home: 'Jacaré', away: 'Os Golfinhos' },
-    { ronda: 5, grupo: 'C', par: 2, home: 'Jacaré', away: 'Os Golfinhos' },
-    { ronda: 5, grupo: 'C', par: 1, home: 'Piratas', away: 'Masters' },
-    { ronda: 5, grupo: 'C', par: 2, home: 'Piratas', away: 'Masters' }
+    { ronda: 5, grupo: 'B', par: 1, home: 'V.T.F.', away: 'Equipa Eleven' },
+    { ronda: 5, grupo: 'B', par: 2, home: 'V.T.F.', away: 'Equipa Eleven' },
+    { ronda: 5, grupo: 'C', par: 1, home: 'Jacaré', away: 'Masters' },
+    { ronda: 5, grupo: 'C', par: 2, home: 'Jacaré', away: 'Masters' },
+    { ronda: 5, grupo: 'C', par: 1, home: 'Os Golfinhos', away: 'Jacaré' },
+    { ronda: 5, grupo: 'C', par: 2, home: 'Os Golfinhos', away: 'Jacaré' }
 ];
 
 function saveCalendar() {
