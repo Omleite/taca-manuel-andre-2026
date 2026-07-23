@@ -1,88 +1,163 @@
-# Script para exportar dados preenchidos do Excel para CSV
-# Taça Manuel André 2026
+# Export filled Excel data to CSV
+# Uses XML manipulation instead of COM objects
 
-$ErrorActionPreference = 'Stop'
+$xlsxPath = 'c:\Work\VSCode-Teste\taca-manuel-andre-2026\Calendario_Resultados_IMPORT.xlsx'
+$csvPath = 'c:\Work\VSCode-Teste\taca-manuel-andre-2026\Calendario_Resultados_IMPORT.csv'
+$workDir = 'c:\temp\xlsx_export'
 
-# Verificar se ficheiro existe
-if (-not (Test-Path 'Calendario_Resultados_IMPORT.xlsx')) {
-    Write-Host "Erro: Ficheiro Calendario_Resultados_IMPORT.xlsx nao encontrado!" -ForegroundColor Red
+Write-Host "Iniciando exportacao para CSV..." -ForegroundColor Cyan
+
+# Verify file exists
+if (-not (Test-Path $xlsxPath)) {
+    Write-Host "ERRO: Ficheiro nao encontrado: $xlsxPath" -ForegroundColor Red
     exit 1
 }
 
-# Criar Excel
-$excel = New-Object -ComObject Excel.Application
-$excel.Visible = $false
+# Clean and create working directory
+if (Test-Path $workDir) { Remove-Item $workDir -Recurse -Force }
+New-Item -ItemType Directory -Path $workDir | Out-Null
 
-# Abrir workbook
-$wb = $excel.Workbooks.Open("$(Get-Location)\Calendario_Resultados_IMPORT.xlsx")
-$ws = $wb.Sheets('Resultados')
+# Extract XLSX
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+try {
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($xlsxPath, $workDir)
+    Write-Host "XLSX extraido" -ForegroundColor Yellow
+} catch {
+    Write-Host "ERRO ao extrair XLSX: $_" -ForegroundColor Red
+    exit 1
+}
 
-# Preparar CSV
+# Read and parse XML
+$xmlPath = "$workDir\xl\worksheets\sheet1.xml"
+if (-not (Test-Path $xmlPath)) {
+    Write-Host "ERRO: sheet1.xml nao encontrado" -ForegroundColor Red
+    exit 1
+}
+
+$xml = New-Object System.Xml.XmlDocument
+$xml.Load($xmlPath)
+
+# Create namespace manager
+$ns = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
+$ns.AddNamespace("main", "http://schemas.openxmlformats.org/spreadsheetml/2006/main")
+
+# Get shared strings (for text values)
+$stringsXml = New-Object System.Xml.XmlDocument
+$stringsXml.Load("$workDir\xl\sharedStrings.xml")
+$nsStr = New-Object System.Xml.XmlNamespaceManager($stringsXml.NameTable)
+$nsStr.AddNamespace("main", "http://schemas.openxmlformats.org/spreadsheetml/2006/main")
+$strings = @()
+foreach ($si in $stringsXml.SelectNodes("//main:si", $nsStr)) {
+    $t = $si.SelectSingleNode("main:t", $nsStr)
+    if ($t) {
+        $strings += $t.InnerText
+    }
+}
+
+Write-Host "Carregados $($strings.Count) valores compartilhados" -ForegroundColor Yellow
+
+# Function to get cell value
+function Get-CellValue {
+    param($cell)
+    
+    $t = $cell.GetAttribute("t")
+    $v = $cell.SelectSingleNode("main:v", $ns)
+    
+    if ($null -eq $v) {
+        return ""
+    }
+    
+    $value = $v.InnerText
+    
+    # If it's a shared string reference
+    if ($t -eq "s") {
+        return $strings[[int]$value]
+    }
+    
+    return $value
+}
+
+# Extract data
+$sheetData = $xml.SelectSingleNode("//main:sheetData", $ns)
+$rows = $sheetData.SelectNodes("main:row", $ns)
+
 $csvLines = @()
-$csvLines += '"matchId","result","score"'
+$csvLines += '"matchId","ronda","par","casa","fora","resultado","score"'
 
-# Ler dados (começar em linha 2, até encontrar vazio)
-$row = 2
 $imported = 0
-$errors = 0
+$skipped = 0
 
-while ($true) {
-    $matchId = $ws.Cells($row, 1).Value
-    if ([string]::IsNullOrEmpty($matchId)) { break }
+foreach ($row in $rows) {
+    $rAttr = $row.GetAttribute("r")
     
-    $result = $ws.Cells($row, 6).Value  # Coluna F
-    $score = $ws.Cells($row, 7).Value   # Coluna G
+    # Skip header (row 1)
+    if ($rAttr -eq "1") { continue }
     
-    # Validar
-    if ([string]::IsNullOrEmpty($result) -and [string]::IsNullOrEmpty($score)) {
-        # Sem dados - pular
-        $row++
+    $cells = $row.SelectNodes("main:c", $ns)
+    
+    $matchId = ""
+    $ronda = ""
+    $par = ""
+    $casa = ""
+    $fora = ""
+    $resultado = ""
+    $score = ""
+    
+    # Extract cell values by column (A=1, B=2, ... F=6, G=7)
+    foreach ($cell in $cells) {
+        $ref = $cell.GetAttribute("r")
+        $col = $ref -replace '\d+', ''  # Extract column letters
+        
+        $cellValue = Get-CellValue $cell
+        
+        switch ($col) {
+            "A" { $matchId = $cellValue }
+            "B" { $ronda = $cellValue }
+            "C" { $par = $cellValue }
+            "D" { $casa = $cellValue }
+            "E" { $fora = $cellValue }
+            "F" { $resultado = $cellValue }
+            "G" { $score = $cellValue }
+        }
+    }
+    
+    # Check if both resultado and score are empty
+    if ([string]::IsNullOrWhiteSpace($resultado) -and [string]::IsNullOrWhiteSpace($score)) {
+        $skipped++
         continue
     }
     
-    # Validar resultado se preenchido
-    if (-not [string]::IsNullOrEmpty($result)) {
-        if ($result -notmatch '^(Vence A|Vence B|A/S)$') {
-            Write-Host "AVISO Linha $row : Resultado invalido '$result' - pulado" -ForegroundColor Yellow
-            $errors++
-            $row++
+    # Validate resultado
+    if (-not [string]::IsNullOrWhiteSpace($resultado)) {
+        if ($resultado -notmatch '^(Vence A|Vence B|A/S)$') {
+            Write-Host "AVISO Linha $rAttr : Resultado invalido '$resultado' - pulado" -ForegroundColor Yellow
             continue
         }
     }
     
-    # Validar score se preenchido
-    if (-not [string]::IsNullOrEmpty($score)) {
+    # Validate score
+    if (-not [string]::IsNullOrWhiteSpace($score)) {
         if ($score -notmatch '^\d+&\d+$') {
-            Write-Host "AVISO Linha $row : Score invalido '$score' - pulado" -ForegroundColor Yellow
-            $errors++
-            $row++
+            Write-Host "AVISO Linha $rAttr : Score invalido '$score' - pulado" -ForegroundColor Yellow
             continue
         }
     }
     
-    # Adicionar ao CSV
-    $csvLines += "`"$matchId`",`"$result`",`"$score`""
+    # Add to CSV
+    $csvLines += "`"$matchId`",`"$ronda`",`"$par`",`"$casa`",`"$fora`",`"$resultado`",`"$score`""
     $imported++
-    $row++
 }
 
-# Fechar Excel
-$wb.Close($false)
-$excel.Quit()
+# Save CSV
+$csvLines | Out-File -FilePath $csvPath -Encoding UTF8 -Force
+Write-Host "`nCSV exportado com sucesso!" -ForegroundColor Green
+Write-Host "Ficheiro: $csvPath" -ForegroundColor Cyan
+Write-Host "Linhas importadas: $imported" -ForegroundColor Cyan
+Write-Host "Linhas puladas (vazias): $skipped" -ForegroundColor Yellow
 
-[System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) | Out-Null
-[GC]::Collect()
+# Cleanup
+Remove-Item $workDir -Recurse -Force
 
-# Guardar CSV
-$csvContent = $csvLines -join "`n"
-$csvContent | Out-File -FilePath 'Calendario_Resultados_IMPORT.csv' -Encoding UTF8
-
-Write-Host ""
-Write-Host "CSV exportado: Calendario_Resultados_IMPORT.csv" -ForegroundColor Green
-Write-Host "Resultados importados: $imported" -ForegroundColor Green
-if ($errors -gt 0) {
-    Write-Host "Erros encontrados: $errors" -ForegroundColor Yellow
-}
-Write-Host ""
-Write-Host "Proximo passo: Importe o CSV na app" -ForegroundColor Cyan
-Write-Host "Admin - Configuracoes - Importar Resultados (CSV)" -ForegroundColor Cyan
+# Show preview
+Write-Host "`nPrimeiras linhas do CSV:" -ForegroundColor Cyan
+$csvLines[0..5] | ForEach-Object { Write-Host $_ }
