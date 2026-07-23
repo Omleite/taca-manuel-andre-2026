@@ -1,94 +1,94 @@
-# 📋 Importação de Resultados via CSV
+# 📋 Importação de Resultados via CSV (Segura com Match IDs)
 
 ## Como Usar
 
 ### 1. **Arquivo CSV: `Calendario_Resultados_IMPORT.csv`**
-Este arquivo contém **todos os matches** com as seguintes colunas:
+Este arquivo contém **todos os matches** com um ID único para cada um:
 
 | Coluna | Descrição | Exemplo |
 |--------|-----------|---------|
-| `ronda` | Número da jornada (1-5 grupo, 6-8 eliminatorias) | `1` |
-| `par` | Número do par (1 ou 2) | `1` |
-| `home` | Nome da equipa de casa | `Os 4 no Buraco` |
-| `away` | Nome da equipa visitante | `Estela Birdies` |
-| `result` | Resultado do match | `Vence A`, `Vence B`, `A/S` |
-| `score` | Score em formato X&Y | `2&1` |
+| `matchId` | **ID único do match** (formato: ronda-par-sequência) | `1-1-0`, `1-2-1`, `2-1-12` |
+| `home` | Nome da equipa de casa *(referência visual, não editável)* | `Os 4 no Buraco` |
+| `away` | Nome da equipa visitante *(referência visual, não editável)* | `Estela Birdies` |
+| `result` | **[EDITÁVEL]** Resultado do match | `Vence A`, `Vence B`, `A/S` |
+| `score` | **[EDITÁVEL]** Score em formato X&Y | `2&1` |
 
-### 2. **Preenchimento**
+### 2. **O que Importa?**
+A importação **APENAS atualiza `result` e `score`**. Os outros campos (matchId, home, away) são apenas para referência visual.
+
+✅ **Seguro**: Usa ID único (não nome de equipa)  
+✅ **Simples**: Só 2 colunas para preencher  
+✅ **Previne erros**: Sem risco de confundir equipas ou corromper dados  
+
+### 3. **Preenchimento**
 A menina da receção deve preencher **apenas** as colunas `result` e `score`:
 
-```
-ronda,par,home,away,result,score
-1,1,Os 4 no Buraco,Estela Birdies,Vence A,2&1
-1,2,Os 4 no Buraco,Estela Birdies,A/S,1&1
+```csv
+matchId,home,away,result,score
+1-1-0,Os 4 no Buraco,Estela Birdies,Vence A,2&1
+1-2-1,Os 4 no Buraco,Estela Birdies,A/S,1&1
+1-1-2,Equipa Eleven,EMJC,Vence B,0&3
 ```
 
-### 3. **Valores Válidos**
+### 4. **Valores Válidos**
 
 #### Resultado (`result`):
 - `Vence A` — A equipa de casa (home) vence
 - `Vence B` — A equipa visitante (away) vence  
 - `A/S` — Empate (All Square)
+- **Case-insensitive** (funciona: `vence a`, `VENCE A`)
 
 #### Score (`score`):
 - Formato: `X&Y` (ex: `2&1`, `1&0`, `3&2`)
 - Opcional — se deixar em branco, só o resultado é registado
 
-### 4. **Importação na App**
+### 5. **Importação na App**
 
 1. **Login como Admin** (username: `admin`, password: `estela2026`)
 2. Ir para aba **"Configurações"** 
 3. Descer até **"Importar Resultados (CSV)"**
 4. Clicar em **"📤 Carregar CSV de Resultados"**
-5. Selecionar o ficheiro `Calendario_Resultados_IMPORT.csv` preenchido
-6. A app vai processar e atualizar todos os resultados automaticamente
+5. Selecionar o ficheiro preenchido
+6. A app atualiza todos os resultados automaticamente
 
-### 5. **Validação**
-- ✅ O ficheiro deve ter exatamente 6 colunas: `ronda, par, home, away, result, score`
-- ✅ A coluna `result` só aceita: `Vence A`, `Vence B`, `A/S` (case-insensitive)
-- ✅ A coluna `score` deve estar em formato `X&Y` (ex: `1&0`)
-- ✅ Linhas com erros serão puladas, mas a importação continua
+### 6. **Por que usar IDs?**
 
-### 6. **Resultado**
-Após a importação, receberá uma mensagem:
-- ✅ `Importados X resultados com sucesso!`
-- ⚠️ `Importados X resultados (Y erros)` — alguns registos não foram válidos
+- **Segurança**: ID único previne confusão de equipas
+- **Robustez**: Mudanças de nomes de equipas não afetam importação
+- **Simplicidade**: Um ID é inequívoco
+- **Referência Visual**: Ainda vê o nome das equipas para saber qual é o match
 
 ---
 
 ## 📝 Exemplo Completo
 
 ```csv
-"ronda","par","home","away","result","score"
-"1","1","Os 4 no Buraco","Estela Birdies","Vence A","2&1"
-"1","2","Os 4 no Buraco","Estela Birdies","A/S","1&1"
-"1","1","Equipa Eleven","EMJC","Vence B","0&3"
-"1","2","Equipa Eleven","EMJC","Vence A","2&1"
-"2","1","Os Craques","Os 4 no Buraco","A/S","1&1"
-"2","2","Os Craques","Os 4 no Buraco","Vence A","3&0"
+"matchId","home","away","result","score"
+"1-1-0","Os 4 no Buraco","Estela Birdies","Vence A","2&1"
+"1-2-1","Os 4 no Buraco","Estela Birdies","A/S","1&1"
+"1-1-2","Equipa Eleven","EMJC","Vence B","0&3"
+"1-2-3","Equipa Eleven","EMJC","Vence A","2&1"
 ```
 
 ---
 
 ## ⚠️ Notas Importantes
 
-- **Backup**: A app já guarda automaticamente os dados. Cada importação sobrescreve os resultados anteriores.
-- **Validação**: Confirme que os nomes das equipas estão **exatamente iguais** aos que estão na app
-- **Formato**: O ficheiro deve ser UTF-8 ou ANSI (Excel standard)
-- **Segurança**: Apenas utilizadores com role de Admin podem importar resultados
+- ✅ **Segurança**: Apenas atualiza `result` e `score` — dados do match nunca são alterados
+- ✅ **Sem Risco**: Usa ID único, não nome de equipa
+- ✅ **Admin Only**: Apenas com permissões de administrador
+- ⚠️ **Não remova linhas**: Use sempre o CSV original completo
 
 ---
 
 ## 🔧 Troubleshooting
 
-**P: "CSV não tem as colunas obrigatórias"**
-> A: Verifique que o ficheiro tem exatamente estas colunas (case-insensitive): `ronda`, `par`, `home`, `away`, `result`, `score`
+**P: "CSV não tem a coluna obrigatória: matchId"**
+> A: Verifique que tem exatamente: `matchId, home, away, result, score`
 
-**P: "Alguns resultados não foram importados"**
+**P: "Alguns resultados não foram importados / X erros"**
 > A: Verifique:
-> - Nomes das equipas escritos corretamente
-> - Valores em `result` são `Vence A`, `Vence B` ou `A/S`
-> - `score` está em formato `X&Y` (ex: `2&1`)
-
-**P: "Como saber quais linhas tiveram erro?"**
-> A: Por enquanto, a app mostra apenas o total. Para debug, abra a consola do browser (F12 → Console) após a importação.
+> - `matchId` está correto (ex: `1-1-0`)
+> - Não removeu/adicionou linhas
+> - `result` é `Vence A`, `Vence B` ou `A/S`
+> - `score` é formato `X&Y` (ex: `2&1`)
