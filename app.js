@@ -50,11 +50,6 @@ function recalculateAllGameHandicaps() {
 let lastCalculationType = 'groups'; // 'groups' ou 'elimination'
 
 // ════════════════════════════════════════════════════════════
-//  RASTREAMENTO DO TIPO DE CÁLCULO
-// ════════════════════════════════════════════════════════════
-let lastCalculationType = 'groups'; // 'groups' ou 'elimination'
-
-// ════════════════════════════════════════════════════════════
 //  ESTADO
 // ════════════════════════════════════════════════════════════
 
