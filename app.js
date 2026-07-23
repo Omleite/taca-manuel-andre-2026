@@ -18,7 +18,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '110';
+const APP_VERSION = '111';
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -2181,6 +2181,117 @@ function saveAllPendingScores() {
     saveGameResults();
 }
 
+// ════════════════════════════════════════════════════════════
+//  IMPORTAÇÃO DE RESULTADOS A PARTIR DE CSV
+// ════════════════════════════════════════════════════════════
+
+function importGameResultsFromCSV(file) {
+    if (!can('classification_manage')) {
+        showToast('Apenas administradores podem importar resultados.', 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const text = e.target.result;
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+            
+            if (lines.length < 2) {
+                showToast('CSV vazio ou sem dados.', 'error');
+                return;
+            }
+
+            // Parse header
+            const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const rondaIdx = header.indexOf('ronda');
+            const parIdx = header.indexOf('par');
+            const homeIdx = header.indexOf('home');
+            const awayIdx = header.indexOf('away');
+            const resultIdx = header.indexOf('result');
+            const scoreIdx = header.indexOf('score');
+
+            if (rondaIdx === -1 || parIdx === -1 || homeIdx === -1 || awayIdx === -1) {
+                showToast('CSV não tem as colunas obrigatórias: ronda, par, home, away', 'error');
+                return;
+            }
+
+            let imported = 0, errors = 0;
+
+            // Parse linhas de dados
+            for (let i = 1; i < lines.length; i++) {
+                const parts = parseCSVLine(lines[i]);
+                if (parts.length < 4) continue;
+
+                try {
+                    const ronda = parseInt(parts[rondaIdx], 10);
+                    const par = parseInt(parts[parIdx], 10);
+                    const home = parts[homeIdx].trim();
+                    const away = parts[awayIdx].trim();
+                    const result = resultIdx !== -1 ? parts[resultIdx].trim() : '';
+                    const score = scoreIdx !== -1 ? parts[scoreIdx].trim() : '';
+
+                    // Validar
+                    if (isNaN(ronda) || isNaN(par) || !home || !away) {
+                        errors++;
+                        continue;
+                    }
+
+                    // Atualizar resultado
+                    if (result) {
+                        setGameResult(ronda, par, home, away, result);
+                    }
+
+                    // Atualizar score X&Y
+                    if (score) {
+                        setParScore(ronda, par, home, away, score);
+                    }
+
+                    imported++;
+                } catch (err) {
+                    console.error(`Erro na linha ${i + 1}:`, err);
+                    errors++;
+                }
+            }
+
+            const msg = errors > 0 
+                ? `✓ Importados ${imported} resultados (${errors} erros)`
+                : `✓ Importados ${imported} resultados com sucesso!`;
+            showToast(msg, errors > 0 ? 'warning' : 'success');
+
+            // Re-render
+            renderClassificacao('total');
+        } catch (err) {
+            console.error('importGameResultsFromCSV:', err);
+            showToast('Erro ao processar CSV: ' + err.message, 'error');
+        }
+    };
+    reader.readAsText(file);
+}
+
+// Parse CSV line respeitando aspas
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    
+    result.push(current);
+    return result.map(s => s.replace(/^"|"$/g, '').trim());
+}
+
 function parseScoreXY(scoreStr) {
     if (!scoreStr) return 0;
     const s = scoreStr.trim();
@@ -3412,6 +3523,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btnExport').addEventListener('click', exportData);
     document.getElementById('btnImport').addEventListener('click', () => document.getElementById('importFile').click());
     document.getElementById('importFile').addEventListener('change', e => { importData(e.target.files[0]); e.target.value=''; });
+    document.getElementById('btnImportResults').addEventListener('click', () => document.getElementById('importResultsFile').click());
+    document.getElementById('importResultsFile').addEventListener('change', e => { importGameResultsFromCSV(e.target.files[0]); e.target.value=''; });
     document.getElementById('btnClearAll').addEventListener('click', clearAll);
 
     // Gestão utilizadores (admin)
