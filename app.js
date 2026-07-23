@@ -2324,19 +2324,20 @@ function getEliminationMatchWinner(ronda, matchNo, home, away) {
 }
 
 // Build playoff schedule without recursion
-function buildPlayoffScheduleEntriesUncached() {
+function buildPlayoffScheduleEntriesUncached(useGenericLabels = false) {
     // Always calculate standings even if group stage isn't fully scored
     // This allows teams to advance as results come in
     const standings = calculateStandings(5, true);
 
-    const a1 = standings?.A?.[0]?.name || '1ºA';
-    const a2 = standings?.A?.[1]?.name || '2ºA';
-    const b1 = standings?.B?.[0]?.name || '1ºB';
-    const b2 = standings?.B?.[1]?.name || '2ºB';
-    const c1 = standings?.C?.[0]?.name || '1ºC';
-    const c2 = standings?.C?.[1]?.name || '2ºC';
-    const d1 = standings?.D?.[0]?.name || '1ºD';
-    const d2 = standings?.D?.[1]?.name || '2ºD';
+    // Use generic labels like "Grupo A - 1º Classificado" when useGenericLabels is true
+    const a1 = useGenericLabels ? 'Grupo A - 1º Classificado' : (standings?.A?.[0]?.name || '1ºA');
+    const a2 = useGenericLabels ? 'Grupo A - 2º Classificado' : (standings?.A?.[1]?.name || '2ºA');
+    const b1 = useGenericLabels ? 'Grupo B - 1º Classificado' : (standings?.B?.[0]?.name || '1ºB');
+    const b2 = useGenericLabels ? 'Grupo B - 2º Classificado' : (standings?.B?.[1]?.name || '2ºB');
+    const c1 = useGenericLabels ? 'Grupo C - 1º Classificado' : (standings?.C?.[0]?.name || '1ºC');
+    const c2 = useGenericLabels ? 'Grupo C - 2º Classificado' : (standings?.C?.[1]?.name || '2ºC');
+    const d1 = useGenericLabels ? 'Grupo D - 1º Classificado' : (standings?.D?.[0]?.name || '1ºD');
+    const d2 = useGenericLabels ? 'Grupo D - 2º Classificado' : (standings?.D?.[1]?.name || '2ºD');
 
     // Get winners from quarter-finals (ronda 6) - pass explicit names
     const w1 = getEliminationMatchWinner(6, 1, a1, b2) || 'Vencedor 1';
@@ -2367,8 +2368,8 @@ function buildPlayoffScheduleEntriesUncached() {
     return entries;
 }
 
-function buildPlayoffScheduleEntries() {
-    return buildPlayoffScheduleEntriesUncached();
+function buildPlayoffScheduleEntries(useGenericLabels = false) {
+    return buildPlayoffScheduleEntriesUncached(useGenericLabels);
 }
 
 function getRoundLabel(ronda) {
@@ -2425,8 +2426,8 @@ function bindRoundDatesEditorEvents() {
     });
 }
 
-function buildEliminationClassificationHtml(ronda) {
-    const games = buildPlayoffScheduleEntries().filter(g => g.ronda === ronda);
+function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
+    const games = buildPlayoffScheduleEntries(useGenericLabels).filter(g => g.ronda === ronda);
     const grouped = new Map();
 
     games.forEach(game => {
@@ -2597,11 +2598,11 @@ function buildEliminationClassificationHtml(ronda) {
     return html;
 }
 
-function buildEliminationBlockHtml() {
+function buildEliminationBlockHtml(useGenericLabels = false) {
     return `
-        ${buildEliminationClassificationHtml(6)}
-        ${buildEliminationClassificationHtml(7)}
-        ${buildEliminationClassificationHtml(8)}
+        ${buildEliminationClassificationHtml(6, useGenericLabels)}
+        ${buildEliminationClassificationHtml(7, useGenericLabels)}
+        ${buildEliminationClassificationHtml(8, useGenericLabels)}
     `;
 }
 
@@ -2696,19 +2697,9 @@ function renderClassificacao(ronda) {
 
     const rondaNum = parseInt(ronda, 10);
     if (ronda !== 'total' && !isNaN(rondaNum) && rondaNum >= 6) {
-        // Validação: Sem login (não-admin), precisa ter todos os resultados da fase de grupos preenchidos
-        if (!can('classification_manage') && !isGroupStageFullyScored()) {
-            document.getElementById('classificacaoContainer').innerHTML = `
-                <div style="padding: 2rem; text-align: center; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; margin: 1rem 0;">
-                    <strong style="color: #856404;">⚠️ Fase de Grupos Incompleta</strong>
-                    <p style="color: #856404; margin-top: 0.5rem;">
-                        Deve preencher todos os resultados da Fase de Grupos para poder visualizar a Fase a Eliminar.
-                    </p>
-                </div>
-            `;
-            return;
-        }
-        document.getElementById('classificacaoContainer').innerHTML = buildEliminationClassificationHtml(rondaNum);
+        // Para não-admin sem todos os resultados da fase de grupos, mostrar com labels genéricos
+        const useGenericLabels = !can('classification_manage') && !isGroupStageFullyScored();
+        document.getElementById('classificacaoContainer').innerHTML = buildEliminationClassificationHtml(rondaNum, useGenericLabels);
 
         if (can('classification_manage')) {
             document.querySelectorAll('.btn-result').forEach(btn => {
@@ -2921,7 +2912,8 @@ function renderClassificacao(ronda) {
     });
     
     if (ronda === 'total') {
-        html += buildEliminationBlockHtml();
+        const useGenericLabels = !can('classification_manage') && !isGroupStageFullyScored();
+        html += buildEliminationBlockHtml(useGenericLabels);
     }
 
     document.getElementById('classificacaoContainer').innerHTML = html;
