@@ -1653,6 +1653,7 @@ function renderStrokeTable(strokes, higherPar, teamAName, teamBName) {
 }
 
 function printStrokeTable() {
+    console.log('printStrokeTable called, lastCalculationType:', lastCalculationType);
     const table = document.querySelector('#strokeTable');
     if (!table) { showToast('Tabela não encontrada.', 'error'); return; }
 
@@ -1692,6 +1693,8 @@ function printStrokeTable() {
     
     // Criar uma nova janela
     const printWindow = window.open('', '', 'width=1000,height=600');
+    
+    console.log('Print window header:', { roundText, groupText, parText });
     
     // Escrever o conteúdo HTML para impressão
     printWindow.document.write(`
