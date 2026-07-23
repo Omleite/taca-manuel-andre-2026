@@ -2373,10 +2373,10 @@ function buildPlayoffScheduleEntries(useGenericLabels = false) {
 }
 
 function abbreviateGroupLabel(label) {
-    // Se for um rótulo genérico tipo "Grupo A - 1º Classificado", abreviar para "A-1º"
+    // Se for um rótulo genérico tipo "Grupo A - 1º Classificado", abreviar para "Grupo A-1º"
     const match = label.match(/Grupo\s+([A-D])\s*-\s*([12])º\s*Classificado/i);
     if (match) {
-        return `${match[1]}-${match[2]}º`;
+        return `Grupo ${match[1]}-${match[2]}º`;
     }
     // Caso contrário, retornar como está (é um nome real de equipa)
     return label;
@@ -2522,7 +2522,7 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
 
         html += `
             <div class="card elim-match-card${hasAnyResult ? ' jogo-done' : ''}">
-                <h4 class="elim-match-title">Match ${matchNo}: ${esc(home)} vs ${esc(away)}</h4>
+                <h4 class="elim-match-title">Match ${matchNo}: ${esc(abbreviateGroupLabel(home))} vs ${esc(abbreviateGroupLabel(away))}</h4>
                 <div class="jogo-teams elim-match-summary">
                     ${homeLabel}
                     ${scoreDisplay}
