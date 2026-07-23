@@ -16,6 +16,24 @@ const EMERGENCY_ADMIN_PASSWORD = 'estela2026';
 const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 6];
 
 // ════════════════════════════════════════════════════════════
+//  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
+// ════════════════════════════════════════════════════════════
+const APP_VERSION = '105';
+const STORED_VERSION_KEY = 'tma-2026-app-version';
+const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
+
+if (storedVersion !== APP_VERSION) {
+    // Versão mudou - limpar todo o localStorage
+    localStorage.clear();
+    sessionStorage.clear();
+    localStorage.setItem(STORED_VERSION_KEY, APP_VERSION);
+    console.log(`App atualizada: v${storedVersion || 'inicial'} → v${APP_VERSION}. Cache limpa.`);
+} else {
+    // Versão igual - apenas garantir que a versão está armazenada
+    localStorage.setItem(STORED_VERSION_KEY, APP_VERSION);
+}
+
+// ════════════════════════════════════════════════════════════
 //  CÁLCULO DE HCP DE JOGO (fórmula WHS oficial)
 // ════════════════════════════════════════════════════════════
 //  HCP Jogo = round(WHS × SR/113 + (CR − Par))  — capped a 36
