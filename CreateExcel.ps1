@@ -139,7 +139,7 @@ foreach ($m in $json.calendar) {
 $shXml += '  </sheetData>' + "`r`n"
 $shXml += "  <dataValidations count=`"2`">`r`n"
 $shXml += "    <dataValidation type=`"list`" allowBlank=`"1`" sqref=`"F2:F${lastDataRow}`"><formula1>`"Vence A,Vence B,A/S`"</formula1></dataValidation>`r`n"
-$shXml += "    <dataValidation type=`"list`" allowBlank=`"1`" sqref=`"G2:G${lastDataRow}`"><formula1>`"1&amp;0,1&amp;1,1&amp;2,1&amp;3,2&amp;0,2&amp;1,2&amp;2,2&amp;3,3&amp;0,3&amp;1,3&amp;2,3&amp;3`"</formula1></dataValidation>`r`n"
+$shXml += "    <dataValidation type=`"list`" allowBlank=`"1`" sqref=`"G2:G${lastDataRow}`"><formula1>`"0,1&amp;0,2&amp;1,3&amp;1,3&amp;2,4&amp;2,4&amp;3,5&amp;3,5&amp;4,6&amp;4,6&amp;5,7&amp;5,7&amp;6,8&amp;6,8&amp;7,9&amp;7,9&amp;8,10&amp;8`"</formula1></dataValidation>`r`n"
 $shXml += "  </dataValidations>`r`n"
 $shXml += '</worksheet>'
 [System.IO.File]::WriteAllText("$workDir\xl\worksheets\sheet1.xml", $shXml, [System.Text.Encoding]::UTF8)
