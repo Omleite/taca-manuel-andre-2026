@@ -2522,7 +2522,7 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
 
         html += `
             <div class="card elim-match-card${hasAnyResult ? ' jogo-done' : ''}">
-                <h4 class="elim-match-title">Match ${matchNo}: ${esc(homeDisplayName)} vs ${esc(awayDisplayName)}</h4>
+                <h4 class="elim-match-title">Match ${matchNo}: ${esc(home)} vs ${esc(away)}</h4>
                 <div class="jogo-teams elim-match-summary">
                     ${homeLabel}
                     ${scoreDisplay}
