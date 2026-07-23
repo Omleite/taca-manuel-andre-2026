@@ -18,7 +18,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '111';
+const APP_VERSION = '112';
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -2125,11 +2125,23 @@ function loadGameResults() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY + '-results');
         if (raw) state.gameResults = JSON.parse(raw);
+        
+        // Migrar resultados antigos para novo formato com matchId
+        state.gameResults.forEach((r, idx) => {
+            if (!r.matchId) {
+                r.matchId = `${r.ronda}-${r.par}-${idx}`;
+            }
+        });
+        saveGameResults();
     } catch (e) { console.error('loadGameResults:', e); }
 }
 
 function getGameResult(ronda, par, home, away) {
     return state.gameResults.find(r => r.ronda === ronda && r.par === par && r.home === home && r.away === away);
+}
+
+function getGameResultByMatchId(matchId) {
+    return state.gameResults.find(r => r.matchId === matchId);
 }
 
 function setGameResult(ronda, par, home, away, result) {
@@ -2144,7 +2156,8 @@ function setGameResult(ronda, par, home, away, result) {
             existing.score = null;
         }
     } else {
-        state.gameResults.push({ ronda, par, home, away, result });
+        const matchId = `${ronda}-${par}-${state.gameResults.length}`;
+        state.gameResults.push({ matchId, ronda, par, home, away, result });
     }
     saveGameResults();
     return true;
@@ -2156,7 +2169,8 @@ function setParScore(ronda, par, home, away, score) {
     if (existing) {
         existing.score = score;
     } else {
-        state.gameResults.push({ ronda, par, home, away, result: null, score });
+        const matchId = `${ronda}-${par}-${state.gameResults.length}`;
+        state.gameResults.push({ matchId, ronda, par, home, away, result: null, score });
     }
     saveGameResults();
     return true;
@@ -2182,7 +2196,7 @@ function saveAllPendingScores() {
 }
 
 // ════════════════════════════════════════════════════════════
-//  IMPORTAÇÃO DE RESULTADOS A PARTIR DE CSV
+//  IMPORTAÇÃO DE RESULTADOS A PARTIR DE CSV (SEGURO COM MATCH IDs)
 // ════════════════════════════════════════════════════════════
 
 function importGameResultsFromCSV(file) {
@@ -2204,15 +2218,12 @@ function importGameResultsFromCSV(file) {
 
             // Parse header
             const header = lines[0].split(',').map(h => h.trim().toLowerCase());
-            const rondaIdx = header.indexOf('ronda');
-            const parIdx = header.indexOf('par');
-            const homeIdx = header.indexOf('home');
-            const awayIdx = header.indexOf('away');
+            const matchIdIdx = header.indexOf('matchid');
             const resultIdx = header.indexOf('result');
             const scoreIdx = header.indexOf('score');
 
-            if (rondaIdx === -1 || parIdx === -1 || homeIdx === -1 || awayIdx === -1) {
-                showToast('CSV não tem as colunas obrigatórias: ronda, par, home, away', 'error');
+            if (matchIdIdx === -1) {
+                showToast('CSV não tem a coluna obrigatória: matchId', 'error');
                 return;
             }
 
@@ -2221,30 +2232,33 @@ function importGameResultsFromCSV(file) {
             // Parse linhas de dados
             for (let i = 1; i < lines.length; i++) {
                 const parts = parseCSVLine(lines[i]);
-                if (parts.length < 4) continue;
+                if (parts.length < 1) continue;
 
                 try {
-                    const ronda = parseInt(parts[rondaIdx], 10);
-                    const par = parseInt(parts[parIdx], 10);
-                    const home = parts[homeIdx].trim();
-                    const away = parts[awayIdx].trim();
+                    const matchId = parts[matchIdIdx].trim();
                     const result = resultIdx !== -1 ? parts[resultIdx].trim() : '';
                     const score = scoreIdx !== -1 ? parts[scoreIdx].trim() : '';
 
-                    // Validar
-                    if (isNaN(ronda) || isNaN(par) || !home || !away) {
+                    if (!matchId) {
                         errors++;
                         continue;
                     }
 
-                    // Atualizar resultado
-                    if (result) {
-                        setGameResult(ronda, par, home, away, result);
+                    // Procurar o match pelo ID
+                    const gameResult = getGameResultByMatchId(matchId);
+                    if (!gameResult) {
+                        console.warn(`Match ${matchId} não encontrado (linha ${i + 1})`);
+                        errors++;
+                        continue;
                     }
 
-                    // Atualizar score X&Y
+                    // Atualizar APENAS result e score, nunca os dados do match
+                    if (result) {
+                        gameResult.result = result;
+                    }
+
                     if (score) {
-                        setParScore(ronda, par, home, away, score);
+                        gameResult.score = score;
                     }
 
                     imported++;
@@ -2253,6 +2267,8 @@ function importGameResultsFromCSV(file) {
                     errors++;
                 }
             }
+
+            saveGameResults();
 
             const msg = errors > 0 
                 ? `✓ Importados ${imported} resultados (${errors} erros)`
