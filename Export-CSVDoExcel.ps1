@@ -127,9 +127,9 @@ foreach ($row in $rows) {
         }
     }
     
-    # Validate score
+    # Validate score (allows: 0, X&Y)
     if (-not [string]::IsNullOrWhiteSpace($score)) {
-        if ($score -notmatch '^\d+&\d+$') {
+        if ($score -notmatch '^(0|\d+&\d+)$') {
             Write-Host "AVISO Linha $rAttr : Score invalido '$score' - pulado" -ForegroundColor Yellow
             continue
         }
