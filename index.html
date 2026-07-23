@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=107">
+    <link rel="stylesheet" href="style.css?v=111">
 </head>
 <body>
 
@@ -520,6 +520,15 @@
             </div>
             <input type="file" id="importFile" accept=".json" class="hidden">
         </div>
+
+        <div class="card admin-only hidden">
+            <h3>Importar Resultados (CSV)</h3>
+            <p class="config-desc">Carregue um ficheiro CSV com os resultados dos jogos para atualizar a base de dados automaticamente.</p>
+            <div class="form-footer">
+                <button class="btn btn-primary" id="btnImportResults">📤 Carregar CSV de Resultados</button>
+            </div>
+            <input type="file" id="importResultsFile" accept=".csv" class="hidden">
+        </div>
     </section>
 
     <!-- ===== CALENDÁRIO ===== -->
@@ -615,6 +624,6 @@
     </div>
 </footer>
 
-<script src="app.js?v=110"></script>
+<script src="app.js?v=111"></script>
 </body>
 </html>
