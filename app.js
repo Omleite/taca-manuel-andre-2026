@@ -18,7 +18,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '112';
+const APP_VERSION = '113';
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -2129,7 +2129,7 @@ function loadGameResults() {
         // Migrar resultados antigos para novo formato com matchId
         state.gameResults.forEach((r, idx) => {
             if (!r.matchId) {
-                r.matchId = `${r.ronda}-${r.par}-${idx}`;
+                r.matchId = `R${r.ronda}-${r.par}-${idx}`;
             }
         });
         saveGameResults();
@@ -2156,7 +2156,7 @@ function setGameResult(ronda, par, home, away, result) {
             existing.score = null;
         }
     } else {
-        const matchId = `${ronda}-${par}-${state.gameResults.length}`;
+        const matchId = `R${ronda}-${par}-${state.gameResults.length}`;
         state.gameResults.push({ matchId, ronda, par, home, away, result });
     }
     saveGameResults();
@@ -2169,7 +2169,7 @@ function setParScore(ronda, par, home, away, score) {
     if (existing) {
         existing.score = score;
     } else {
-        const matchId = `${ronda}-${par}-${state.gameResults.length}`;
+        const matchId = `R${ronda}-${par}-${state.gameResults.length}`;
         state.gameResults.push({ matchId, ronda, par, home, away, result: null, score });
     }
     saveGameResults();
