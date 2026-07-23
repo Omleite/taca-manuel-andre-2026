@@ -3450,8 +3450,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ensureDefaultAdmin() removed - using fixed admin credentials
 
     initTabs();
-    // Renderizar classificação na página inicial (tab por defeito)
-    renderClassificacao('total');
+    // Abrir no calendário por defeito
+    const tabCalendario = document.querySelector('.tab-btn[data-tab="calendario"]');
+    if (tabCalendario) tabCalendario.click();
 
     // Menu burger
     const burger   = document.getElementById('navBurger');
