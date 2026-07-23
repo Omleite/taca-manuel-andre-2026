@@ -7,7 +7,7 @@ Este arquivo contém **todos os matches** com um ID único para cada um:
 
 | Coluna | Descrição | Exemplo |
 |--------|-----------|---------|
-| `matchId` | **ID único do match** (formato: ronda-par-sequência) | `1-1-0`, `1-2-1`, `2-1-12` |
+| `matchId` | **ID único do match** (formato: R + ronda-par-sequência) | `R1-1-0`, `R1-2-1`, `R2-1-12` |
 | `home` | Nome da equipa de casa *(referência visual, não editável)* | `Os 4 no Buraco` |
 | `away` | Nome da equipa visitante *(referência visual, não editável)* | `Estela Birdies` |
 | `result` | **[EDITÁVEL]** Resultado do match | `Vence A`, `Vence B`, `A/S` |
