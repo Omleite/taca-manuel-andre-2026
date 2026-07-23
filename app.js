@@ -2121,6 +2121,10 @@ function setGameResult(ronda, par, home, away, result) {
     const existing = getGameResult(ronda, par, home, away);
     if (existing) {
         existing.result = result;
+        // Quando limpar resultado (result = null), também limpar o score X&Y
+        if (result === null) {
+            existing.score = null;
+        }
     } else {
         state.gameResults.push({ ronda, par, home, away, result });
     }
@@ -2674,6 +2678,18 @@ function renderClassificacao(ronda) {
 
     const rondaNum = parseInt(ronda, 10);
     if (ronda !== 'total' && !isNaN(rondaNum) && rondaNum >= 6) {
+        // Validação: Sem login (não-admin), precisa ter todos os resultados da fase de grupos preenchidos
+        if (!can('classification_manage') && !isGroupStageFullyScored()) {
+            document.getElementById('classificacaoContainer').innerHTML = `
+                <div style="padding: 2rem; text-align: center; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; margin: 1rem 0;">
+                    <strong style="color: #856404;">⚠️ Fase de Grupos Incompleta</strong>
+                    <p style="color: #856404; margin-top: 0.5rem;">
+                        Deve preencher todos os resultados da Fase de Grupos para poder visualizar a Fase a Eliminar.
+                    </p>
+                </div>
+            `;
+            return;
+        }
         document.getElementById('classificacaoContainer').innerHTML = buildEliminationClassificationHtml(rondaNum);
 
         if (can('classification_manage')) {
