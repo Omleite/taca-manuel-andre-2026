@@ -2372,6 +2372,16 @@ function buildPlayoffScheduleEntries(useGenericLabels = false) {
     return buildPlayoffScheduleEntriesUncached(useGenericLabels);
 }
 
+function abbreviateGroupLabel(label) {
+    // Se for um rótulo genérico tipo "Grupo A - 1º Classificado", abreviar para "A-1º"
+    const match = label.match(/Grupo\s+([A-D])\s*-\s*([12])º\s*Classificado/i);
+    if (match) {
+        return `${match[1]}-${match[2]}º`;
+    }
+    // Caso contrário, retornar como está (é um nome real de equipa)
+    return label;
+}
+
 function getRoundLabel(ronda) {
     if (ronda === 6) return 'Quartos de Final';
     if (ronda === 7) return 'Meias-finais';
@@ -2494,12 +2504,16 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
         const homeWinClass = hasAnyResult ? (homeWins > awayWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
         const awayWinClass = hasAnyResult ? (awayWins > homeWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
         
+        // Abreviar nomes das equipas se forem rótulos genéricos
+        const homeDisplayName = abbreviateGroupLabel(home);
+        const awayDisplayName = abbreviateGroupLabel(away);
+        
         const homeLabel = homeTeam
-            ? `<span class="team-home${homeWinClass}">${esc(home)}</span>`
-            : `<span class="team-home${homeWinClass}">${esc(home)}</span>`;
+            ? `<span class="team-home${homeWinClass}">${esc(homeDisplayName)}</span>`
+            : `<span class="team-home${homeWinClass}">${esc(homeDisplayName)}</span>`;
         const awayLabel = awayTeam
-            ? `<span class="team-away${awayWinClass}">${esc(away)}</span>`
-            : `<span class="team-away${awayWinClass}">${esc(away)}</span>`;
+            ? `<span class="team-away${awayWinClass}">${esc(awayDisplayName)}</span>`
+            : `<span class="team-away${awayWinClass}">${esc(awayDisplayName)}</span>`;
         
         const nextRoundLabel = getRoundLabel(ronda + 1);
         
@@ -2508,7 +2522,7 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
 
         html += `
             <div class="card elim-match-card${hasAnyResult ? ' jogo-done' : ''}">
-                <h4 class="elim-match-title">Match ${matchNo}: ${esc(home)} vs ${esc(away)}</h4>
+                <h4 class="elim-match-title">Match ${matchNo}: ${esc(homeDisplayName)} vs ${esc(awayDisplayName)}</h4>
                 <div class="jogo-teams elim-match-summary">
                     ${homeLabel}
                     ${scoreDisplay}
@@ -2521,15 +2535,20 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
             const result = getGameResult(game.ronda, game.par, game.home, game.away);
             const homeTeamObj = state.teams.find(t => t.name === game.home);
             const awayTeamObj = state.teams.find(t => t.name === game.away);
+            
+            // Abreviar nomes se forem rótulos genéricos
+            const homeDisplayName = abbreviateGroupLabel(game.home);
+            const awayDisplayName = abbreviateGroupLabel(game.away);
+            
             const homeLbl = homeTeamObj
-                ? `<button type="button" class="class-team-link" data-team-id="${homeTeamObj.id}">${esc(game.home)}</button>`
-                : esc(game.home);
+                ? `<button type="button" class="class-team-link" data-team-id="${homeTeamObj.id}">${esc(homeDisplayName)}</button>`
+                : esc(homeDisplayName);
             const awayLbl = awayTeamObj
-                ? `<button type="button" class="class-team-link" data-team-id="${awayTeamObj.id}">${esc(game.away)}</button>`
-                : esc(game.away);
+                ? `<button type="button" class="class-team-link" data-team-id="${awayTeamObj.id}">${esc(awayDisplayName)}</button>`
+                : esc(awayDisplayName);
             const winnerName = !result || !result.result ? '' :
-                result.result === 'home' ? game.home :
-                result.result === 'away' ? game.away : '';
+                result.result === 'home' ? abbreviateGroupLabel(game.home) :
+                result.result === 'away' ? abbreviateGroupLabel(game.away) : '';
             html += `
                 <div class="game-result-row${canManageClassification ? '' : ' game-result-row-readonly'}">
                     <span class="team-name result-par-label">Par ${game.par}</span>
