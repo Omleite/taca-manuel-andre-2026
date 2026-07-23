@@ -82,7 +82,7 @@ $sheetData = $xml.SelectSingleNode("//main:sheetData", $ns)
 $rows = $sheetData.SelectNodes("main:row", $ns)
 
 $csvLines = @()
-$csvLines += '"matchId","ronda","par","casa","fora","resultado","score"'
+$csvLines += '"matchId","result","score"'
 
 $imported = 0
 $skipped = 0
@@ -96,14 +96,10 @@ foreach ($row in $rows) {
     $cells = $row.SelectNodes("main:c", $ns)
     
     $matchId = ""
-    $ronda = ""
-    $par = ""
-    $casa = ""
-    $fora = ""
     $resultado = ""
     $score = ""
     
-    # Extract cell values by column (A=1, B=2, ... F=6, G=7)
+    # Extract cell values by column (A=matchId, F=resultado, G=score)
     foreach ($cell in $cells) {
         $ref = $cell.GetAttribute("r")
         $col = $ref -replace '\d+', ''  # Extract column letters
@@ -112,10 +108,6 @@ foreach ($row in $rows) {
         
         switch ($col) {
             "A" { $matchId = $cellValue }
-            "B" { $ronda = $cellValue }
-            "C" { $par = $cellValue }
-            "D" { $casa = $cellValue }
-            "E" { $fora = $cellValue }
             "F" { $resultado = $cellValue }
             "G" { $score = $cellValue }
         }
@@ -143,8 +135,8 @@ foreach ($row in $rows) {
         }
     }
     
-    # Add to CSV
-    $csvLines += "`"$matchId`",`"$ronda`",`"$par`",`"$casa`",`"$fora`",`"$resultado`",`"$score`""
+    # Add to CSV (only matchId, result, score)
+    $csvLines += "`"$matchId`",`"$resultado`",`"$score`""
     $imported++
 }
 
