@@ -1,5 +1,5 @@
-# Gera um ficheiro Excel formatado com validação para importação de resultados
-# Taça Manuel André 2026 - Estela Golf Club
+# Gera um ficheiro Excel formatado com validacao para importacao de resultados
+# Taca Manuel Andre 2026 - Estela Golf Club
 
 $ErrorActionPreference = 'Stop'
 
@@ -11,7 +11,7 @@ $excel = New-Object -ComObject Excel.Application
 $excel.Visible = $false
 $wb = $excel.Workbooks.Add()
 $ws = $wb.Sheets(1)
-$ws.Name = "Resultados"
+$ws.Name = "Calendario"
 
 # Estilos
 $headerRange = $ws.Range("A1:G1")
@@ -24,7 +24,7 @@ $headerRange.HorizontalAlignment = -4108  # Centro
 $headerRange.VerticalAlignment = -4108
 
 # Cabeçalhos
-$headers = @("matchId", "Ronda", "Par", "Equipa Casa", "Equipa Fora", "Resultado", "Score (X&Y)")
+$headers = @("matchId", "Ronda", "Par", "Equipa Casa", "Equipa Fora", "Resultado", "Score (X`&Y)")
 for ($i = 0; $i -lt $headers.Count; $i++) {
     $ws.Cells(1, $i + 1) = $headers[$i]
 }
@@ -105,55 +105,28 @@ foreach ($match in $json.calendar) {
     $idx++
 }
 
+# Adicionar bordas a TODAS as celulas da tabela
+$allCells = $ws.Range("A1:G$($row - 1)")
+$allCells.Borders.LineStyle = 1  # xlContinuous
+$allCells.Borders.Weight = 2     # xlThin
+
 # Congelar primeira linha
 $ws.Application.ActiveWindow.SplitRow = 1
 $ws.Application.ActiveWindow.FreezePanes = $true
 
-# Adicionar sheet com instruções
-$instr = $wb.Sheets.Add()
-$instr.Name = "Instruções"
+# Guardar ficheiro Excel
+$wbPath = "$(Get-Location)\Calendario_Resultados_IMPORT.xlsx"
+$wb.SaveAs($wbPath, 51)  # 51 = xlOpenXMLWorkbook
 
-$instructions = @(
-    "TACA MANUEL ANDRE 2026 - IMPORTACAO DE RESULTADOS"
-    ""
-    "[INFO] Preenchimento:"
-    "1. Preencha APENAS as colunas 'Resultado' e 'Score (X&Y)'"
-    "2. As outras colunas sao de REFERENCIA (nao edite)"
-    ""
-    "[INFO] Valores validos para Resultado:"
-    "   - Vence A (Equipa de casa vence)"
-    "   - Vence B (Equipa visitante vence)"
-    "   - A/S (Empate - All Square)"
-    ""
-    "[INFO] Formato para Score:"
-    "   - X&Y onde X=pontos casa, Y=pontos fora"
-    "   - Exemplos: 2&1, 1&0, 3&2"
-    ""
-    "[INFO] Como exportar para CSV:"
-    "   1. Preencha os resultados e scores"
-    "   2. Guarde o ficheiro Excel"
-    "   3. Execute: Export-CSVDoExcel.ps1 (script incluido)"
-    "   4. Importe na app (Admin - Configuracoes)"
-)
-
-$irow = 1
-foreach ($line in $instructions) {
-    $instr.Cells($irow, 1) = $line
-    if ($line -like "*[INFO]*" -or $line -like "TACA*") {
-        $instr.Cells($irow, 1).Font.Bold = $true
-        $instr.Cells($irow, 1).Font.Color = 0x1F4E78
-    }
-    $instr.Cells($irow, 1).Font.Name = "Montserrat"
-    $instr.Columns(1).ColumnWidth = 80
-    $irow++
-}
-
-# Guardar
-$wb.SaveAs("$(Get-Location)\Calendario_Resultados_IMPORT.xlsx")
 $excel.Quit()
-
 [System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) | Out-Null
 [GC]::Collect()
 
-Write-Host "Ficheiro Excel criado: Calendario_Resultados_IMPORT.xlsx" -ForegroundColor Green
+Write-Host "`n=== Excel Structure Created ===" -ForegroundColor Green
+Write-Host "Ficheiro: Calendario_Resultados_IMPORT.xlsx" -ForegroundColor Green
 Write-Host "Total de matches: $($json.calendar.Count)" -ForegroundColor Green
+Write-Host "Ficheiros criados:" -ForegroundColor Yellow
+Write-Host "  - Calendario_Resultados_IMPORT.xlsx (structure)" -ForegroundColor White
+Write-Host "" -ForegroundColor White
+Write-Host "Proximo passo: Executar Add-Validation.py para adicionar dropdowns" -ForegroundColor Cyan
+Write-Host "  python Add-Validation.py" -ForegroundColor Cyan
