@@ -3471,8 +3471,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Auto-refresh quando a página volta ao foco (mobile background)
+    let appInitialized = false;
+    setTimeout(() => { appInitialized = true; }, 1000);
     document.addEventListener('visibilitychange', async () => {
-        if (document.visibilityState === 'visible') {
+        if (document.visibilityState === 'visible' && appInitialized) {
             await loadDataBackup();
             const activeBtn = document.querySelector('.tab-btn.active');
             if (activeBtn) activeBtn.click();
