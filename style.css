@@ -830,6 +830,17 @@ body {
     grid-template-columns: minmax(320px, 480px);
 }
 
+/* Destaque da ronda em curso */
+.ronda-block.ronda-highlight {
+    box-shadow: 0 0 15px 2px rgba(255, 193, 7, 0.6) !important;
+    border-left: 4px solid #ffc107 !important;
+    transition: all 0.3s ease;
+    background: #fffef5 !important;
+}
+.ronda-block.ronda-highlight .ronda-header {
+    background: #1a4a2e !important;
+}
+
 @media (max-width: 900px) {
     .ronda-block-semi .grupos-grid,
     .ronda-block-final .grupos-grid {
