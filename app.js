@@ -18,7 +18,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '114';
+const APP_VERSION = '115';
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -3452,7 +3452,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     initTabs();
     // Abrir no calendário por defeito
     const tabCalendario = document.querySelector('.tab-btn[data-tab="calendario"]');
-    if (tabCalendario) tabCalendario.click();
+    console.log('tabCalendario:', tabCalendario);
+    if (tabCalendario) {
+        console.log('✓ Clicando no calendário');
+        tabCalendario.click();
+    } else {
+        console.error('✗ Tab calendário não encontrada!');
+    }
 
     // Menu burger
     const burger   = document.getElementById('navBurger');
