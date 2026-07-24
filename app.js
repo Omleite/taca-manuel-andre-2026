@@ -18,7 +18,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '201'; // EQUIPAS ORDENADAS ALFABETICAMENTE
+const APP_VERSION = '202'; // CORRIGIR NAVEGAÇÃO DE TABS - PARAR FORÇAMENTO DO CALENDÁRIO AO CLICAR
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -1002,6 +1002,8 @@ function showToast(msg, type = 'success') {
 //  NAVEGAÇÃO POR SEPARADORES
 // ════════════════════════════════════════════════════════════
 
+let forceCalendarioInterval = null; // Referência global ao setInterval
+
 function initTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1010,6 +1012,14 @@ function initTabs() {
                 showToast('Sem permissões para aceder a este separador.', 'error');
                 return;
             }
+            
+            // Se o utilizador clica num tab diferente de Calendário, parar o forçamento
+            if (target !== 'calendario' && forceCalendarioInterval) {
+                clearInterval(forceCalendarioInterval);
+                forceCalendarioInterval = null;
+                console.log('🛑 Utilizador mudou de tab - parando forçamento do Calendário');
+            }
+            
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             btn.classList.add('active');
@@ -3566,7 +3576,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Abrir no calendário por defeito - força agressiva
     let scrollCalled = false;
-    const forceCalendarioActive = setInterval(() => {
+    forceCalendarioInterval = setInterval(() => {
         const tabCalendario = document.querySelector('.tab-btn[data-tab="calendario"]');
         const tabPane = document.getElementById('tab-calendario');
         
@@ -3597,10 +3607,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }, 50); // Verificar a cada 50ms
     
-    // Parar de forçar após 4 segundos
+    // Parar de forçar após 4 segundos (ou quando utilizador mudar de tab)
     setTimeout(() => {
-        clearInterval(forceCalendarioActive);
-        console.log('✓ Calendário locked');
+        if (forceCalendarioInterval) {
+            clearInterval(forceCalendarioInterval);
+            forceCalendarioInterval = null;
+            console.log('✓ Calendário locked');
+        }
     }, 4000);
 
     // Menu burger
