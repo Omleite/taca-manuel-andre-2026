@@ -18,18 +18,28 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '115';
+const APP_VERSION = '116';
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
 if (storedVersion !== APP_VERSION) {
-    // Versão mudou - limpar todo o localStorage
-    localStorage.clear();
+    // Versão mudou - limpar TODO o localStorage (inclusive sessionStorage)
+    const keysToPreserve = [STORED_VERSION_KEY]; // Chaves importantes que queremos manter
+    const keysToDelete = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!keysToPreserve.includes(key)) {
+            keysToDelete.push(key);
+        }
+    }
+    keysToDelete.forEach(key => localStorage.removeItem(key));
     sessionStorage.clear();
     localStorage.setItem(STORED_VERSION_KEY, APP_VERSION);
     console.log(`App atualizada: v${storedVersion || 'inicial'} → v${APP_VERSION}. Cache limpa.`);
 } else {
-    // Versão igual - apenas garantir que a versão está armazenada
+    // Versão igual - limpar localStorage de tabs para garantir que abre no calendário
+    localStorage.removeItem('activeTab');
+    localStorage.removeItem('currentTab');
     localStorage.setItem(STORED_VERSION_KEY, APP_VERSION);
 }
 
@@ -3451,22 +3461,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initTabs();
     
-    // Abrir no calendário por defeito - com delay para garantir que renderiza
+    // Abrir no calendário por defeito - com delay maior para garantir que renderiza
     setTimeout(() => {
         const tabCalendario = document.querySelector('.tab-btn[data-tab="calendario"]');
         if (tabCalendario) {
-            console.log('✓ Clicando no calendário após renderização');
-            tabCalendario.click();
-            // Forçar que fique ativo (remove outros ativos)
+            // Remover todas as classes ativas primeiro
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            
+            // Depois clicar no calendário
+            tabCalendario.click();
+            
+            // Forçar novamente para ter a certeza (race condition guard)
             tabCalendario.classList.add('active');
             const tabPane = document.getElementById('tab-calendario');
             if (tabPane) {
-                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
                 tabPane.classList.add('active');
             }
+            console.log('✓ Tab calendário ativada');
+        } else {
+            console.error('✗ Tab calendário não encontrada!');
         }
-    }, 100);
+    }, 250); // Aumentado para 250ms
 
     // Menu burger
     const burger   = document.getElementById('navBurger');
