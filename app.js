@@ -3423,48 +3423,99 @@ function getCurrentRound() {
     // Encontra a primeira ronda cuja data limite ainda não foi ultrapassada
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    
+    console.log(`📅 Today: ${todayStr}`);
     
     for (const ronda of [1, 2, 3, 4, 5, 6, 7, 8]) {
         const dateStr = state.roundDates[ronda] || DEFAULT_RONDA_DATES[ronda];
-        if (!dateStr) continue;
+        if (!dateStr) {
+            console.log(`⚠️ Ronda ${ronda}: sem data`);
+            continue;
+        }
         
-        const [year, month, day] = dateStr.split('-');
-        const deadlineDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        // Comparação de strings YYYY-MM-DD (funciona por comparação lexicográfica)
+        const isPassed = dateStr < todayStr; // Data passou = menor que hoje
+        console.log(`Ronda ${ronda}: ${dateStr} ${isPassed ? '❌ PASSOU' : '✅ futura/hoje'}`);
         
-        // Se a data limite ainda não passou, esta é a ronda em curso
-        if (deadlineDate >= today) {
+        if (!isPassed) {
+            console.log(`🎯 Ronda em curso: ${ronda}`);
             return ronda;
         }
     }
     
     // Se todas as datas passaram, retorna a última ronda
+    console.log('⚠️ Todas as datas passaram, usando ronda 8');
     return 8;
 }
 
 function scrollToRound(ronda) {
     // Scroll para a ronda especificada
+    console.log(`🔍 Procurando ronda ${ronda}...`);
+    
     setTimeout(() => {
         const rondaBlocks = document.querySelectorAll('.ronda-block');
-        let targetBlock = null;
+        console.log(`Found ${rondaBlocks.length} ronda blocks`);
         
-        rondaBlocks.forEach(block => {
-            const text = block.querySelector('.ronda-num')?.textContent || '';
-            // Corresponde a "Ronda X" ou "Quartos de Final" etc
-            if (text.includes(`Ronda ${ronda}`) || 
-                (ronda === 6 && text.includes('Quartos')) ||
-                (ronda === 7 && text.includes('Meias')) ||
-                (ronda === 8 && text.includes('Final'))) {
-                if (!targetBlock) targetBlock = block;
+        let targetBlock = null;
+        let foundCount = 0;
+        
+        rondaBlocks.forEach((block, idx) => {
+            const rondaNum = block.querySelector('.ronda-num');
+            if (!rondaNum) return;
+            
+            const text = rondaNum.textContent || '';
+            console.log(`  Block ${idx}: "${text.substring(0, 30)}"`);
+            
+            // Procura por "Ronda X"
+            if (text.includes(`Ronda ${ronda}`)) {
+                foundCount++;
+                if (!targetBlock) {
+                    targetBlock = block;
+                    console.log(`✅ Match found: Ronda ${ronda}`);
+                }
+            }
+            // Para rondas de eliminação (6, 7, 8)
+            else if (ronda === 6 && text.includes('Quartos')) {
+                foundCount++;
+                if (!targetBlock) {
+                    targetBlock = block;
+                    console.log(`✅ Match found: Quartos de Final`);
+                }
+            }
+            else if (ronda === 7 && text.includes('Meias')) {
+                foundCount++;
+                if (!targetBlock) {
+                    targetBlock = block;
+                    console.log(`✅ Match found: Meias-Final`);
+                }
+            }
+            else if (ronda === 8 && text.includes('Final')) {
+                foundCount++;
+                if (!targetBlock) {
+                    targetBlock = block;
+                    console.log(`✅ Match found: Final`);
+                }
             }
         });
         
+        console.log(`Found ${foundCount} potential matches, target: ${targetBlock ? 'YES' : 'NO'}`);
+        
         if (targetBlock) {
+            console.log('📜 Scrolling...');
             targetBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
             // Adicionar destaque visual temporário
+            console.log('✨ Adding highlight...');
             targetBlock.classList.add('ronda-highlight');
-            setTimeout(() => targetBlock.classList.remove('ronda-highlight'), 3000);
+            setTimeout(() => {
+                targetBlock.classList.remove('ronda-highlight');
+                console.log('✨ Highlight removed');
+            }, 3000);
+        } else {
+            console.error(`❌ Ronda ${ronda} não encontrada!`);
         }
-    }, 100);
+    }, 150);
 }
 
 function addCalendarMatch() {
@@ -3514,6 +3565,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initTabs();
     
     // Abrir no calendário por defeito - força agressiva
+    let scrollCalled = false;
     const forceCalendarioActive = setInterval(() => {
         const tabCalendario = document.querySelector('.tab-btn[data-tab="calendario"]');
         const tabPane = document.getElementById('tab-calendario');
@@ -3531,21 +3583,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Disparar evento para renderizar
             const event = new Event('click');
             tabCalendario.dispatchEvent(event);
+            console.log('📅 Calendário renderizado, aguardando DOM...');
+        } else if (!scrollCalled) {
+            // Calendário está ativo e renderizado, fazer scroll para ronda em curso
+            console.log('📅 Calendário está pronto, processando ronda em curso...');
+            scrollCalled = true;
             
-            // NOVO: Após renderizar, scroll para ronda em curso
             setTimeout(() => {
                 const currentRound = getCurrentRound();
+                console.log(`📅 getCurrentRound retornou: ${currentRound}`);
                 scrollToRound(currentRound);
-                console.log(`📅 Ronda em curso: ${currentRound}`);
-            }, 200);
+            }, 300);
         }
     }, 50); // Verificar a cada 50ms
     
-    // Parar de forçar após 3 segundos
+    // Parar de forçar após 4 segundos
     setTimeout(() => {
         clearInterval(forceCalendarioActive);
         console.log('✓ Calendário locked');
-    }, 3000);
+    }, 4000);
 
     // Menu burger
     const burger   = document.getElementById('navBurger');
