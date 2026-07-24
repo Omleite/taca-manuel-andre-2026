@@ -3460,6 +3460,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     burger.addEventListener('click', () => navLinks.classList.toggle('open'));
     navLinks.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => navLinks.classList.remove('open')));
 
+    // Botão refresh manual
+    document.getElementById('btnRefresh').addEventListener('click', async () => {
+        const btn = document.getElementById('btnRefresh');
+        btn.classList.add('spinning');
+        await loadDataBackup();
+        const activeBtn = document.querySelector('.tab-btn.active');
+        if (activeBtn) activeBtn.click();
+        btn.classList.remove('spinning');
+    });
+
+    // Auto-refresh quando a página volta ao foco (mobile background)
+    document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+            await loadDataBackup();
+            const activeBtn = document.querySelector('.tab-btn.active');
+            if (activeBtn) activeBtn.click();
+        }
+    });
+
     // Auth
     document.getElementById('btnOpenLogin').addEventListener('click', openLoginModal);
     document.getElementById('btnCloseLogin').addEventListener('click', closeLoginModal);
