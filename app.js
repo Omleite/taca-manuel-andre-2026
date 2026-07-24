@@ -18,7 +18,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '200'; // FORÇA LIMPEZA AGRESSIVA
+const APP_VERSION = '201'; // EQUIPAS ORDENADAS ALFABETICAMENTE
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -1170,16 +1170,7 @@ function renderTeams() {
         </div>`;
         return;
     }
-    const sortedTeams = [...state.teams].sort((a, b) => {
-        const playersA = (a.playerIds || []).map(pid => getPlayer(pid)).filter(Boolean);
-        const playersB = (b.playerIds || []).map(pid => getPlayer(pid)).filter(Boolean);
-
-        const avgA = playersA.length ? playersA.reduce((sum, p) => sum + Number(p.handicap || 0), 0) / playersA.length : Number.POSITIVE_INFINITY;
-        const avgB = playersB.length ? playersB.reduce((sum, p) => sum + Number(p.handicap || 0), 0) / playersB.length : Number.POSITIVE_INFINITY;
-
-        if (avgA !== avgB) return avgA - avgB;
-        return a.name.localeCompare(b.name, 'pt');
-    });
+    const sortedTeams = [...state.teams].sort((a, b) => a.name.localeCompare(b.name, 'pt'));
 
     el.innerHTML = sortedTeams.map(t => {
         const allPlayers = (t.playerIds || []).map(pid => getPlayer(pid)).filter(Boolean);
