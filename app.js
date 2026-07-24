@@ -18,7 +18,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '117';
+const APP_VERSION = '118';
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -3415,6 +3415,58 @@ function updateAddMatchDropdowns() {
     awayEl.innerHTML = opts;
 }
 
+// ════════════════════════════════════════════════════════════
+//  RONDA EM CURSO
+// ════════════════════════════════════════════════════════════
+
+function getCurrentRound() {
+    // Encontra a primeira ronda cuja data limite ainda não foi ultrapassada
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    for (const ronda of [1, 2, 3, 4, 5, 6, 7, 8]) {
+        const dateStr = state.roundDates[ronda] || DEFAULT_RONDA_DATES[ronda];
+        if (!dateStr) continue;
+        
+        const [year, month, day] = dateStr.split('-');
+        const deadlineDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        
+        // Se a data limite ainda não passou, esta é a ronda em curso
+        if (deadlineDate >= today) {
+            return ronda;
+        }
+    }
+    
+    // Se todas as datas passaram, retorna a última ronda
+    return 8;
+}
+
+function scrollToRound(ronda) {
+    // Scroll para a ronda especificada
+    setTimeout(() => {
+        const rondaBlocks = document.querySelectorAll('.ronda-block');
+        let targetBlock = null;
+        
+        rondaBlocks.forEach(block => {
+            const text = block.querySelector('.ronda-num')?.textContent || '';
+            // Corresponde a "Ronda X" ou "Quartos de Final" etc
+            if (text.includes(`Ronda ${ronda}`) || 
+                (ronda === 6 && text.includes('Quartos')) ||
+                (ronda === 7 && text.includes('Meias')) ||
+                (ronda === 8 && text.includes('Final'))) {
+                if (!targetBlock) targetBlock = block;
+            }
+        });
+        
+        if (targetBlock) {
+            targetBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Adicionar destaque visual temporário
+            targetBlock.classList.add('ronda-highlight');
+            setTimeout(() => targetBlock.classList.remove('ronda-highlight'), 3000);
+        }
+    }, 100);
+}
+
 function addCalendarMatch() {
     if (!can('calendar_manage')) return;
     const ronda = parseInt(document.getElementById('addMatchRonda').value, 10);
@@ -3479,6 +3531,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Disparar evento para renderizar
             const event = new Event('click');
             tabCalendario.dispatchEvent(event);
+            
+            // NOVO: Após renderizar, scroll para ronda em curso
+            setTimeout(() => {
+                const currentRound = getCurrentRound();
+                scrollToRound(currentRound);
+                console.log(`📅 Ronda em curso: ${currentRound}`);
+            }, 200);
         }
     }, 50); // Verificar a cada 50ms
     
