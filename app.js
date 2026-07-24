@@ -3467,12 +3467,21 @@ function scrollToRound(ronda) {
             const text = rondaNum.textContent || '';
             console.log(`  Block ${idx}: "${text.substring(0, 30)}"`);
             
-            // Procura por "Ronda X"
-            if (text.includes(`Ronda ${ronda}`)) {
-                foundCount++;
-                if (!targetBlock) {
-                    targetBlock = block;
-                    console.log(`✅ Match found: Ronda ${ronda}`);
+            // Para rondas 1-5: texto é "1ª Ronda", "2ª Ronda", etc.
+            if (ronda >= 1 && ronda <= 5) {
+                // Procura por número (com á opcional) + "Ronda"
+                const patterns = [
+                    `${ronda}ª Ronda`,  // Ex: "2ª Ronda"
+                    `${ronda}ª Ronda`,   // Alternativa com acento diferente
+                    `${ronda}a Ronda`,   // Sem acento
+                    `${ronda} Ronda`     // Sem nada
+                ];
+                if (patterns.some(p => text.includes(p))) {
+                    foundCount++;
+                    if (!targetBlock) {
+                        targetBlock = block;
+                        console.log(`✅ Match found: Ronda ${ronda}`);
+                    }
                 }
             }
             // Para rondas de eliminação (6, 7, 8)
@@ -3483,14 +3492,14 @@ function scrollToRound(ronda) {
                     console.log(`✅ Match found: Quartos de Final`);
                 }
             }
-            else if (ronda === 7 && text.includes('Meias')) {
+            else if (ronda === 7 && (text.includes('Meias') || text.includes('meias'))) {
                 foundCount++;
                 if (!targetBlock) {
                     targetBlock = block;
                     console.log(`✅ Match found: Meias-Final`);
                 }
             }
-            else if (ronda === 8 && text.includes('Final')) {
+            else if (ronda === 8 && text.includes('Final') && !text.includes('Quartos')) {
                 foundCount++;
                 if (!targetBlock) {
                     targetBlock = block;
