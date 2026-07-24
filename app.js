@@ -18,7 +18,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '204'; // SCROLL RONDA - COM OFFSET PARA NÃO TAPAR CABEÇALHO
+const APP_VERSION = '204'; // SCROLL COM OFFSET - NÃO COBRE O ELEMENTO COM HEADER
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -3513,13 +3513,11 @@ function scrollToRound(ronda) {
         
         if (targetBlock) {
             console.log('📜 Scrolling...');
-            // Fazer scroll com offset para não cobrir o cabeçalho
-            const headerHeight = 64; // altura do .site-nav
-            const blockTop = targetBlock.getBoundingClientRect().top + window.scrollY;
-            const offset = blockTop - headerHeight - 20; // -20 pixels de margem extra
-            
+            // Scroll com offset para não tapar o elemento com o header (64px) + espaço
+            const headerHeight = 64;
+            const elementPosition = targetBlock.getBoundingClientRect().top + window.scrollY;
             window.scrollTo({
-                top: offset,
+                top: elementPosition - headerHeight - 20,
                 behavior: 'smooth'
             });
             
