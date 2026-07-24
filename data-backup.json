@@ -603,6 +603,18 @@
                 ],
     "teams":  [
                   {
+                      "id":  "team017",
+                      "name":  "Birdies e Boggies",
+                      "grupo":  "C",
+                      "playerIds":  [
+                                        "mrpcd3x1ec8gr",
+                                        "mrpcd3x1g2pqk",
+                                        "mrpcd3x1i6r9b",
+                                        "mrpcd3x1l8nep"
+                                    ],
+                      "captainId":  "mrpcd3x1ec8gr"
+                  },
+                  {
                       "id":  "team001",
                       "name":  "CGGG",
                       "grupo":  "A",
@@ -615,28 +627,28 @@
                       "captainId":  "mrpcd3x1pn305"
                   },
                   {
-                      "id":  "team002",
-                      "name":  "Os Craques",
-                      "grupo":  "A",
+                      "id":  "team009",
+                      "name":  "EMJC",
+                      "grupo":  "B",
                       "playerIds":  [
-                                        "mrpcd3x1efzv0",
-                                        "mrpcd3x1l481y",
-                                        "mrpcd3x18281c",
-                                        "mrpcd3x1cjcgn"
+                                        "mrpcd3x1f5kxc",
+                                        "mrpcd3x1m5e7w",
+                                        "mrpcd3x1oxz3p",
+                                        "mrpcd3x1hc60d"
                                     ],
-                      "captainId":  "mrpcd3x1efzv0"
+                      "captainId":  "mrpcd3x1hc60d"
                   },
                   {
-                      "id":  "team003",
-                      "name":  "Os Golfinhos",
-                      "grupo":  "C",
+                      "id":  "team011",
+                      "name":  "Equipa Eleven",
+                      "grupo":  "B",
                       "playerIds":  [
-                                        "mrpcd3x180mbt",
-                                        "mrpcd3x1eky1j",
-                                        "mrpcd3x1m7cke",
-                                        "mrpcd3x180cuf"
+                                        "mrpcd3x1e5v5s",
+                                        "mrpcd3x1lkt0z",
+                                        "mrpcd3x1biqia",
+                                        "mrpcd3x1qfh0m"
                                     ],
-                      "captainId":  "mrpcd3x180mbt"
+                      "captainId":  "mrpcd3x1biqia"
                   },
                   {
                       "id":  "team004",
@@ -649,18 +661,6 @@
                                         "mrpcd3x1im42z"
                                     ],
                       "captainId":  "mrpcd3x1h2cl0"
-                  },
-                  {
-                      "id":  "team005",
-                      "name":  "Piratas",
-                      "grupo":  "C",
-                      "playerIds":  [
-                                        "mrpcd3x1m77y6",
-                                        "mrpcd3x1hjgrw",
-                                        "mrpcd3x1b5bqt",
-                                        "mrpcd3x154b2v"
-                                    ],
-                      "captainId":  "mrpcd3x154b2v"
                   },
                   {
                       "id":  "team006",
@@ -687,6 +687,18 @@
                       "captainId":  "mrpcd3x18z73s"
                   },
                   {
+                      "id":  "mrqto89whovdg",
+                      "name":  "Jacaré",
+                      "playerIds":  [
+                                        "mrqtlvqo8pawb",
+                                        "mrqtmsrzooood",
+                                        "mrqtmeey6jrrt",
+                                        "mrqtl1gb1gx7r"
+                                    ],
+                      "captainId":  "mrqtlvqo8pawb",
+                      "grupo":  "C"
+                  },
+                  {
                       "id":  "team008",
                       "name":  "Masters",
                       "grupo":  "C",
@@ -697,78 +709,6 @@
                                         "mrpcd3x1jbuvx"
                                     ],
                       "captainId":  "mrpcd3x1n5jzv"
-                  },
-                  {
-                      "id":  "team009",
-                      "name":  "EMJC",
-                      "grupo":  "B",
-                      "playerIds":  [
-                                        "mrpcd3x1f5kxc",
-                                        "mrpcd3x1m5e7w",
-                                        "mrpcd3x1oxz3p",
-                                        "mrpcd3x1hc60d"
-                                    ],
-                      "captainId":  "mrpcd3x1hc60d"
-                  },
-                  {
-                      "id":  "team010",
-                      "name":  "Red Hot Chilli Putters",
-                      "grupo":  "B",
-                      "playerIds":  [
-                                        "mrpcd3x1qg7hm",
-                                        "mrpcd3x1k5alz",
-                                        "mrpcd3x1gfgn3",
-                                        "mrpcd3x1bgfio"
-                                    ],
-                      "captainId":  "mrpcd3x1qg7hm"
-                  },
-                  {
-                      "id":  "team011",
-                      "name":  "Equipa Eleven",
-                      "grupo":  "B",
-                      "playerIds":  [
-                                        "mrpcd3x1e5v5s",
-                                        "mrpcd3x1lkt0z",
-                                        "mrpcd3x1biqia",
-                                        "mrpcd3x1qfh0m"
-                                    ],
-                      "captainId":  "mrpcd3x1biqia"
-                  },
-                  {
-                      "id":  "team012",
-                      "name":  "School",
-                      "grupo":  "D",
-                      "playerIds":  [
-                                        "mrpcd3x1g8qqk",
-                                        "mrpcd3x1ov9aj",
-                                        "mrpcd3x1jj0fn",
-                                        "mrpcd3x1f4iyw"
-                                    ],
-                      "captainId":  "mrpcd3x1g8qqk"
-                  },
-                  {
-                      "id":  "team013",
-                      "name":  "Os 4 no Buraco",
-                      "grupo":  "A",
-                      "playerIds":  [
-                                        "mrpcd3x1mpz3q",
-                                        "mrpcd3x1i3gvh",
-                                        "mrqtbdhsnvidl",
-                                        "mrpcd3x1nf4dl"
-                                    ],
-                      "captainId":  "mrpcd3x1mpz3q"
-                  },
-                  {
-                      "id":  "team014",
-                      "name":  "Old Fashion Team",
-                      "grupo":  "D",
-                      "playerIds":  [
-                                        "mrpcd3x1j7r8q",
-                                        "mrpcd3x1rkq71",
-                                        "mrpcd3x1c5qyz",
-                                        "mrpcd3x1qe0d1"
-                                    ],
-                      "captainId":  "mrpcd3x1j7r8q"
                   },
                   {
                       "id":  "team015",
@@ -783,6 +723,54 @@
                       "captainId":  "mrpcd3x1mhpgw"
                   },
                   {
+                      "id":  "team014",
+                      "name":  "Old Fashion Team",
+                      "grupo":  "D",
+                      "playerIds":  [
+                                        "mrpcd3x1j7r8q",
+                                        "mrpcd3x1rkq71",
+                                        "mrpcd3x1c5qyz",
+                                        "mrpcd3x1qe0d1"
+                                    ],
+                      "captainId":  "mrpcd3x1j7r8q"
+                  },
+                  {
+                      "id":  "team013",
+                      "name":  "Os 4 no Buraco",
+                      "grupo":  "A",
+                      "playerIds":  [
+                                        "mrpcd3x1mpz3q",
+                                        "mrpcd3x1i3gvh",
+                                        "mrqtbdhsnvidl",
+                                        "mrpcd3x1nf4dl"
+                                    ],
+                      "captainId":  "mrpcd3x1mpz3q"
+                  },
+                  {
+                      "id":  "team002",
+                      "name":  "Os Craques",
+                      "grupo":  "A",
+                      "playerIds":  [
+                                        "mrpcd3x1efzv0",
+                                        "mrpcd3x1l481y",
+                                        "mrpcd3x18281c",
+                                        "mrpcd3x1cjcgn"
+                                    ],
+                      "captainId":  "mrpcd3x1efzv0"
+                  },
+                  {
+                      "id":  "team003",
+                      "name":  "Os Golfinhos",
+                      "grupo":  "C",
+                      "playerIds":  [
+                                        "mrpcd3x180mbt",
+                                        "mrpcd3x1eky1j",
+                                        "mrpcd3x1m7cke",
+                                        "mrpcd3x180cuf"
+                                    ],
+                      "captainId":  "mrpcd3x180mbt"
+                  },
+                  {
                       "id":  "team016",
                       "name":  "Os Últimos",
                       "grupo":  "A",
@@ -795,16 +783,40 @@
                       "captainId":  "mrpcd3x1p2keb"
                   },
                   {
-                      "id":  "team017",
-                      "name":  "Birdies e Boggies",
+                      "id":  "team005",
+                      "name":  "Piratas",
                       "grupo":  "C",
                       "playerIds":  [
-                                        "mrpcd3x1ec8gr",
-                                        "mrpcd3x1g2pqk",
-                                        "mrpcd3x1i6r9b",
-                                        "mrpcd3x1l8nep"
+                                        "mrpcd3x1m77y6",
+                                        "mrpcd3x1hjgrw",
+                                        "mrpcd3x1b5bqt",
+                                        "mrpcd3x154b2v"
                                     ],
-                      "captainId":  "mrpcd3x1ec8gr"
+                      "captainId":  "mrpcd3x154b2v"
+                  },
+                  {
+                      "id":  "team010",
+                      "name":  "Red Hot Chilli Putters",
+                      "grupo":  "B",
+                      "playerIds":  [
+                                        "mrpcd3x1qg7hm",
+                                        "mrpcd3x1k5alz",
+                                        "mrpcd3x1gfgn3",
+                                        "mrpcd3x1bgfio"
+                                    ],
+                      "captainId":  "mrpcd3x1qg7hm"
+                  },
+                  {
+                      "id":  "team012",
+                      "name":  "School",
+                      "grupo":  "D",
+                      "playerIds":  [
+                                        "mrpcd3x1g8qqk",
+                                        "mrpcd3x1ov9aj",
+                                        "mrpcd3x1jj0fn",
+                                        "mrpcd3x1f4iyw"
+                                    ],
+                      "captainId":  "mrpcd3x1g8qqk"
                   },
                   {
                       "id":  "team018",
@@ -817,18 +829,6 @@
                                         "mrpcd3x1pzxcn"
                                     ],
                       "captainId":  "mrpcd3x1qvhya"
-                  },
-                  {
-                      "id":  "mrqto89whovdg",
-                      "name":  "Jacaré",
-                      "playerIds":  [
-                                        "mrqtlvqo8pawb",
-                                        "mrqtmsrzooood",
-                                        "mrqtmeey6jrrt",
-                                        "mrqtl1gb1gx7r"
-                                    ],
-                      "captainId":  "mrqtlvqo8pawb",
-                      "grupo":  "C"
                   }
               ],
     "gameResults":  [
