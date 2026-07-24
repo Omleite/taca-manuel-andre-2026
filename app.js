@@ -3450,15 +3450,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ensureDefaultAdmin() removed - using fixed admin credentials
 
     initTabs();
-    // Abrir no calendário por defeito
-    const tabCalendario = document.querySelector('.tab-btn[data-tab="calendario"]');
-    console.log('tabCalendario:', tabCalendario);
-    if (tabCalendario) {
-        console.log('✓ Clicando no calendário');
-        tabCalendario.click();
-    } else {
-        console.error('✗ Tab calendário não encontrada!');
-    }
+    
+    // Abrir no calendário por defeito - com delay para garantir que renderiza
+    setTimeout(() => {
+        const tabCalendario = document.querySelector('.tab-btn[data-tab="calendario"]');
+        if (tabCalendario) {
+            console.log('✓ Clicando no calendário após renderização');
+            tabCalendario.click();
+            // Forçar que fique ativo (remove outros ativos)
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            tabCalendario.classList.add('active');
+            const tabPane = document.getElementById('tab-calendario');
+            if (tabPane) {
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                tabPane.classList.add('active');
+            }
+        }
+    }, 100);
 
     // Menu burger
     const burger   = document.getElementById('navBurger');
