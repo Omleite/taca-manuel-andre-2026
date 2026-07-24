@@ -18,7 +18,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '116';
+const APP_VERSION = '117';
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -3461,28 +3461,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     initTabs();
     
-    // Abrir no calendário por defeito - com delay maior para garantir que renderiza
-    setTimeout(() => {
+    // Abrir no calendário por defeito - força agressiva
+    const forceCalendarioActive = setInterval(() => {
         const tabCalendario = document.querySelector('.tab-btn[data-tab="calendario"]');
-        if (tabCalendario) {
-            // Remover todas as classes ativas primeiro
+        const tabPane = document.getElementById('tab-calendario');
+        
+        if (!tabCalendario || !tabPane) return;
+        
+        // Se não está ativo, forçar
+        if (!tabCalendario.classList.contains('active') || !tabPane.classList.contains('active')) {
+            console.log('🔄 Re-ativando calendário...');
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-            
-            // Depois clicar no calendário
-            tabCalendario.click();
-            
-            // Forçar novamente para ter a certeza (race condition guard)
             tabCalendario.classList.add('active');
-            const tabPane = document.getElementById('tab-calendario');
-            if (tabPane) {
-                tabPane.classList.add('active');
-            }
-            console.log('✓ Tab calendário ativada');
-        } else {
-            console.error('✗ Tab calendário não encontrada!');
+            tabPane.classList.add('active');
+            
+            // Disparar evento para renderizar
+            const event = new Event('click');
+            tabCalendario.dispatchEvent(event);
         }
-    }, 250); // Aumentado para 250ms
+    }, 50); // Verificar a cada 50ms
+    
+    // Parar de forçar após 3 segundos
+    setTimeout(() => {
+        clearInterval(forceCalendarioActive);
+        console.log('✓ Calendário locked');
+    }, 3000);
 
     // Menu burger
     const burger   = document.getElementById('navBurger');
