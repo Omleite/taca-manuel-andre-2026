@@ -18,7 +18,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '202'; // CORRIGIR NAVEGAÇÃO DE TABS - PARAR FORÇAMENTO DO CALENDÁRIO AO CLICAR
+const APP_VERSION = '203'; // SCROLL PARA RONDA - CENTRADO E NÃO ESCONDE HEADER
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -3513,7 +3513,7 @@ function scrollToRound(ronda) {
         
         if (targetBlock) {
             console.log('📜 Scrolling...');
-            targetBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            targetBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
             // Adicionar destaque visual temporário
             console.log('✨ Adding highlight...');
