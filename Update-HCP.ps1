@@ -43,19 +43,20 @@ function Get-GameHandicap([double]$whs, [string]$genero) {
     return [Math]::Min($ph, 36)
 }
 
-# ── Encontrar pdftotext (Poppler) ───────────────────────────
-function Find-Pdftotext {
+# ── Encontrar ou instalar pdftotext (Poppler) ───────────────
+function Find-Or-Install-Pdftotext {
     # 1. Tentar diretamente no PATH
     $cmd = Get-Command pdftotext -ErrorAction SilentlyContinue
     if ($cmd) { return $cmd.Source }
 
-    # 2. Procurar em locais comuns de instalação (winget, chocolatey, manual)
+    # 2. Procurar em locais comuns
     $searchPaths = @(
         "$env:ProgramFiles\poppler*\Library\bin\pdftotext.exe",
         "$env:ProgramFiles\poppler*\bin\pdftotext.exe",
-        "$env:ProgramFiles (x86)\poppler*\bin\pdftotext.exe",
+        "$env:ProgramFiles (x86)\poppler*\bin\pdftotext.exe",        "$env:LOCALAPPDATA\poppler\*\Library\bin\pdftotext.exe",
+        "$env:LOCALAPPDATA\poppler\*\bin\pdftotext.exe",        "$env:LOCALAPPDATA\poppler*\bin\pdftotext.exe",
+        "$env:LOCALAPPDATA\poppler*\Library\bin\pdftotext.exe",
         "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\*oppler*\*\bin\pdftotext.exe",
-        "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\*oppler*\*\Library\bin\pdftotext.exe",
         "C:\tools\poppler*\Library\bin\pdftotext.exe",
         "C:\ProgramData\chocolatey\lib\poppler*\tools\pdftotext.exe"
     )
@@ -67,33 +68,113 @@ function Find-Pdftotext {
             return $found.FullName
         }
     }
-    return $null
+
+    # 3. Descarregar Poppler do GitHub automaticamente
+    Write-Host "  pdftotext nao encontrado. A descarregar Poppler do GitHub..." -ForegroundColor Yellow
+    try {
+        $rel  = Invoke-RestMethod 'https://api.github.com/repos/oschwartz10612/poppler-windows/releases/latest' -TimeoutSec 15
+        $asset = $rel.assets | Where-Object { $_.name -like '*.zip' } | Select-Object -First 1
+        if (-not $asset) { throw "ZIP nao encontrado na release" }
+
+        $zipPath  = "$env:TEMP\poppler-windows.zip"
+        $destPath = "$env:LOCALAPPDATA\poppler"
+
+        Write-Host "  A descarregar $($asset.name) ($([Math]::Round($asset.size/1MB,1)) MB)..." -ForegroundColor Yellow
+        Invoke-WebRequest $asset.browser_download_url -OutFile $zipPath -UseBasicParsing
+
+        Write-Host "  A extrair..." -ForegroundColor Yellow
+        if (Test-Path $destPath) { Remove-Item $destPath -Recurse -Force }
+        Expand-Archive $zipPath $destPath -Force
+        Remove-Item $zipPath -ErrorAction SilentlyContinue
+
+        $exe = Get-ChildItem $destPath -Recurse -Filter 'pdftotext.exe' | Select-Object -First 1
+        if ($exe) {
+            $env:PATH += ";$($exe.DirectoryName)"
+            Write-Host "  Poppler instalado com sucesso: $($exe.FullName)" -ForegroundColor Green
+            return $exe.FullName
+        }
+        throw "pdftotext.exe nao encontrado apos extracao"
+    } catch {
+        Write-Warning "Falha ao instalar Poppler automaticamente: $_"
+        Write-Warning "Instale manualmente em: https://github.com/oschwartz10612/poppler-windows/releases"
+        return $null
+    }
 }
 
 # ── Extrair texto de PDF sem ferramentas externas (fallback) ─
-# Funciona para PDFs de texto simples (ex: DataGolf)
+# Funciona para PDFs de texto simples gerados por ferramentas como DataGolf
 function Extract-TextFromPdf($pdfPath) {
-    $bytes  = [System.IO.File]::ReadAllBytes($pdfPath)
-    $latin1 = [System.Text.Encoding]::Latin1.GetString($bytes)
+    try {
+        $bytes  = [System.IO.File]::ReadAllBytes($pdfPath)
+        $latin1 = [System.Text.Encoding]::GetEncoding('iso-8859-1').GetString($bytes)
+        $parts  = [System.Collections.Generic.List[string]]::new()
 
-    # Recolher strings entre parênteses dos operadores Tj/TJ (blocos de texto PDF)
-    $tokens = [System.Text.RegularExpressions.Regex]::Matches(
-        $latin1, '\(([^\)\\]{1,120})\)\s*(?:Tj|TJ)')
-    $parts = $tokens | ForEach-Object { $_.Groups[1].Value.Trim() } | Where-Object { $_ -ne '' }
-
-    # Agrupar tokens em linhas — uma nova linha a cada token que começa com dígitos (NFederado)
-    $lines = @()
-    $cur   = @()
-    foreach ($p in $parts) {
-        if ($p -match '^\d{2,6}$' -and $cur.Count -gt 0) {
-            $lines += $cur -join ' '
-            $cur = @($p)
-        } else {
-            $cur += $p
+        # Debug: identificar o formato de texto usado no PDF
+        $tjIdx  = $latin1.IndexOf(' Tj')
+        $tjIdx2 = $latin1.IndexOf(' TJ')
+        $hexIdx = [regex]::Match($latin1, '<[0-9A-Fa-f]{8,}>\s*Tj').Index
+        $ctx = ''
+        if ($tjIdx -gt 50) {
+            $ctx = $latin1.Substring([Math]::Max(0,$tjIdx-80), 120) -replace '[^\x20-\x7E]','.'
+            Write-Host "  Debug PDF (Tj): $ctx" -ForegroundColor DarkGray
+        } elseif ($hexIdx -lt $latin1.Length -and $hexIdx -gt 0) {
+            Write-Host "  Debug: PDF usa texto em hex (UTF-16)" -ForegroundColor DarkGray
         }
+
+        # Método A: strings entre parenteses com operadores Tj (PDF simples)
+        $msA = [regex]::Matches($latin1, '\(([^\(\)]{1,200})\)\s*Tj')
+        foreach ($m in $msA) {
+            if ($m.Groups.Count -gt 1 -and $m.Groups[1].Success) {
+                $v = $m.Groups[1].Value.Trim()
+                if ($v -ne '') { $parts.Add($v) }
+            }
+        }
+
+        # Método B: arrays TJ como [(text1)(text2)] TJ
+        if ($parts.Count -lt 10) {
+            $msB = [regex]::Matches($latin1, '\[([^\[\]]{1,500})\]\s*TJ')
+            foreach ($m in $msB) {
+                if ($m.Groups.Count -gt 1 -and $m.Groups[1].Success) {
+                    $inner = $m.Groups[1].Value
+                    $subs  = [regex]::Matches($inner, '\(([^\(\)]{1,200})\)')
+                    foreach ($s in $subs) {
+                        if ($s.Groups.Count -gt 1 -and $s.Groups[1].Success) {
+                            $v = $s.Groups[1].Value.Trim()
+                            if ($v -ne '') { $parts.Add($v) }
+                        }
+                    }
+                }
+            }
+        }
+
+        # Método C: extração ampla de sequências ASCII legíveis (último recurso)
+        if ($parts.Count -lt 10) {
+            $msC = [regex]::Matches($latin1, '[\x20-\x7E\xC0-\xFF]{5,}')
+            foreach ($m in $msC) {
+                $v = $m.Value.Trim()
+                if ($v -ne '') { $parts.Add($v) }
+            }
+        }
+
+        # Reconstruir em linhas agrupadas por NFederado (número de 2-6 dígitos)
+        $lines = [System.Collections.Generic.List[string]]::new()
+        $cur   = [System.Collections.Generic.List[string]]::new()
+        foreach ($p in $parts) {
+            if ($p -match '^\d{2,6}$' -and $cur.Count -gt 0) {
+                $lines.Add(($cur -join ' '))
+                $cur.Clear()
+                $cur.Add($p)
+            } else {
+                $cur.Add($p)
+            }
+        }
+        if ($cur.Count -gt 0) { $lines.Add(($cur -join ' ')) }
+        return $lines.ToArray()
+
+    } catch {
+        Write-Warning "Erro na extracao nativa do PDF: $_"
+        return @()
     }
-    if ($cur.Count -gt 0) { $lines += $cur -join ' ' }
-    return $lines
 }
 
 
@@ -106,7 +187,7 @@ $ext = [System.IO.Path]::GetExtension($hcpPath).ToLower()
 
 if ($ext -eq '.pdf') {
     # ── Extrair texto do PDF ──────────────────────────────────
-    $pdftotextPath = Find-Pdftotext
+    $pdftotextPath = Find-Or-Install-Pdftotext
     $lines = @()
 
     if ($pdftotextPath) {
@@ -118,18 +199,23 @@ if ($ext -eq '.pdf') {
         } finally {
             Remove-Item $tmpTxt -ErrorAction SilentlyContinue
         }
-        Write-Host "  Extracao via pdftotext." -ForegroundColor DarkGray
+        Write-Host "  Extracao via pdftotext ($($lines.Count) linhas)." -ForegroundColor DarkGray
     } else {
-        # Método 2: extração direta do binário PDF (sem dependências)
-        Write-Host "  pdftotext nao encontrado. A usar extracao de texto nativa..." -ForegroundColor Yellow
+        # Método 2: fallback nativo (funciona apenas para PDFs com texto não cifrado)
+        Write-Host "  pdftotext indisponivel. A tentar extracao nativa (pode nao funcionar para PDFs com fontes personalizadas)..." -ForegroundColor Yellow
         $lines = Extract-TextFromPdf $hcpPath
         Write-Host "  Extracao nativa concluida ($($lines.Count) linhas)." -ForegroundColor DarkGray
+        if ($lines.Count -eq 0) {
+            Write-Error "Nao foi possivel extrair texto do PDF. O Poppler e necessario para este formato de PDF.`nDescarregue em: https://github.com/oschwartz10612/poppler-windows/releases"
+            exit 1
+        }
     }
 
-    # Formato DataGolf:
-    #  <NFederado> <Nome...> <HCP> <Est.HCP> <Sexo(M/F)> <Est.Fed.> <Escalão>
-    # Exemplo: "20363 Abilio Nascimento Ramos    16,0   Válido   M   Activo   Senior"
-    $pattern = '^\s*(\d+)\s+(.+?)\s+([\d,]+)\s+(?:Válido|Inválido|Suspenso)\s+(M|F)\s+(?:Activo|Inactivo)'
+    # Formato DataGolf (pdftotext -layout):
+    #  <NFederado>   <Nome...>   <HCP>   <Est.HCP>   <Sexo(M/F)>   <Est.Fed.>   <Escalão>
+    # Exemplo: "   20363    Abilio Nascimento Ramos    16,0    Válido    M    Activo    Senior"
+    # Nota: não usar palavras acentuadas no regex (evitar problemas de encoding)
+    $pattern = '^\s*(\d{2,6})\s{2,}(.+?)\s{2,}([\d]+[,.][\d]+|\d+[,.]0)\s+\S+\s+(M|F)\s'
 
     foreach ($line in $lines) {
         if ($line -match $pattern) {
