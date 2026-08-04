@@ -44,7 +44,7 @@ function Get-GameHandicap([double]$whs, [string]$genero) {
 }
 
 # ── Encontrar ou instalar pdftotext (Poppler) ───────────────
-function Find-Or-Install-Pdftotext {
+function Resolve-Pdftotext {
     # 1. Tentar diretamente no PATH
     $cmd = Get-Command pdftotext -ErrorAction SilentlyContinue
     if ($cmd) { return $cmd.Source }
@@ -187,7 +187,7 @@ $ext = [System.IO.Path]::GetExtension($hcpPath).ToLower()
 
 if ($ext -eq '.pdf') {
     # ── Extrair texto do PDF ──────────────────────────────────
-    $pdftotextPath = Find-Or-Install-Pdftotext
+    $pdftotextPath = Resolve-Pdftotext
     $lines = @()
 
     if ($pdftotextPath) {
