@@ -909,13 +909,15 @@ body {
 @media (max-width: 640px) {
     .grupos-grid { grid-template-columns: 1fr; }
 }
+
 @media (max-width: 480px) {
+}
+
+/* ── GESTÃO DE GRUPOS ──────────────────────────────────────── */
 .grupos-edit-container {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
 }
-
-.grupo-edit-card {
     background: var(--card-bg); border-radius: var(--r-lg); padding: 1.5rem;
     box-shadow: var(--sh-sm); border: 2px solid var(--border);
 }
