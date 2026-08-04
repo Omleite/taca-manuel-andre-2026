@@ -897,7 +897,8 @@ body {
     .hero-tribute-img { width: 30px; height: 30px; }
     .hero-tribute-name { font-size: .66rem; }
     .match-setup { grid-template-columns: 1fr; }
-    .vs-badge    { margin: .5rem auto; }
+    .teams-selection { grid-template-columns: 1fr; }
+    .vs-badge    { margin: .5rem auto; margin-top: .5rem; }
     .form-grid   { grid-template-columns: 1fr; }
     .si-grid     { grid-template-columns: repeat(5,1fr); }
     .players-grid, .teams-grid { grid-column: 1fr; }
