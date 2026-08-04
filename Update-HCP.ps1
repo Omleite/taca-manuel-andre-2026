@@ -5,9 +5,9 @@
 #  ou de um ficheiro TXT intermedio (NFederado | Nome | HCP)
 #
 #  Uso:
-#    .\Update-HCP.ps1 -HcpFile "Listagem Handicaps 20260804.pdf"
-#    .\Update-HCP.ps1 -HcpFile "HCP Atualizado 20260804.txt"
-#    .\Update-HCP.ps1 -HcpFile "..." -DryRun   (previa sem gravar)
+#    .\Update-HCP.ps1 -HcpFile "C:\Downloads\ListagemHandicapsEstelaAtual.pdf"
+#    .\Update-HCP.ps1 -HcpFile "C:\Downloads\ListagemHandicapsEstelaAtual.pdf" -DryRun
+#    .\Update-HCP.ps1 -HcpFile "HCP Atualizado 20260804.txt"   (formato TXT alternativo)
 #
 #  Requer pdftotext (Poppler) para leitura de PDF.
 #  Se nao estiver instalado, o script instala automaticamente via winget.
