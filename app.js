@@ -1703,7 +1703,9 @@ function renderResultSummaryVFinal(pA1, pA2, pB1, pB2, totalA, totalB, diff, str
             <span class="winner-val">+${strokes}</span>
         </div>
         <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} joga sem pancadas de abono</span><span>0</span></div>`;
-}(strokes, higherPar, teamAName, teamBName) {
+}
+
+function renderStrokeTable(strokes, higherPar, teamAName, teamBName) {
     // Criar um mapa de quantas pancadas cada buraco recebe
     const strokeMap = {};
     for (let i = 1; i <= 18; i++) strokeMap[i] = 0;
@@ -3793,7 +3795,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnCalculateVFinal = document.getElementById('btnCalculateVFinal');
     if (btnCalculateVFinal) {
         btnCalculateVFinal.addEventListener('click', calculateVFinal);
-    }
     }
     document.getElementById('btnPrintStroke').addEventListener('click', printStrokeTable);
 
