@@ -14,7 +14,7 @@ O script `Update-HCP.ps1` lê a **Listagem de Handicaps** exportada do DataGolf 
 1. Entrar no DataGolf → **Listagens** → **Listagem de Handicaps**
 2. Selecionar o clube **022 Estela**
 3. Exportar / imprimir em **PDF**
-4. Guardar o ficheiro (ex: `C:\Downloads\Listagem Handicaps 20260804.pdf`)
+4. Guardar o ficheiro em `C:\Downloads\ListagemHandicapsEstelaAtual.pdf`
 
 ---
 
@@ -24,13 +24,13 @@ Abrir o **PowerShell** na pasta do projeto e executar:
 
 ### Pré-visualização (sem gravar)
 ```powershell
-.\Update-HCP.ps1 -HcpFile "C:\Downloads\Listagem Handicaps 20260804.pdf" -DryRun
+.\Update-HCP.ps1 -HcpFile "C:\Downloads\ListagemHandicapsEstelaAtual.pdf" -DryRun
 ```
 Mostra todas as alterações que seriam feitas — **não altera nenhum ficheiro**.
 
 ### Aplicar as alterações
 ```powershell
-.\Update-HCP.ps1 -HcpFile "C:\Downloads\Listagem Handicaps 20260804.pdf"
+.\Update-HCP.ps1 -HcpFile "C:\Downloads\ListagemHandicapsEstelaAtual.pdf"
 ```
 
 > **Nota:** Na primeira execução com PDF, o script instala automaticamente o **Poppler** (via `winget`). Nas vezes seguintes já está disponível.
