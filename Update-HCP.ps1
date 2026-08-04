@@ -43,39 +43,59 @@ function Get-GameHandicap([double]$whs, [string]$genero) {
     return [Math]::Min($ph, 36)
 }
 
-# ── Garantir pdftotext disponivel ───────────────────────────
-function Ensure-Pdftotext {
-    if (Get-Command pdftotext -ErrorAction SilentlyContinue) { return }
-    Write-Host "  pdftotext nao encontrado. A instalar Poppler via winget..." -ForegroundColor Yellow
-    try {
-        winget install -e --id Poppler.Poppler --accept-source-agreements --accept-package-agreements | Out-Null
-        # Refreshar PATH da sessao
-        $env:PATH = [System.Environment]::GetEnvironmentVariable('PATH','Machine') + ';' +
-                    [System.Environment]::GetEnvironmentVariable('PATH','User')
-        if (-not (Get-Command pdftotext -ErrorAction SilentlyContinue)) {
-            # Tentar encontrar manualmente em locais comuns
-            $candidates = @(
-                "$env:ProgramFiles\Poppler\Library\bin\pdftotext.exe",
-                "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\*Poppler*\*\bin\pdftotext.exe"
-            )
-            foreach ($c in $candidates) {
-                $found = Get-Item $c -ErrorAction SilentlyContinue | Select-Object -First 1
-                if ($found) {
-                    $env:PATH += ";$($found.Directory.FullName)"
-                    break
-                }
-            }
+# ── Encontrar pdftotext (Poppler) ───────────────────────────
+function Find-Pdftotext {
+    # 1. Tentar diretamente no PATH
+    $cmd = Get-Command pdftotext -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+
+    # 2. Procurar em locais comuns de instalação (winget, chocolatey, manual)
+    $searchPaths = @(
+        "$env:ProgramFiles\poppler*\Library\bin\pdftotext.exe",
+        "$env:ProgramFiles\poppler*\bin\pdftotext.exe",
+        "$env:ProgramFiles (x86)\poppler*\bin\pdftotext.exe",
+        "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\*oppler*\*\bin\pdftotext.exe",
+        "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\*oppler*\*\Library\bin\pdftotext.exe",
+        "C:\tools\poppler*\Library\bin\pdftotext.exe",
+        "C:\ProgramData\chocolatey\lib\poppler*\tools\pdftotext.exe"
+    )
+    foreach ($pattern in $searchPaths) {
+        $found = Get-Item $pattern -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($found) {
+            $env:PATH += ";$($found.DirectoryName)"
+            Write-Host "  pdftotext encontrado em: $($found.FullName)" -ForegroundColor Green
+            return $found.FullName
         }
-        if (-not (Get-Command pdftotext -ErrorAction SilentlyContinue)) {
-            Write-Error "Nao foi possivel localizar pdftotext apos instalacao. Adicione a pasta do Poppler ao PATH e tente novamente."
-            exit 1
-        }
-        Write-Host "  Poppler instalado com sucesso." -ForegroundColor Green
-    } catch {
-        Write-Error "Falha ao instalar Poppler: $_`nInstale manualmente: https://github.com/oschwartz10612/poppler-windows/releases"
-        exit 1
     }
+    return $null
 }
+
+# ── Extrair texto de PDF sem ferramentas externas (fallback) ─
+# Funciona para PDFs de texto simples (ex: DataGolf)
+function Extract-TextFromPdf($pdfPath) {
+    $bytes  = [System.IO.File]::ReadAllBytes($pdfPath)
+    $latin1 = [System.Text.Encoding]::Latin1.GetString($bytes)
+
+    # Recolher strings entre parênteses dos operadores Tj/TJ (blocos de texto PDF)
+    $tokens = [System.Text.RegularExpressions.Regex]::Matches(
+        $latin1, '\(([^\)\\]{1,120})\)\s*(?:Tj|TJ)')
+    $parts = $tokens | ForEach-Object { $_.Groups[1].Value.Trim() } | Where-Object { $_ -ne '' }
+
+    # Agrupar tokens em linhas — uma nova linha a cada token que começa com dígitos (NFederado)
+    $lines = @()
+    $cur   = @()
+    foreach ($p in $parts) {
+        if ($p -match '^\d{2,6}$' -and $cur.Count -gt 0) {
+            $lines += $cur -join ' '
+            $cur = @($p)
+        } else {
+            $cur += $p
+        }
+    }
+    if ($cur.Count -gt 0) { $lines += $cur -join ' ' }
+    return $lines
+}
+
 
 # ── Ler ficheiro HCP (PDF ou TXT) ───────────────────────────
 Write-Host ""
@@ -85,14 +105,25 @@ $hcpMap = @{}   # numeroFederado -> @{ Nome; HcpWhs; Genero }
 $ext = [System.IO.Path]::GetExtension($hcpPath).ToLower()
 
 if ($ext -eq '.pdf') {
-    # ── Converter PDF para texto via pdftotext ────────────────
-    Ensure-Pdftotext
-    $tmpTxt = [System.IO.Path]::GetTempFileName()
-    try {
-        & pdftotext -layout "$hcpPath" "$tmpTxt" 2>$null
-        $lines = Get-Content $tmpTxt -Encoding UTF8
-    } finally {
-        Remove-Item $tmpTxt -ErrorAction SilentlyContinue
+    # ── Extrair texto do PDF ──────────────────────────────────
+    $pdftotextPath = Find-Pdftotext
+    $lines = @()
+
+    if ($pdftotextPath) {
+        # Método 1: pdftotext (melhor qualidade)
+        $tmpTxt = [System.IO.Path]::GetTempFileName()
+        try {
+            & $pdftotextPath -layout "$hcpPath" "$tmpTxt" 2>$null
+            $lines = Get-Content $tmpTxt -Encoding UTF8
+        } finally {
+            Remove-Item $tmpTxt -ErrorAction SilentlyContinue
+        }
+        Write-Host "  Extracao via pdftotext." -ForegroundColor DarkGray
+    } else {
+        # Método 2: extração direta do binário PDF (sem dependências)
+        Write-Host "  pdftotext nao encontrado. A usar extracao de texto nativa..." -ForegroundColor Yellow
+        $lines = Extract-TextFromPdf $hcpPath
+        Write-Host "  Extracao nativa concluida ($($lines.Count) linhas)." -ForegroundColor DarkGray
     }
 
     # Formato DataGolf:
