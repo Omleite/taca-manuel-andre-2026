@@ -2812,10 +2812,9 @@ function calculateStandings(ronda, accumulate) {
         if (homeTeam && awayTeam) {
             const gameResult = getGameResult(game.ronda, game.par, game.home, game.away);
             
-            homeTeam.played++;
-            awayTeam.played++;
-            
             if (gameResult && gameResult.result) {
+                homeTeam.played++;
+                awayTeam.played++;
                 const result = gameResult.result;
                 if (result === 'home') {
                     homeTeam.wins++;
@@ -2981,11 +2980,12 @@ function renderClassificacao(ronda) {
                 <thead>
                     <tr>
                         <th style="width:5%">Pos</th>
-                        <th style="width:40%">Equipa</th>
-                        ${showScheduledGamesColumn ? '<th style="width:12%" title="Soma X+Y das vitórias (desempate)">X&amp;Y</th>' : ''}
-                        <th style="width:12%">V</th>
-                        <th style="width:12%">E</th>
-                        <th style="width:12%">D</th>
+                        <th style="width:35%">Equipa</th>
+                        <th style="width:8%" title="Jogos realizados">J</th>
+                        ${showScheduledGamesColumn ? '<th style="width:10%" title="Soma X+Y das vitórias (desempate)">X&amp;Y</th>' : ''}
+                        <th style="width:10%">V</th>
+                        <th style="width:10%">E</th>
+                        <th style="width:10%">D</th>
                         <th style="width:10%">Pts</th>
                     </tr>
                 </thead>
@@ -3001,6 +3001,7 @@ function renderClassificacao(ronda) {
                     <tr class="${rowClass}">
                         <td>${idx + 1}</td>
                         <td><button type="button" class="class-team-link" data-team-id="${team.id}" ${teamNameStyle}><strong>${esc(team.name)}</strong></button></td>
+                        <td>${team.played}</td>
                         ${showScheduledGamesColumn ? `<td>${team.scoreXY}</td>` : ''}
                         <td>${team.wins}</td>
                         <td>${team.draws}</td>
