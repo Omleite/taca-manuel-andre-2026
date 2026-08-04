@@ -1666,12 +1666,14 @@ function renderResultSummaryElim(pA1, pA2, pB1, pB2, totalA, totalB, diff, strok
     const wLabel = `Par ${higherPar}`;
     const lLabel = higherPar === 'A' ? 'Par B' : 'Par A';
     const wPlayers = higherPar === 'A' ? `${esc(pA1.name)} &amp; ${esc(pA2.name)}` : `${esc(pB1.name)} &amp; ${esc(pB2.name)}`;
+    const rawA = (0.6 * minA + 0.4 * maxA).toFixed(2);
+    const rawB = (0.6 * minB + 0.4 * maxB).toFixed(2);
     
     el.innerHTML = `
         <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} (${minA}) &amp; ${esc(pA2.name)} (${maxA})</span><span class="val" style="color:var(--blue)">Total: <strong>${totalA}</strong></span></div>
-        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 60% × ${minA} + 40% × ${maxA} = ${totalA}</span></div>
+        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 60% × ${minA} + 40% × ${maxA} = ${rawA} → ${totalA}</span></div>
         <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} (${minB}) &amp; ${esc(pB2.name)} (${maxB})</span><span class="val" style="color:var(--red)">Total: <strong>${totalB}</strong></span></div>
-        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 60% × ${minB} + 40% × ${maxB} = ${totalB}</span></div>
+        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 60% × ${minB} + 40% × ${maxB} = ${rawB} → ${totalB}</span></div>
         <div class="result-row"><span class="lbl">Diferença de handicap</span><span class="val">${diff}</span></div>
         <div class="result-row"><span class="lbl">75% da diferença <span style="font-size:.78rem;color:var(--txt-light)">(arredondado)</span></span><span class="val">${strokes} pancada${strokes !== 1 ? 's' : ''}</span></div>
         <div class="result-winner">
@@ -1690,12 +1692,14 @@ function renderResultSummaryVFinal(pA1, pA2, pB1, pB2, totalA, totalB, diff, str
     const wLabel = `Par ${higherPar}`;
     const lLabel = higherPar === 'A' ? 'Par B' : 'Par A';
     const wPlayers = higherPar === 'A' ? `${esc(pA1.name)} &amp; ${esc(pA2.name)}` : `${esc(pB1.name)} &amp; ${esc(pB2.name)}`;
+    const rawA = (0.35 * minA + 0.15 * maxA).toFixed(2);
+    const rawB = (0.35 * minB + 0.15 * maxB).toFixed(2);
 
     el.innerHTML = `
         <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} (${minA}) &amp; ${esc(pA2.name)} (${maxA})</span><span class="val" style="color:var(--blue)">Total: <strong>${totalA}</strong></span></div>
-        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minA} + 15% × ${maxA} = ${totalA}</span></div>
+        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minA} + 15% × ${maxA} = ${rawA} → ${totalA}</span></div>
         <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} (${minB}) &amp; ${esc(pB2.name)} (${maxB})</span><span class="val" style="color:var(--red)">Total: <strong>${totalB}</strong></span></div>
-        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minB} + 15% × ${maxB} = ${totalB}</span></div>
+        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minB} + 15% × ${maxB} = ${rawB} → ${totalB}</span></div>
         <div class="result-row"><span class="lbl">Diferença de handicap</span><span class="val">${diff}</span></div>
         <div class="result-row"><span class="lbl">Pancadas (100% da diferença)</span><span class="val">${strokes} pancada${strokes !== 1 ? 's' : ''}</span></div>
         <div class="result-winner">
