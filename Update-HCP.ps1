@@ -103,7 +103,7 @@ function Find-Or-Install-Pdftotext {
 
 # ── Extrair texto de PDF sem ferramentas externas (fallback) ─
 # Funciona para PDFs de texto simples gerados por ferramentas como DataGolf
-function Extract-TextFromPdf($pdfPath) {
+function Get-PdfText($pdfPath) {
     try {
         $bytes  = [System.IO.File]::ReadAllBytes($pdfPath)
         $latin1 = [System.Text.Encoding]::GetEncoding('iso-8859-1').GetString($bytes)
@@ -203,7 +203,7 @@ if ($ext -eq '.pdf') {
     } else {
         # Método 2: fallback nativo (funciona apenas para PDFs com texto não cifrado)
         Write-Host "  pdftotext indisponivel. A tentar extracao nativa (pode nao funcionar para PDFs com fontes personalizadas)..." -ForegroundColor Yellow
-        $lines = Extract-TextFromPdf $hcpPath
+        $lines = Get-PdfText $hcpPath
         Write-Host "  Extracao nativa concluida ($($lines.Count) linhas)." -ForegroundColor DarkGray
         if ($lines.Count -eq 0) {
             Write-Error "Nao foi possivel extrair texto do PDF. O Poppler e necessario para este formato de PDF.`nDescarregue em: https://github.com/oschwartz10612/poppler-windows/releases"
