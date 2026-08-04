@@ -1,16 +1,21 @@
 # ============================================================
 #  Update-HCP.ps1
 #  Atualiza nome e handicap dos jogadores no data-backup.json
-#  a partir de um ficheiro de handicaps da FPG (formato Estela)
+#  a partir do PDF exportado do DataGolf (Listagem de Handicaps)
+#  ou de um ficheiro TXT intermedio (NFederado | Nome | HCP)
 #
 #  Uso:
-#    .\Update-HCP.ps1
+#    .\Update-HCP.ps1 -HcpFile "Listagem Handicaps 20260804.pdf"
 #    .\Update-HCP.ps1 -HcpFile "HCP Atualizado 20260804.txt"
-#    .\Update-HCP.ps1 -DryRun   (mostra alterações sem gravar)
+#    .\Update-HCP.ps1 -HcpFile "..." -DryRun   (previa sem gravar)
+#
+#  Requer pdftotext (Poppler) para leitura de PDF.
+#  Se nao estiver instalado, o script instala automaticamente via winget.
 # ============================================================
 
 param(
-    [string]$HcpFile  = "HCP Atualizado 20260804.txt",
+    [Parameter(Mandatory=$true)]
+    [string]$HcpFile,
     [string]$JsonFile = "data-backup.json",
     [switch]$DryRun
 )
@@ -18,7 +23,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-$hcpPath  = Join-Path $scriptDir $HcpFile
+$hcpPath  = if ([System.IO.Path]::IsPathRooted($HcpFile)) { $HcpFile } else { Join-Path $scriptDir $HcpFile }
 $jsonPath = Join-Path $scriptDir $JsonFile
 
 # ── Validar ficheiros ────────────────────────────────────────
@@ -38,26 +43,95 @@ function Get-GameHandicap([double]$whs, [string]$genero) {
     return [Math]::Min($ph, 36)
 }
 
-# ── Ler ficheiro HCP ─────────────────────────────────────────
-Write-Host ""
-Write-Host "A ler $HcpFile ..." -ForegroundColor Cyan
-$hcpMap = @{}   # numeroFederado -> @{ Nome; HcpWhs }
-
-Get-Content $hcpPath -Encoding UTF8 | Select-Object -Skip 1 | ForEach-Object {
-    $line = $_.Trim()
-    if ($line -eq '') { return }
-    $parts = $line -split '\|'
-    if ($parts.Count -lt 3) { return }
-    $nfed   = $parts[0].Trim()
-    $nome   = $parts[1].Trim()
-    $hcpStr = $parts[2].Trim() -replace ',', '.'
-    $hcp    = 0.0
-    if ([double]::TryParse($hcpStr, [System.Globalization.NumberStyles]::Any,
-        [System.Globalization.CultureInfo]::InvariantCulture, [ref]$hcp)) {
-        $hcpMap[$nfed] = @{ Nome = $nome; HcpWhs = $hcp }
+# ── Garantir pdftotext disponivel ───────────────────────────
+function Ensure-Pdftotext {
+    if (Get-Command pdftotext -ErrorAction SilentlyContinue) { return }
+    Write-Host "  pdftotext nao encontrado. A instalar Poppler via winget..." -ForegroundColor Yellow
+    try {
+        winget install -e --id Poppler.Poppler --accept-source-agreements --accept-package-agreements | Out-Null
+        # Refreshar PATH da sessao
+        $env:PATH = [System.Environment]::GetEnvironmentVariable('PATH','Machine') + ';' +
+                    [System.Environment]::GetEnvironmentVariable('PATH','User')
+        if (-not (Get-Command pdftotext -ErrorAction SilentlyContinue)) {
+            # Tentar encontrar manualmente em locais comuns
+            $candidates = @(
+                "$env:ProgramFiles\Poppler\Library\bin\pdftotext.exe",
+                "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\*Poppler*\*\bin\pdftotext.exe"
+            )
+            foreach ($c in $candidates) {
+                $found = Get-Item $c -ErrorAction SilentlyContinue | Select-Object -First 1
+                if ($found) {
+                    $env:PATH += ";$($found.Directory.FullName)"
+                    break
+                }
+            }
+        }
+        if (-not (Get-Command pdftotext -ErrorAction SilentlyContinue)) {
+            Write-Error "Nao foi possivel localizar pdftotext apos instalacao. Adicione a pasta do Poppler ao PATH e tente novamente."
+            exit 1
+        }
+        Write-Host "  Poppler instalado com sucesso." -ForegroundColor Green
+    } catch {
+        Write-Error "Falha ao instalar Poppler: $_`nInstale manualmente: https://github.com/oschwartz10612/poppler-windows/releases"
+        exit 1
     }
 }
-Write-Host "  $($hcpMap.Count) jogadores carregados do ficheiro HCP." -ForegroundColor Yellow
+
+# ── Ler ficheiro HCP (PDF ou TXT) ───────────────────────────
+Write-Host ""
+Write-Host "A ler $([System.IO.Path]::GetFileName($hcpPath)) ..." -ForegroundColor Cyan
+$hcpMap = @{}   # numeroFederado -> @{ Nome; HcpWhs; Genero }
+
+$ext = [System.IO.Path]::GetExtension($hcpPath).ToLower()
+
+if ($ext -eq '.pdf') {
+    # ── Converter PDF para texto via pdftotext ────────────────
+    Ensure-Pdftotext
+    $tmpTxt = [System.IO.Path]::GetTempFileName()
+    try {
+        & pdftotext -layout "$hcpPath" "$tmpTxt" 2>$null
+        $lines = Get-Content $tmpTxt -Encoding UTF8
+    } finally {
+        Remove-Item $tmpTxt -ErrorAction SilentlyContinue
+    }
+
+    # Formato DataGolf:
+    #  <NFederado> <Nome...> <HCP> <Est.HCP> <Sexo(M/F)> <Est.Fed.> <Escalão>
+    # Exemplo: "20363 Abilio Nascimento Ramos    16,0   Válido   M   Activo   Senior"
+    $pattern = '^\s*(\d+)\s+(.+?)\s+([\d,]+)\s+(?:Válido|Inválido|Suspenso)\s+(M|F)\s+(?:Activo|Inactivo)'
+
+    foreach ($line in $lines) {
+        if ($line -match $pattern) {
+            $nfed   = $Matches[1].Trim()
+            $nome   = $Matches[2].Trim()
+            $hcpStr = $Matches[3].Trim() -replace ',', '.'
+            $genero = $Matches[4].Trim()
+            $hcp    = 0.0
+            if ([double]::TryParse($hcpStr, [System.Globalization.NumberStyles]::Any,
+                [System.Globalization.CultureInfo]::InvariantCulture, [ref]$hcp)) {
+                $hcpMap[$nfed] = @{ Nome = $nome; HcpWhs = $hcp; Genero = $genero }
+            }
+        }
+    }
+} else {
+    # ── Ler TXT no formato "NFederado | Nome | HCP" ──────────
+    Get-Content $hcpPath -Encoding UTF8 | Select-Object -Skip 1 | ForEach-Object {
+        $line = $_.Trim()
+        if ($line -eq '') { return }
+        $parts = $line -split '\|'
+        if ($parts.Count -lt 3) { return }
+        $nfed   = $parts[0].Trim()
+        $nome   = $parts[1].Trim()
+        $hcpStr = $parts[2].Trim() -replace ',', '.'
+        $hcp    = 0.0
+        if ([double]::TryParse($hcpStr, [System.Globalization.NumberStyles]::Any,
+            [System.Globalization.CultureInfo]::InvariantCulture, [ref]$hcp)) {
+            $hcpMap[$nfed] = @{ Nome = $nome; HcpWhs = $hcp; Genero = $null }
+        }
+    }
+}
+
+Write-Host "  $($hcpMap.Count) jogadores carregados." -ForegroundColor Yellow
 
 # ── Ler data-backup.json ─────────────────────────────────────
 Write-Host "A ler $JsonFile ..." -ForegroundColor Cyan
@@ -76,7 +150,8 @@ foreach ($player in $json.players) {
         $entry      = $hcpMap[$nfed]
         $newWhs     = $entry.HcpWhs
         $newNome    = $entry.Nome
-        $genero     = if ($player.genero) { $player.genero } else { 'M' }
+        # Se o PDF incluiu o genero, usa-o; caso contrario mantem o do JSON
+        $genero     = if ($entry.Genero) { $entry.Genero } elseif ($player.genero) { $player.genero } else { 'M' }
         $newHcpCampo = Get-GameHandicap $newWhs $genero
 
         $oldWhs  = $player.handicapWhs
