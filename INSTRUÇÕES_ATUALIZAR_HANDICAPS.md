@@ -33,7 +33,7 @@ Mostra todas as alterações que seriam feitas — **não altera nenhum ficheiro
 .\Update-HCP.ps1 -HcpFile "C:\Downloads\ListagemHandicapsEstelaAtual.pdf"
 ```
 
-> **Nota:** O script tenta localizar automaticamente o `pdftotext` (Poppler) em várias localizações do sistema. Se não o encontrar, usa um método de extração nativa do PDF sem necessidade de instalar nenhuma ferramenta adicional.
+> **Nota:** O script localiza automaticamente o `pdftotext` (Poppler) no sistema. Se não o encontrar, descarrega-o automaticamente do GitHub (~15 MB, apenas na primeira execução).
 
 ---
 
@@ -112,6 +112,6 @@ Jogadores no JSON cujo `numeroFederado` não existe no PDF. Causas habituais:
 
 - **Windows 10/11** com PowerShell 5.1+
 - Acesso de escrita à pasta do projeto
-- **Poppler** (`pdftotext`) opcional — se não estiver instalado, o script usa extração nativa do PDF
+- **Poppler** (`pdftotext`) — instalado automaticamente pelo script se necessário
 
-> O script procura o `pdftotext` automaticamente nos locais de instalação habituais (Program Files, WinGet, Chocolatey). Se não encontrar, extrai o texto diretamente do binário PDF sem dependências adicionais.
+> O script procura o `pdftotext` em locais comuns (Program Files, WinGet, Chocolatey, AppData). Se não encontrar, descarrega o Poppler automaticamente de [github.com/oschwartz10612/poppler-windows](https://github.com/oschwartz10612/poppler-windows/releases) e instala-o em `%LOCALAPPDATA%\poppler`.
