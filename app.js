@@ -97,6 +97,7 @@ let authState = {
 
 let teamNavReturnTab = null;
 let teamNavTargetTeamId = null;
+let teamNavReturnScrollY = 0;
 const TEAM_NAV_RETURN_LABELS = {
     calendario: 'Voltar ao Calendário',
     grupos: 'Voltar aos Grupos',
@@ -1054,10 +1055,14 @@ function returnFromTeamNavigation() {
     const targetTabBtn = document.querySelector(`.tab-btn[data-tab="${targetTab}"]`);
     if (!targetTabBtn) return;
 
+    const savedScrollY = teamNavReturnScrollY || 0;
     teamNavReturnTab = null;
     teamNavTargetTeamId = null;
+    teamNavReturnScrollY = 0;
     renderTeams();
     targetTabBtn.click();
+    // Restaurar posição de scroll após o tab renderizar
+    setTimeout(() => window.scrollTo({ top: savedScrollY, behavior: 'instant' }), 80);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1241,6 +1246,7 @@ function openTeamFromClassification(teamId, sourceTab = 'calendario') {
 
     teamNavReturnTab = sourceTab;
     teamNavTargetTeamId = teamId;
+    teamNavReturnScrollY = window.scrollY;
 
     const tabBtn = document.querySelector('.tab-btn[data-tab="equipas"]');
     if (!tabBtn) return;
