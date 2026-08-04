@@ -599,6 +599,14 @@
                         "handicap":  8,
                         "genero":  "M",
                         "numeroFederado":  "4732"
+                    },
+                    {
+                        "id":  "ms1teixrodrig7",
+                        "name":  "Manuel Teixeira Rodrigues",
+                        "handicapWhs":  19.2,
+                        "handicap":  21,
+                        "genero":  "M",
+                        "numeroFederado":  "7957"
                     }
                 ],
     "teams":  [
@@ -777,7 +785,7 @@
                       "playerIds":  [
                                         "mrpcd3x1n0ayz",
                                         "mrpcd3x1p2keb",
-                                        "mrpcd3x1e5v5s",
+                                        "ms1teixrodrig7",
                                         "mrpcd3x1hmqrl"
                                     ],
                       "captainId":  "mrpcd3x1p2keb"
