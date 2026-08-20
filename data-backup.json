@@ -847,7 +847,7 @@
       "away": "Red Hot Chilli Putters",
       "result": "home",
       "matchId": "R2-1-0",
-      "score": "3&2"
+      "score": ""
     },
     {
       "ronda": 2,
@@ -856,7 +856,7 @@
       "away": "Red Hot Chilli Putters",
       "result": "away",
       "matchId": "R2-2-1",
-      "score": "2"
+      "score": ""
     },
     {
       "ronda": 1,
@@ -1204,6 +1204,23 @@
       "away": "Old Fashion Team",
       "result": "away",
       "score": ""
+    },
+    {
+      "matchId": "R3-1-41",
+      "ronda": 3,
+      "par": 1,
+      "home": "Equipa Eleven",
+      "away": "Red Hot Chilli Putters",
+      "result": "away",
+      "score": ""
+    },
+    {
+      "matchId": "R3-2-42",
+      "ronda": 3,
+      "par": 2,
+      "home": "Equipa Eleven",
+      "away": "Red Hot Chilli Putters",
+      "result": "away"
     }
   ],
   "calendar": [
