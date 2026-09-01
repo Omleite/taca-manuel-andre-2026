@@ -2941,8 +2941,8 @@ function renderClassificacao(ronda) {
 
     const rondaNum = parseInt(ronda, 10);
     if (ronda !== 'total' && !isNaN(rondaNum) && rondaNum >= 6) {
-        // Para não-admin sem todos os resultados da fase de grupos, mostrar com labels genéricos
-        const useGenericLabels = !can('classification_manage') && !isGroupStageFullyScored();
+        // Sem todos os resultados da fase de grupos, mostrar com labels genéricos (para todos os utilizadores)
+        const useGenericLabels = !isGroupStageFullyScored();
         document.getElementById('classificacaoContainer').innerHTML = buildEliminationClassificationHtml(rondaNum, useGenericLabels);
 
         if (can('classification_manage')) {
@@ -3158,7 +3158,7 @@ function renderClassificacao(ronda) {
     });
     
     if (ronda === 'total') {
-        const useGenericLabels = !can('classification_manage') && !isGroupStageFullyScored();
+        const useGenericLabels = !isGroupStageFullyScored();
         html += buildEliminationBlockHtml(useGenericLabels);
     }
 
@@ -3341,7 +3341,7 @@ function renderCalendario() {
     const container = document.getElementById('calendarioContainer');
     if (!container) return;
 
-    const calendarEntries = [...state.calendar.filter(isGroupStageGame), ...buildPlayoffScheduleEntries()];
+    const calendarEntries = [...state.calendar.filter(isGroupStageGame), ...buildPlayoffScheduleEntries(!isGroupStageFullyScored())];
     const rondes = [...new Set(calendarEntries.map(g => g.ronda))].sort((a, b) => a - b);
     let html = '';
 
