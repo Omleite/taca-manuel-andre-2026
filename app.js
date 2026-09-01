@@ -2566,14 +2566,14 @@ function buildPlayoffScheduleEntriesUncached(useGenericLabels = false) {
     const d2 = useGenericLabels ? 'Grupo D - 2º Classificado' : (standings?.D?.[1]?.name || '2ºD');
 
     // Get winners from quarter-finals (ronda 6) - pass explicit names
-    const w1 = getEliminationMatchWinner(6, 1, a1, b2) || 'Vencedor 1';
-    const w2 = getEliminationMatchWinner(6, 2, b1, a2) || 'Vencedor 2';
-    const w3 = getEliminationMatchWinner(6, 3, c1, d2) || 'Vencedor 3';
-    const w4 = getEliminationMatchWinner(6, 4, d1, c2) || 'Vencedor 4';
+    const w1 = getEliminationMatchWinner(6, 1, a1, b2) || 'Vencedor Match 1';
+    const w2 = getEliminationMatchWinner(6, 2, b1, a2) || 'Vencedor Match 2';
+    const w3 = getEliminationMatchWinner(6, 3, c1, d2) || 'Vencedor Match 3';
+    const w4 = getEliminationMatchWinner(6, 4, d1, c2) || 'Vencedor Match 4';
     
     // Get winners from semi-finals (ronda 7)
-    const w5 = getEliminationMatchWinner(7, 5, w1, w3) || 'Vencedor 5';
-    const w6 = getEliminationMatchWinner(7, 6, w2, w4) || 'Vencedor 6';
+    const w5 = getEliminationMatchWinner(7, 5, w1, w3) || 'Vencedor Match 5';
+    const w6 = getEliminationMatchWinner(7, 6, w2, w4) || 'Vencedor Match 6';
 
     const finalMatches = [
         { ronda: 6, grupo: '1', matchNo: 1, home: a1, away: b2 },
