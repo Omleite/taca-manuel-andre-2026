@@ -73,6 +73,130 @@ function recalculateAllGameHandicaps() {
 }
 
 // ════════════════════════════════════════════════════════════
+//  ATUALIZAÇÃO DE HANDICAPS A PARTIR DO PDF DataGolf (admin)
+// ════════════════════════════════════════════════════════════
+
+if (typeof window !== 'undefined' && window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+// Agrupa os itens de texto do PDF em linhas, respeitando a posição vertical
+function groupPdfTextItemsIntoLines(items) {
+    const TOL = 2;
+    const sorted = [...items].sort((a, b) => b.transform[5] - a.transform[5] || a.transform[4] - b.transform[4]);
+    const groups = [];
+    let current = [];
+    let currentY = null;
+    sorted.forEach(it => {
+        const y = it.transform[5];
+        if (currentY === null || Math.abs(y - currentY) <= TOL) {
+            current.push(it);
+            if (currentY === null) currentY = y;
+        } else {
+            groups.push(current);
+            current = [it];
+            currentY = y;
+        }
+    });
+    if (current.length) groups.push(current);
+    return groups
+        .map(g => g.sort((a, b) => a.transform[4] - b.transform[4]).map(i => i.str).join(' ').replace(/\s+/g, ' ').trim())
+        .filter(Boolean);
+}
+
+// Formato DataGolf: NFederado  Nome  HCP(WHS)  Est.HCP  Sexo(M/F)  ...
+const HCP_PDF_LINE_PATTERN = /^(\d{2,6})\s+(.+?)\s+(-?\d{1,2}[.,]\d)\s+\S+\s+([MF])\b/;
+
+async function extractHandicapsFromPdf(file) {
+    if (!window.pdfjsLib) throw new Error('Biblioteca de leitura de PDF não foi carregada.');
+    const buffer = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({ data: buffer }).promise;
+    const hcpMap = new Map(); // numeroFederado -> { nome, hcp, genero }
+
+    for (let p = 1; p <= pdf.numPages; p++) {
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        const lines = groupPdfTextItemsIntoLines(content.items);
+        lines.forEach(line => {
+            const m = line.match(HCP_PDF_LINE_PATTERN);
+            if (!m) return;
+            const nfed   = m[1];
+            const nome   = m[2].trim();
+            const hcp    = parseFloat(m[3].replace(',', '.'));
+            const genero = m[4];
+            if (!isNaN(hcp)) hcpMap.set(nfed, { nome, hcp, genero });
+        });
+    }
+    return hcpMap;
+}
+
+function applyHandicapPdfUpdates(hcpMap) {
+    let updated = 0;
+    let notFound = 0;
+    const changes = [];
+
+    state.players.forEach(p => {
+        const nfed = String(p.numeroFederado || '').trim();
+        if (!nfed) return;
+        if (!hcpMap.has(nfed)) { notFound++; return; }
+
+        const entry   = hcpMap.get(nfed);
+        const genero  = entry.genero || p.genero || 'M';
+        const newHcp  = calculateGameHandicap(entry.hcp, genero);
+
+        const whsChanged  = Math.abs((parseFloat(p.handicapWhs) || 0) - entry.hcp) > 0.001;
+        const hcpChanged  = p.handicap !== newHcp;
+        const nomeChanged = p.name !== entry.nome;
+
+        if (whsChanged || hcpChanged || nomeChanged) {
+            changes.push(`${p.name}: WHS ${p.handicapWhs} -> ${entry.hcp} | HCP ${p.handicap} -> ${newHcp}`);
+            p.name        = entry.nome;
+            p.handicapWhs = entry.hcp;
+            p.handicap    = newHcp;
+            if (entry.genero) p.genero = entry.genero;
+            updated++;
+        }
+    });
+
+    if (updated > 0) {
+        saveState();
+        renderPlayers();
+        renderClassificacao('total');
+    }
+
+    console.log('Alterações de handicap:', changes);
+
+    const msg = `Handicaps atualizados: ${updated} jogador(es)` + (notFound ? ` · ${notFound} não encontrados no PDF` : '');
+    showToast(msg, updated ? 'success' : 'warning');
+
+    if (updated > 0) {
+        showToast('Não se esqueça de sincronizar com o GitHub para guardar as alterações.', 'success');
+    }
+}
+
+async function importHandicapsFromPdf(file) {
+    if (!isAdmin()) {
+        showToast('Apenas administradores podem atualizar handicaps.', 'error');
+        return;
+    }
+    if (!file) return;
+
+    showToast('A processar PDF de handicaps…', 'success');
+    try {
+        const hcpMap = await extractHandicapsFromPdf(file);
+        if (hcpMap.size === 0) {
+            showToast('Não foi possível extrair handicaps do PDF. Verifique o ficheiro.', 'error');
+            return;
+        }
+        applyHandicapPdfUpdates(hcpMap);
+    } catch (err) {
+        console.error('importHandicapsFromPdf:', err);
+        showToast('Erro ao processar PDF: ' + err.message, 'error');
+    }
+}
+
+// ════════════════════════════════════════════════════════════
 //  RASTREAMENTO DO TIPO DE CÁLCULO
 // ════════════════════════════════════════════════════════════
 let lastCalculationType = 'groups'; // 'groups' ou 'elimination'
@@ -3824,6 +3948,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('importFile').addEventListener('change', e => { importData(e.target.files[0]); e.target.value=''; });
     document.getElementById('btnImportResults').addEventListener('click', () => document.getElementById('importResultsFile').click());
     document.getElementById('importResultsFile').addEventListener('change', e => { importGameResultsFromCSV(e.target.files[0]); e.target.value=''; });
+    document.getElementById('btnImportHcpPdf').addEventListener('click', () => document.getElementById('importHcpPdfFile').click());
+    document.getElementById('importHcpPdfFile').addEventListener('change', e => { importHandicapsFromPdf(e.target.files[0]); e.target.value=''; });
     document.getElementById('btnClearAll').addEventListener('click', clearAll);
 
     // Gestão utilizadores (admin)

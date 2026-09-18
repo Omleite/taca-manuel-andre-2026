@@ -539,6 +539,15 @@
             </div>
             <input type="file" id="importResultsFile" accept=".csv" class="hidden">
         </div>
+
+        <div class="card admin-only hidden">
+            <h3>Atualizar Handicaps (PDF DataGolf)</h3>
+            <p class="config-desc">Carregue a "Listagem de Handicaps" exportada em PDF do DataGolf (ex: <code>ListagemHandicapsEstelaAtual.pdf</code>) para atualizar automaticamente nome, WHS e HCP de campo dos jogadores.</p>
+            <div class="form-footer">
+                <button class="btn btn-primary" id="btnImportHcpPdf">📄 Carregar PDF de Handicaps</button>
+            </div>
+            <input type="file" id="importHcpPdfFile" accept=".pdf" class="hidden">
+        </div>
     </section>
 
     <!-- ===== CALENDÁRIO ===== -->
@@ -634,6 +643,7 @@
     </div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="app.js?v=113"></script>
 </body>
 </html>
