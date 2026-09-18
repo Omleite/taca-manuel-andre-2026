@@ -1310,8 +1310,8 @@
       "par": 1,
       "home": "School",
       "away": "Golfistas da Madrugada",
-      "result": null,
-      "score": null
+      "result": "away",
+      "score": ""
     },
     {
       "matchId": "R3-1-53",
@@ -1330,6 +1330,14 @@
       "away": "Old Fashion Team",
       "result": "away",
       "score": ""
+    },
+    {
+      "matchId": "R3-2-55",
+      "ronda": 3,
+      "par": 2,
+      "home": "School",
+      "away": "Golfistas da Madrugada",
+      "result": "away"
     }
   ],
   "calendar": [
