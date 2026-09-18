@@ -656,10 +656,9 @@ async function handleGithubSync(e) {
         const shaRes = await fetch(
             `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}&t=${Date.now()}`,
             {
-                headers: { 
+                headers: {
                     'Authorization': authHeader,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Cache-Control': 'no-cache'
+                    'Accept': 'application/vnd.github.v3+json'
                 }
             }
         );
