@@ -1337,6 +1337,114 @@
       "par": 2,
       "home": "School",
       "away": "Golfistas da Madrugada",
+      "result": "away",
+      "score": ""
+    },
+    {
+      "matchId": "R5-1-56",
+      "ronda": 5,
+      "par": 1,
+      "home": "V.T.F.",
+      "away": "Equipa Eleven",
+      "result": null,
+      "score": ""
+    },
+    {
+      "matchId": "R5-2-57",
+      "ronda": 5,
+      "par": 2,
+      "home": "V.T.F.",
+      "away": "Equipa Eleven",
+      "result": null,
+      "score": ""
+    },
+    {
+      "matchId": "R4-1-58",
+      "ronda": 4,
+      "par": 1,
+      "home": "Os Craques",
+      "away": "CGGG",
+      "result": "home",
+      "score": ""
+    },
+    {
+      "matchId": "R4-2-59",
+      "ronda": 4,
+      "par": 2,
+      "home": "Os Craques",
+      "away": "CGGG",
+      "result": "home",
+      "score": ""
+    },
+    {
+      "matchId": "R4-1-60",
+      "ronda": 4,
+      "par": 1,
+      "home": "Os Últimos",
+      "away": "Estela Birdies",
+      "result": "home",
+      "score": ""
+    },
+    {
+      "matchId": "R4-2-61",
+      "ronda": 4,
+      "par": 2,
+      "home": "Os Últimos",
+      "away": "Estela Birdies",
+      "result": "home",
+      "score": ""
+    },
+    {
+      "matchId": "R4-1-62",
+      "ronda": 4,
+      "par": 1,
+      "home": "V.T.F.",
+      "away": "EMJC",
+      "result": "home",
+      "score": ""
+    },
+    {
+      "matchId": "R4-2-63",
+      "ronda": 4,
+      "par": 2,
+      "home": "V.T.F.",
+      "away": "EMJC",
+      "result": "home",
+      "score": ""
+    },
+    {
+      "matchId": "R4-1-64",
+      "ronda": 4,
+      "par": 1,
+      "home": "Green Legends",
+      "away": "Red Hot Chilli Putters",
+      "result": "away",
+      "score": ""
+    },
+    {
+      "matchId": "R4-2-65",
+      "ronda": 4,
+      "par": 2,
+      "home": "Green Legends",
+      "away": "Red Hot Chilli Putters",
+      "result": "away",
+      "score": ""
+    },
+    {
+      "matchId": "R4-1-66",
+      "ronda": 4,
+      "par": 1,
+      "home": "Birdies e Boggies",
+      "away": "Masters",
+      "result": "draw",
+      "score": ""
+    },
+    {
+      "matchId": "R4-2-67",
+      "ronda": 4,
+      "par": 2,
+      "home": "Birdies e Boggies",
+      "away": "Masters",
       "result": "away"
     }
   ],
