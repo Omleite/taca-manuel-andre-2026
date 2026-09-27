@@ -19,7 +19,7 @@
     {
       "id": "mrpcd3x1h0l18",
       "name": "Gabriel Marques Guerreiro",
-      "handicapWhs": 3.6,
+      "handicapWhs": 3.1,
       "handicap": 3,
       "genero": "M",
       "numeroFederado": "43053"
@@ -35,7 +35,7 @@
     {
       "id": "mrpcd3x1efzv0",
       "name": "Higino de Oliveira Moreira",
-      "handicapWhs": 33.2,
+      "handicapWhs": 33.9,
       "handicap": 36,
       "genero": "M",
       "numeroFederado": "4433"
@@ -43,16 +43,16 @@
     {
       "id": "mrpcd3x1l481y",
       "name": "Antonio Casanova",
-      "handicapWhs": 26.9,
-      "handicap": 30,
+      "handicapWhs": 26.4,
+      "handicap": 29,
       "genero": "M",
       "numeroFederado": "19366"
     },
     {
       "id": "mrpcd3x18281c",
       "name": "Franquelim Oliveira Moreira",
-      "handicapWhs": 29.7,
-      "handicap": 33,
+      "handicapWhs": 31,
+      "handicap": 34,
       "genero": "M",
       "numeroFederado": "21923"
     },
@@ -99,8 +99,8 @@
     {
       "id": "mrpcd3x1dm2ug",
       "name": "Alberto Jose Quintas Mendes",
-      "handicapWhs": 19.7,
-      "handicap": 22,
+      "handicapWhs": 17,
+      "handicap": 18,
       "genero": "M",
       "numeroFederado": "4746"
     },
@@ -123,8 +123,8 @@
     {
       "id": "mrpcd3x1im42z",
       "name": "Nuno Poiarez",
-      "handicapWhs": 17.8,
-      "handicap": 19,
+      "handicapWhs": 18,
+      "handicap": 20,
       "genero": "M",
       "numeroFederado": "32978"
     },
@@ -147,8 +147,8 @@
     {
       "id": "mrpcd3x1b5bqt",
       "name": "Tiago Rocha",
-      "handicapWhs": 10.8,
-      "handicap": 11,
+      "handicapWhs": 10.9,
+      "handicap": 12,
       "genero": "M",
       "numeroFederado": "27971"
     },
@@ -163,7 +163,7 @@
     {
       "id": "mrpcd3x1qjr3m",
       "name": "Luis Manuel Costa",
-      "handicapWhs": 20.3,
+      "handicapWhs": 20,
       "handicap": 22,
       "genero": "M",
       "numeroFederado": "38865"
@@ -187,8 +187,8 @@
     {
       "id": "mrpcd3x1e9c8y",
       "name": "Isaque Guimarães Jr",
-      "handicapWhs": 24.3,
-      "handicap": 27,
+      "handicapWhs": 23.6,
+      "handicap": 26,
       "genero": "M",
       "numeroFederado": "46080"
     },
@@ -219,7 +219,7 @@
     {
       "id": "mrpcd3x18z73s",
       "name": "Jorge Aires",
-      "handicapWhs": 26.3,
+      "handicapWhs": 26.5,
       "handicap": 29,
       "genero": "M",
       "numeroFederado": "7219"
@@ -227,7 +227,7 @@
     {
       "id": "mrpcd3x1n5jzv",
       "name": "José Correia",
-      "handicapWhs": 14.2,
+      "handicapWhs": 14.1,
       "handicap": 15,
       "genero": "M",
       "numeroFederado": "31506"
@@ -243,7 +243,7 @@
     {
       "id": "mrpcd3x1lbj3x",
       "name": "José Vale",
-      "handicapWhs": 18.8,
+      "handicapWhs": 18.5,
       "handicap": 20,
       "genero": "M",
       "numeroFederado": "26318"
@@ -251,16 +251,16 @@
     {
       "id": "mrpcd3x1jbuvx",
       "name": "Manuel Filipe Costa",
-      "handicapWhs": 21.1,
-      "handicap": 23,
+      "handicapWhs": 21.6,
+      "handicap": 24,
       "genero": "M",
       "numeroFederado": "13716"
     },
     {
       "id": "mrpcd3x1f5kxc",
       "name": "Elisabete Teles",
-      "handicapWhs": 17.4,
-      "handicap": 21,
+      "handicapWhs": 18.2,
+      "handicap": 22,
       "genero": "F",
       "numeroFederado": "4881"
     },
@@ -307,7 +307,7 @@
     {
       "id": "mrpcd3x1gfgn3",
       "name": "Orlando Leite",
-      "handicapWhs": 22.3,
+      "handicapWhs": 21.7,
       "handicap": 24,
       "genero": "M",
       "numeroFederado": "17487"
@@ -315,8 +315,8 @@
     {
       "id": "mrpcd3x1bgfio",
       "name": "José Eduardo Santos",
-      "handicapWhs": 22.2,
-      "handicap": 24,
+      "handicapWhs": 21.3,
+      "handicap": 23,
       "genero": "M",
       "numeroFederado": "41465"
     },
@@ -355,7 +355,7 @@
     {
       "id": "mrpcd3x1g8qqk",
       "name": "Manuel Rouco Castro",
-      "handicapWhs": 13.8,
+      "handicapWhs": 13.7,
       "handicap": 15,
       "genero": "M",
       "numeroFederado": "47576"
@@ -363,8 +363,8 @@
     {
       "id": "mrpcd3x1ov9aj",
       "name": "Afonso Poiarez",
-      "handicapWhs": 11.9,
-      "handicap": 13,
+      "handicapWhs": 10.9,
+      "handicap": 12,
       "genero": "M",
       "numeroFederado": "46079"
     },
@@ -379,7 +379,7 @@
     {
       "id": "mrpcd3x1f4iyw",
       "name": "André Von Hafe",
-      "handicapWhs": 8,
+      "handicapWhs": 7.9,
       "handicap": 8,
       "genero": "M",
       "numeroFederado": "40473"
@@ -395,7 +395,7 @@
     {
       "id": "mrpcd3x1nf4dl",
       "name": "António Pereira Mendes",
-      "handicapWhs": 17.6,
+      "handicapWhs": 17.3,
       "handicap": 19,
       "genero": "M",
       "numeroFederado": "55094"
@@ -411,15 +411,15 @@
     {
       "id": "mrpcd3x1j7r8q",
       "name": "Carlos Alberto da Silva Santos",
-      "handicapWhs": 15.8,
-      "handicap": 17,
+      "handicapWhs": 14.8,
+      "handicap": 16,
       "genero": "M",
       "numeroFederado": "4876"
     },
     {
       "id": "mrpcd3x1rkq71",
       "name": "Manuel Pereira Mendes",
-      "handicapWhs": 16.5,
+      "handicapWhs": 16.8,
       "handicap": 18,
       "genero": "M",
       "numeroFederado": "4728"
@@ -427,15 +427,15 @@
     {
       "id": "mrpcd3x1c5qyz",
       "name": "Henrique Joao Hitzemann Sampaio",
-      "handicapWhs": 26.1,
-      "handicap": 29,
+      "handicapWhs": 25.5,
+      "handicap": 28,
       "genero": "M",
       "numeroFederado": "4772"
     },
     {
       "id": "mrpcd3x1qe0d1",
       "name": "Jose Eduardo Rocha Almeida",
-      "handicapWhs": 14.5,
+      "handicapWhs": 14.9,
       "handicap": 16,
       "genero": "M",
       "numeroFederado": "4879"
@@ -475,7 +475,7 @@
     {
       "id": "mrpcd3x1p2keb",
       "name": "Luís Paupério",
-      "handicapWhs": 24.2,
+      "handicapWhs": 24.4,
       "handicap": 27,
       "genero": "M",
       "numeroFederado": "7920"
@@ -491,16 +491,16 @@
     {
       "id": "mrpcd3x1hmqrl",
       "name": "Sérgio Carvalho Lopes",
-      "handicapWhs": 18.4,
-      "handicap": 20,
+      "handicapWhs": 18.9,
+      "handicap": 21,
       "genero": "M",
       "numeroFederado": "28245"
     },
     {
       "id": "mrpcd3x1ec8gr",
       "name": "Luisa Carrilho",
-      "handicapWhs": 15.2,
-      "handicap": 19,
+      "handicapWhs": 16,
+      "handicap": 20,
       "genero": "F",
       "numeroFederado": "47569"
     },
@@ -547,16 +547,16 @@
     {
       "id": "mrpcd3x1fcbvj",
       "name": "Jorge Martins",
-      "handicapWhs": 18.4,
-      "handicap": 20,
+      "handicapWhs": 17.7,
+      "handicap": 19,
       "genero": "M",
       "numeroFederado": "48578"
     },
     {
       "id": "mrpcd3x1pzxcn",
       "name": "Ruben Santos",
-      "handicapWhs": 27.2,
-      "handicap": 30,
+      "handicapWhs": 26,
+      "handicap": 29,
       "genero": "M",
       "numeroFederado": "51321"
     },
@@ -571,7 +571,7 @@
     {
       "id": "mrqtl1gb1gx7r",
       "name": "Manuel Tedim Maia",
-      "handicapWhs": 11.9,
+      "handicapWhs": 12,
       "handicap": 13,
       "genero": "M",
       "numeroFederado": "21615"
