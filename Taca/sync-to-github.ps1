@@ -7,6 +7,7 @@ $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 
 $projectPath = $PSScriptRoot
+$repoPath = Split-Path -Parent $projectPath
 $backupFile = Join-Path $projectPath 'data-backup.json'
 $downloadsPath = Join-Path $env:USERPROFILE 'Downloads'
 
@@ -90,11 +91,11 @@ catch {
 Write-Host ''
 Write-Info 'A fazer git add/commit/push...'
 
-Push-Location $projectPath
+Push-Location $repoPath
 try {
     $git = Get-GitCommand
 
-    & $git add data-backup.json
+    & $git add Taca/data-backup.json
     if ($LASTEXITCODE -ne 0) { throw 'git add falhou.' }
 
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
@@ -110,7 +111,7 @@ try {
     Write-Host ''
     Write-Ok 'CONCLUIDO! Dados sincronizados com GitHub.'
     Write-Info 'GitHub Pages atualiza em 1-3 minutos.'
-    Write-Info 'URL: https://omleite.github.io/taca-manuel-andre-2026/'
+    Write-Info 'URL: https://omleite.github.io/taca-manuel-andre-2026/Taca/'
     Wait-And-Exit 0
 }
 catch {

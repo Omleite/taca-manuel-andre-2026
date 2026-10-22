@@ -4,9 +4,10 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-$outPath = 'c:\Work\VSCode-Teste\taca-manuel-andre-2026\Calendario_Resultados_IMPORT.xlsx'
+$projectPath = $PSScriptRoot
+$outPath = Join-Path $projectPath 'Calendario_Resultados_IMPORT.xlsx'
 $workDir = 'c:\temp\xlsx_build'
-$jsonPath = 'c:\Work\VSCode-Teste\taca-manuel-andre-2026\data-backup.json'
+$jsonPath = Join-Path $projectPath 'data-backup.json'
 
 Write-Host "Criando Excel via XML (sem COM objects)..." -ForegroundColor Cyan
 
