@@ -607,6 +607,22 @@
       "handicap": 21,
       "genero": "M",
       "numeroFederado": "7957"
+    },
+    {
+      "id": "mvmou03q9pmcb",
+      "name": "Fernando da Costa",
+      "numeroFederado": "54802",
+      "handicapWhs": 4.4,
+      "handicap": 4,
+      "genero": "M"
+    },
+    {
+      "id": "mvmov0o25dw4i",
+      "name": "Miguel Carvalho",
+      "numeroFederado": "47575",
+      "handicapWhs": 22.6,
+      "handicap": 25,
+      "genero": "M"
     }
   ],
   "teams": [
@@ -711,8 +727,8 @@
       "name": "Masters",
       "grupo": "C",
       "playerIds": [
+        "mvmou03q9pmcb",
         "mrpcd3x1n5jzv",
-        "mrpcd3x1qz56v",
         "mrpcd3x1lbj3x",
         "mrpcd3x1jbuvx"
       ],
