@@ -1549,6 +1549,13 @@ function updateTeamSelects() {
     if (teamBId && state.teams.some(t => t.id === teamBId)) document.getElementById('selTeamB').value = teamBId;
 }
 
+function formatCalcPlayerLabel(p) {
+    const whs = p.handicapWhs !== undefined && p.handicapWhs !== null && p.handicapWhs !== ''
+        ? parseFloat(p.handicapWhs).toFixed(1)
+        : '—';
+    return `${esc(p.name)} (${whs} → ${p.handicap})`;
+}
+
 function updateCalcPlayerSelects() {
     // Obter equipa A e equipa B selecionadas
     const teamAId = document.getElementById('selTeamA').value;
@@ -1574,13 +1581,13 @@ function updateCalcPlayerSelects() {
         const optsA1 = '<option value="">-- Seleccionar --</option>' + 
             playersA.map(p => {
                 const disabled = selA2Val && p.id === selA2Val ? 'disabled' : '';
-                return `<option value="${p.id}" ${disabled}>${esc(p.name)} (HCP ${p.handicap})</option>`;
+                return `<option value="${p.id}" ${disabled}>${formatCalcPlayerLabel(p)}</option>`;
             }).join('');
         
         const optsA2 = '<option value="">-- Seleccionar --</option>' + 
             playersA.map(p => {
                 const disabled = selA1Val && p.id === selA1Val ? 'disabled' : '';
-                return `<option value="${p.id}" ${disabled}>${esc(p.name)} (HCP ${p.handicap})</option>`;
+                return `<option value="${p.id}" ${disabled}>${formatCalcPlayerLabel(p)}</option>`;
             }).join('');
         
         return { optsA1, optsA2 };
@@ -1594,13 +1601,13 @@ function updateCalcPlayerSelects() {
         const optsB1 = '<option value="">-- Seleccionar --</option>' + 
             playersB.map(p => {
                 const disabled = selB2Val && p.id === selB2Val ? 'disabled' : '';
-                return `<option value="${p.id}" ${disabled}>${esc(p.name)} (HCP ${p.handicap})</option>`;
+                return `<option value="${p.id}" ${disabled}>${formatCalcPlayerLabel(p)}</option>`;
             }).join('');
         
         const optsB2 = '<option value="">-- Seleccionar --</option>' + 
             playersB.map(p => {
                 const disabled = selB1Val && p.id === selB1Val ? 'disabled' : '';
-                return `<option value="${p.id}" ${disabled}>${esc(p.name)} (HCP ${p.handicap})</option>`;
+                return `<option value="${p.id}" ${disabled}>${formatCalcPlayerLabel(p)}</option>`;
             }).join('');
         
         return { optsB1, optsB2 };
@@ -2591,8 +2598,9 @@ function getTeamAverageHandicap(teamName) {
     
     const handicaps = team.playerIds
         .map(playerId => state.players.find(p => p.id === playerId))
-        .filter(p => p && p.handicapWhs)
-        .map(p => p.handicapWhs);
+        .filter(p => p && p.handicapWhs !== undefined && p.handicapWhs !== null && p.handicapWhs !== '')
+        .map(p => Number(p.handicapWhs))
+        .filter(Number.isFinite);
     
     if (handicaps.length === 0) return 999;
     return handicaps.reduce((sum, h) => sum + h, 0) / handicaps.length;
@@ -2639,13 +2647,14 @@ function applyGroupTieBreak(groupTeams, group, gamesForScope) {
             if (h2h[b.name].points !== h2h[a.name].points) return h2h[b.name].points - h2h[a.name].points;
             if (h2h[b.name].diff !== h2h[a.name].diff) return h2h[b.name].diff - h2h[a.name].diff;
             if (b.wins !== a.wins) return b.wins - a.wins;
-            if (b.scoreXY !== a.scoreXY) return b.scoreXY - a.scoreXY;
             if (b.draws !== a.draws) return b.draws - a.draws;
+            const pointsDiffA = a.pointsFor - a.pointsAgainst;
+            const pointsDiffB = b.pointsFor - b.pointsAgainst;
+            if (pointsDiffA !== pointsDiffB) return pointsDiffB - pointsDiffA;
 
-            // Tiebreaker: Lower average handicap wins
             const avgHandicapA = getTeamAverageHandicap(a.name);
             const avgHandicapB = getTeamAverageHandicap(b.name);
-            return avgHandicapA - avgHandicapB; // Lower handicap wins (comes first)
+            return avgHandicapA - avgHandicapB;
         });
 
         ranked.push(...bucket);
