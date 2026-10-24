@@ -5,6 +5,9 @@
 // ============================================================
 
 const STORAGE_KEY = 'taca-manuel-andre-2026';
+const PENDING_SYNC_KEY = `${STORAGE_KEY}-pending-sync`;
+const LAST_SYNC_KEY = `${STORAGE_KEY}-last-sync`;
+const BACKUP_REFRESH_GRACE_MS = 5 * 60 * 1000; // GitHub Pages demora a publicar o novo backup
 const AUTH_KEY    = 'tma-2026-auth';
 const AUTH_SESSION_KEY = 'tma-2026-auth-session';
 const GITHUB_TOKEN_SESSION_KEY = 'tma-2026-gh-token';
@@ -709,6 +712,8 @@ async function handleGithubSync(e) {
             throw new Error(`GitHub API (${commitRes.status}): ${msg}`);
         }
 
+        localStorage.removeItem(PENDING_SYNC_KEY);
+        localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
         closeGithubSyncModal();
         showToast('✅ Dados sincronizados com sucesso!');
     } catch (err) {
@@ -963,6 +968,8 @@ function loadState() {
 
 async function loadDataBackup() {
     // Sempre tenta carregar o backup mais recente do servidor
+    if (localStorage.getItem(PENDING_SYNC_KEY) === 'true') return false;
+    if (Date.now() - Number(localStorage.getItem(LAST_SYNC_KEY) || 0) < BACKUP_REFRESH_GRACE_MS) return false;
     try {
         const response = await fetch('data-backup.json?t=' + Date.now()); // Cache busting
         if (!response.ok) return false;
@@ -1084,7 +1091,7 @@ function initializeTestData() {
     }
 }
 
-function saveState() {
+function saveState(markPending = true) {
     const dataToSave = {
         players: state.players,
         teams: state.teams,
@@ -1092,6 +1099,7 @@ function saveState() {
         calendar: state.calendar
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+    if (markPending) localStorage.setItem(PENDING_SYNC_KEY, 'true');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1152,7 +1160,7 @@ function initTabs() {
             if (target === 'regulamento') { renderSIGrids(); }
             if (target === 'configuracoes' && can('users_manage')) { renderUsers(); }
             if (target === 'grupos')   { renderGrupos(); }
-            if (target === 'equipas') renderTeams();
+            if (target === 'equipas') { renderTeams(); refreshOpenTeamPicker(); }
             if (target === 'calendario') renderCalendario();
             if (target === 'classificacao') { 
                 const val = document.getElementById('selRondaClass').value;
@@ -1281,6 +1289,7 @@ function savePlayer() {
     saveState();
     document.getElementById('playerForm').classList.add('hidden');
     renderPlayers();
+    refreshOpenTeamPicker();
     showToast(editId ? 'Jogador actualizado.' : 'Jogador adicionado.');
 }
 
@@ -1292,6 +1301,7 @@ function deletePlayer(id) {
     saveState();
     renderPlayers();
     renderTeams();
+    refreshOpenTeamPicker();
     showToast('Jogador removido.');
 }
 
@@ -1462,6 +1472,11 @@ function renderTeamPicker(selected, captainId) {
             updatePickerHint();
         });
     });
+}
+
+function refreshOpenTeamPicker() {
+    if (document.getElementById('teamForm').classList.contains('hidden')) return;
+    renderTeamPicker(getCheckedPlayerIds(), document.getElementById('inputTeamCaptain').value || null);
 }
 
 function updatePickerHint() {
@@ -2037,7 +2052,7 @@ function siCell(idx) {
 function exportData() {
     if (!can('data_manage')) return;
     // Sincroniza o state com localStorage antes de exportar
-    saveState();
+    saveState(false);
     saveGameResults();
     saveCalendar();
     saveRoundDates();
@@ -3838,6 +3853,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Botão refresh manual
     document.getElementById('btnRefresh').addEventListener('click', async () => {
+        if (localStorage.getItem(PENDING_SYNC_KEY) === 'true') {
+            showToast('Há alterações locais por sincronizar. Sincronize com o GitHub antes de atualizar.', 'warn');
+            return;
+        }
         const btn = document.getElementById('btnRefresh');
         btn.classList.add('spinning');
         await loadDataBackup();
