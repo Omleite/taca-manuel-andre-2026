@@ -4,7 +4,7 @@
       "id": "mrpcd3x1pn305",
       "name": "Charles Mc Donald",
       "handicapWhs": 1.6,
-      "handicap": 1.0,
+      "handicap": 1,
       "genero": "M",
       "numeroFederado": "48972"
     },
@@ -12,7 +12,7 @@
       "id": "mrpcd3x1nnj2q",
       "name": "Guy Xie",
       "handicapWhs": 12.7,
-      "handicap": 14.0,
+      "handicap": 14,
       "genero": "M",
       "numeroFederado": "52175"
     },
@@ -20,7 +20,7 @@
       "id": "mrpcd3x1h0l18",
       "name": "Gabriel Marques Guerreiro",
       "handicapWhs": 3.2,
-      "handicap": 3.0,
+      "handicap": 3,
       "genero": "M",
       "numeroFederado": "43053"
     },
@@ -68,7 +68,7 @@
       "id": "mrpcd3x180mbt",
       "name": "José Luis Veloso",
       "handicapWhs": 12.8,
-      "handicap": 14.0,
+      "handicap": 14,
       "genero": "M",
       "numeroFederado": "26417"
     },
@@ -132,7 +132,7 @@
       "id": "mrpcd3x1m77y6",
       "name": "Isaque Guimarães",
       "handicapWhs": 11.5,
-      "handicap": 12.0,
+      "handicap": 12,
       "genero": "M",
       "numeroFederado": "26743"
     },
@@ -164,7 +164,7 @@
       "id": "mrpcd3x1qjr3m",
       "name": "Luis Manuel Costa",
       "handicapWhs": 18.7,
-      "handicap": 20.0,
+      "handicap": 20,
       "genero": "M",
       "numeroFederado": "38865"
     },
@@ -212,7 +212,7 @@
       "id": "mrpcd3x1d4sot",
       "name": "Vasco Costa",
       "handicapWhs": 13.8,
-      "handicap": 15.0,
+      "handicap": 15,
       "genero": "M",
       "numeroFederado": "4657"
     },
@@ -259,16 +259,16 @@
     {
       "id": "mrpcd3x1f5kxc",
       "name": "Elisabete Teles",
-      "handicapWhs": 18.0,
-      "handicap": 22.0,
+      "handicapWhs": 18,
+      "handicap": 22,
       "genero": "F",
       "numeroFederado": "4881"
     },
     {
       "id": "mrpcd3x1m5e7w",
       "name": "Maria Do Carmo Godinho",
-      "handicapWhs": 24.0,
-      "handicap": 28.0,
+      "handicapWhs": 24,
+      "handicap": 28,
       "genero": "F",
       "numeroFederado": "28294"
     },
@@ -308,7 +308,7 @@
       "id": "mrpcd3x1gfgn3",
       "name": "Orlando Leite",
       "handicapWhs": 21.5,
-      "handicap": 24.0,
+      "handicap": 24,
       "genero": "M",
       "numeroFederado": "17487"
     },
@@ -316,7 +316,7 @@
       "id": "mrpcd3x1bgfio",
       "name": "José Eduardo Santos",
       "handicapWhs": 18.9,
-      "handicap": 21.0,
+      "handicap": 21,
       "genero": "M",
       "numeroFederado": "41465"
     },
@@ -364,7 +364,7 @@
       "id": "mrpcd3x1ov9aj",
       "name": "Afonso Poiarez",
       "handicapWhs": 10.8,
-      "handicap": 11.0,
+      "handicap": 11,
       "genero": "M",
       "numeroFederado": "46079"
     },
@@ -380,7 +380,7 @@
       "id": "mrpcd3x1f4iyw",
       "name": "André Von Hafe",
       "handicapWhs": 8.3,
-      "handicap": 9.0,
+      "handicap": 9,
       "genero": "M",
       "numeroFederado": "40473"
     },
@@ -388,7 +388,7 @@
       "id": "mrpcd3x1mpz3q",
       "name": "Afonso Polery",
       "handicapWhs": 10.9,
-      "handicap": 12.0,
+      "handicap": 12,
       "genero": "M",
       "numeroFederado": "55093"
     },
@@ -412,7 +412,7 @@
       "id": "mrpcd3x1j7r8q",
       "name": "Carlos Alberto da Silva Santos",
       "handicapWhs": 14.4,
-      "handicap": 16.0,
+      "handicap": 16,
       "genero": "M",
       "numeroFederado": "4876"
     },
@@ -428,7 +428,7 @@
       "id": "mrpcd3x1c5qyz",
       "name": "Henrique Joao Hitzemann Sampaio",
       "handicapWhs": 26.2,
-      "handicap": 29.0,
+      "handicap": 29,
       "genero": "M",
       "numeroFederado": "4772"
     },
@@ -436,7 +436,7 @@
       "id": "mrpcd3x1qe0d1",
       "name": "Jose Eduardo Rocha Almeida",
       "handicapWhs": 15.2,
-      "handicap": 16.0,
+      "handicap": 16,
       "genero": "M",
       "numeroFederado": "4879"
     },
@@ -507,8 +507,8 @@
     {
       "id": "mrpcd3x1g2pqk",
       "name": "Maria de Fátima Costa",
-      "handicapWhs": 24.0,
-      "handicap": 28.0,
+      "handicapWhs": 24,
+      "handicap": 28,
       "genero": "F",
       "numeroFederado": "42850"
     },
@@ -524,7 +524,7 @@
       "id": "mrpcd3x1l8nep",
       "name": "David Angelis",
       "handicapWhs": 30.1,
-      "handicap": 33.0,
+      "handicap": 33,
       "genero": "M",
       "numeroFederado": "47594"
     },
@@ -1346,7 +1346,7 @@
       "par": 1,
       "home": "V.T.F.",
       "away": "Equipa Eleven",
-      "result": null,
+      "result": "home",
       "score": ""
     },
     {
@@ -1355,7 +1355,7 @@
       "par": 2,
       "home": "V.T.F.",
       "away": "Equipa Eleven",
-      "result": null,
+      "result": "home",
       "score": ""
     },
     {
@@ -1445,7 +1445,26 @@
       "par": 2,
       "home": "Birdies e Boggies",
       "away": "Masters",
-      "result": "away"
+      "result": "away",
+      "score": ""
+    },
+    {
+      "matchId": "R5-1-68",
+      "ronda": 5,
+      "par": 1,
+      "home": "EMJC",
+      "away": "Red Hot Chilli Putters",
+      "result": null,
+      "score": ""
+    },
+    {
+      "matchId": "R5-2-69",
+      "ronda": 5,
+      "par": 2,
+      "home": "EMJC",
+      "away": "Red Hot Chilli Putters",
+      "result": null,
+      "score": ""
     }
   ],
   "calendar": [
