@@ -1267,6 +1267,8 @@ body {
     color: white;
     border-color: #64748b;
 }
+.btn-result-not-played { border-style: dashed; color: #64748b; }
+.btn-result-not-played.active { background: #475569; color: white; border-color: #475569; }
 .elim-result-text {
     flex: 0 1 auto;
     font-size: .8rem;
@@ -1320,6 +1322,18 @@ body {
     grid-column: 3;
     max-width: none;
     width: 100%;
+}
+
+.result-buttons-group {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.result-buttons-group .group-score-input {
+    grid-column: 1 / 4;
+}
+
+.result-buttons-group .btn-result-clear {
+    grid-column: 4;
 }
 
 .btn-result {

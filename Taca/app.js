@@ -2395,8 +2395,7 @@ function setGameResult(ronda, par, home, away, result) {
     const existing = getGameResult(ronda, par, home, away);
     if (existing) {
         existing.result = result;
-        // Quando limpar resultado (result = null), também limpar o score X&Y
-        if (result === null) {
+        if (result === null || result === 'draw' || result === 'not_played') {
             existing.score = null;
         }
     } else {
@@ -2589,6 +2588,7 @@ function resultPoints(result) {
     if (result === 'home') return { home: 3, away: 0 };
     if (result === 'away') return { home: 0, away: 3 };
     if (result === 'draw') return { home: 1, away: 1 };
+    if (result === 'not_played') return { home: 0, away: 0 };
     return { home: 0, away: 0 };
 }
 
@@ -2624,6 +2624,7 @@ function applyGroupTieBreak(groupTeams, group, gamesForScope) {
             return;
         }
 
+        bucket.forEach(team => { team.tiedOnPoints = true; });
         const tiedNames = new Set(bucket.map(t => t.name));
         const h2h = {};
         bucket.forEach(t => {
@@ -3014,6 +3015,7 @@ function calculateStandings(ronda, accumulate) {
                 pointsFor: 0,
                 pointsAgainst: 0,
                 played: 0,
+                scheduled: 0,
                 wins: 0,
                 draws: 0,
                 losses: 0,
@@ -3035,6 +3037,8 @@ function calculateStandings(ronda, accumulate) {
         
         // Só processar se ambas as equipas existem em state.teams
         if (homeTeam && awayTeam) {
+            homeTeam.scheduled++;
+            awayTeam.scheduled++;
             const gameResult = getGameResult(game.ronda, game.par, game.home, game.away);
             
             if (gameResult && gameResult.result) {
@@ -3225,7 +3229,7 @@ function renderClassificacao(ronda) {
             html += `
                     <tr class="${rowClass}">
                         <td>${idx + 1}</td>
-                        <td><button type="button" class="class-team-link" data-team-id="${team.id}" ${teamNameStyle}><strong>${esc(team.name)}</strong></button></td>
+                        <td><button type="button" class="class-team-link" data-team-id="${team.id}" ${teamNameStyle}><strong>${esc(team.name)}${team.tiedOnPoints ? '<sup>*</sup>' : ''}</strong></button></td>
                         <td>${team.played}</td>
                         ${showScheduledGamesColumn ? `<td>${team.scoreXY}</td>` : ''}
                         <td>${team.wins}</td>
@@ -3237,12 +3241,16 @@ function renderClassificacao(ronda) {
         });
         
         // Mostrar equipas em folga (0 jogos nesta ronda/total)
-        const teamsResting = teams.filter(t => t.played === 0);
+        const teamsResting = teams.filter(t => t.scheduled === 0);
         
         html += `
                 </tbody>
             </table>
         `;
+
+        if (teams.some(team => team.tiedOnPoints)) {
+            html += `<p style="margin:.65rem .25rem 0; font-size:.8rem; color:var(--txt-light);"><strong>* Desempate (por ordem):</strong> confronto direto, diferença de pontos nesses confrontos, mais vitórias, mais empates, maior diferença geral de pontos ganhos/perdidos e menor média de handicap WHS. Se persistir a igualdade, sorteio.</p>`;
+        }
         
         if (teamsResting.length > 0) {
             html += `<div style="margin-top:0.75rem; padding:0.75rem; background:#fef3c7; border-left:3px solid #f59e0b; font-size:0.9rem; color:#78350f;">
@@ -3279,11 +3287,12 @@ function renderClassificacao(ronda) {
                 <div class="game-result-row">
                     <span class="team-name result-par-label">Par ${game.par}</span>
                     <span class="team-name result-team-a"><span class="team-ab-label">A:</span>${homeLabel}</span>
-                    <div class="result-buttons">
+                    <div class="result-buttons result-buttons-group">
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence A</button>
                         <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
                         <button class="btn-result ${result && result.result === 'away' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="away">Vence B</button>
-                        <input type="text" class="group-score-input${result && result.result === 'draw' ? ' score-input-na' : (result && result.result) && isValidScore(result && result.score ? result.score : '') ? ' score-input-valid' : (result && result.result) ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="${result && result.result === 'draw' ? 'N/A' : '2&1'}" value="${result && result.result === 'draw' ? '' : esc(result && result.score ? result.score : '')}" ${result && result.result === 'draw' ? 'disabled' : ''} maxlength="10">
+                        <button class="btn-result btn-result-not-played ${result && result.result === 'not_played' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="not_played" title="Não realizado: 0 pontos para ambas as equipas">N/R (0–0)</button>
+                        <input type="text" class="group-score-input${result && ['draw', 'not_played'].includes(result.result) ? ' score-input-na' : (result && result.result) && isValidScore(result && result.score ? result.score : '') ? ' score-input-valid' : (result && result.result) ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="${result && result.result === 'draw' ? 'N/A' : result && result.result === 'not_played' ? 'N/R' : '2&1'}" value="${result && ['draw', 'not_played'].includes(result.result) ? '' : esc(result && result.score ? result.score : '')}" ${result && ['draw', 'not_played'].includes(result.result) ? 'disabled' : ''} maxlength="10">
                         <button class="btn-result-clear btn-del" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                     </div>
                     <span class="team-name result-team-b"><span class="team-ab-label">B:</span>${awayLabel}</span>
@@ -3543,7 +3552,10 @@ function renderCalendario() {
                     state.gameResults.find(r => r.ronda === ronda && r.par === g.par && r.home === home && r.away === away)
                 ).filter(Boolean);
 
-                const hasAnyResult = results.some(r => r.result);
+                const completedResults = results.filter(r => r.result);
+                const hasAnyResult = completedResults.length > 0;
+                const notPlayedCount = completedResults.filter(r => r.result === 'not_played').length;
+                const hasPlayedResult = completedResults.some(r => ['home', 'away', 'draw'].includes(r.result));
 
                 // Calcular score total (nº pares ganhos por cada equipa)
                 let homeScore = 0, awayScore = 0, drawCount = 0;
@@ -3552,16 +3564,20 @@ function renderCalendario() {
                     else if (r.result === 'away') awayScore++;
                     else if (r.result === 'draw') drawCount++;
                 });
-                const isDraw = hasAnyResult && homeScore === awayScore;
+                const isDraw = hasPlayedResult && homeScore === awayScore;
                 const homeWins = homeScore > awayScore;
                 const awayWins = awayScore > homeScore;
 
+                const allPairsNotPlayed = completedResults.length === games.length && notPlayedCount === games.length;
+                const scoreText = allPairsNotPlayed
+                    ? `N/R ×${notPlayedCount}`
+                    : `${homeScore}–${awayScore}${notPlayedCount ? ` · ${notPlayedCount} N/R` : ''}`;
                 const scoreLabel = hasAnyResult
-                    ? `<span class="jogo-score${isDraw ? ' score-draw' : ''}">${homeScore}–${awayScore}</span>`
+                    ? `<span class="jogo-score${isDraw ? ' score-draw' : ''}">${scoreText}</span>`
                     : `<span class="jogo-vs">VS</span>`;
 
-                const homeClass = hasAnyResult ? (homeWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
-                const awayClass = hasAnyResult ? (awayWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
+                const homeClass = hasPlayedResult ? (homeWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
+                const awayClass = hasPlayedResult ? (awayWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
                 const homeLabel = homeTeam
                     ? `<button type="button" class="calendar-team-link team-home${homeClass}" data-team-id="${homeTeam.id}">${esc(home)}</button>`
                     : `<span class="team-home${homeClass}">${esc(home)}</span>`;
