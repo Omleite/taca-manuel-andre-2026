@@ -2222,7 +2222,7 @@ function formatRoundDateLabel(ronda, isoDate) {
     const day = d.getDate();
     const month = MONTHS_PT[d.getMonth()];
     const text = `${day} de ${month}`;
-    return ronda <= 5 ? `Até ${text}` : text;
+    return `Até ${text}`;
 }
 
 // Calendário inicial predefinido (seed) — editável pelo admin
@@ -3656,7 +3656,7 @@ function getCurrentRound() {
     // Encontra a primeira ronda cuja data limite ainda não foi ultrapassada
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     
     console.log(`📅 Today: ${todayStr}`);
     
