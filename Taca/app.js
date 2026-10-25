@@ -2624,7 +2624,6 @@ function applyGroupTieBreak(groupTeams, group, gamesForScope) {
             return;
         }
 
-        bucket.forEach(team => { team.tiedOnPoints = true; });
         const tiedNames = new Set(bucket.map(t => t.name));
         const h2h = {};
         bucket.forEach(t => {
@@ -2644,18 +2643,50 @@ function applyGroupTieBreak(groupTeams, group, gamesForScope) {
             h2h[game.away].diff += (pts.away - pts.home);
         });
 
-        bucket.sort((a, b) => {
-            if (h2h[b.name].points !== h2h[a.name].points) return h2h[b.name].points - h2h[a.name].points;
-            if (h2h[b.name].diff !== h2h[a.name].diff) return h2h[b.name].diff - h2h[a.name].diff;
-            if (b.wins !== a.wins) return b.wins - a.wins;
-            if (b.draws !== a.draws) return b.draws - a.draws;
-            const pointsDiffA = a.pointsFor - a.pointsAgainst;
-            const pointsDiffB = b.pointsFor - b.pointsAgainst;
-            if (pointsDiffA !== pointsDiffB) return pointsDiffB - pointsDiffA;
+        const criteria = [
+            { label: 'mais pontos no confronto direto', value: team => h2h[team.name].points, format: value => `${value} pts`, descending: true },
+            { label: 'melhor diferença de pontos nos confrontos diretos', value: team => h2h[team.name].diff, format: value => `${value > 0 ? '+' : ''}${value} pts`, descending: true },
+            { label: 'mais vitórias', value: team => team.wins, format: value => `${value}`, descending: true },
+            { label: 'mais empates', value: team => team.draws, format: value => `${value}`, descending: true },
+            { label: 'melhor diferença geral de pontos ganhos/perdidos', value: team => team.pointsFor - team.pointsAgainst, format: value => `${value > 0 ? '+' : ''}${value} pts`, descending: true },
+            { label: 'WHS médio mais baixo', value: team => getTeamAverageHandicap(team.name), format: value => value === 999 ? 'sem WHS válido' : value.toFixed(1), descending: false }
+        ];
 
-            const avgHandicapA = getTeamAverageHandicap(a.name);
-            const avgHandicapB = getTeamAverageHandicap(b.name);
-            return avgHandicapA - avgHandicapB;
+        bucket.sort((a, b) => {
+            for (const criterion of criteria) {
+                const difference = criterion.descending
+                    ? criterion.value(b) - criterion.value(a)
+                    : criterion.value(a) - criterion.value(b);
+                if (difference) return difference;
+            }
+            return 0;
+        });
+
+        const bucketStart = ranked.length;
+        [
+            { first: 0, second: 1, label: '1.º/2.º lugar' },
+            { first: 1, second: 2, label: '2.º/3.º lugar' }
+        ].forEach(boundary => {
+            const firstIndex = boundary.first - bucketStart;
+            const secondIndex = boundary.second - bucketStart;
+            if (firstIndex < 0 || secondIndex >= bucket.length) return;
+
+            const first = bucket[firstIndex];
+            const second = bucket[secondIndex];
+            if (!first.played || !second.played) return;
+
+            const usedCriterion = criteria.find(criterion => criterion.value(first) !== criterion.value(second));
+            first.tiebreakMarker = true;
+            second.tiebreakMarker = true;
+            first.tiebreakNotes = first.tiebreakNotes || [];
+            first.tiebreakNotes.push({
+                boundary: boundary.label,
+                criterion: usedCriterion?.label || 'empate em todos os critérios; sorteio necessário',
+                firstName: first.name,
+                firstValue: usedCriterion ? usedCriterion.format(usedCriterion.value(first)) : '',
+                secondName: second.name,
+                secondValue: usedCriterion ? usedCriterion.format(usedCriterion.value(second)) : ''
+            });
         });
 
         ranked.push(...bucket);
@@ -3229,7 +3260,7 @@ function renderClassificacao(ronda) {
             html += `
                     <tr class="${rowClass}">
                         <td>${idx + 1}</td>
-                        <td><button type="button" class="class-team-link" data-team-id="${team.id}" ${teamNameStyle}><strong>${esc(team.name)}${team.tiedOnPoints ? '<sup>*</sup>' : ''}</strong></button></td>
+                        <td><button type="button" class="class-team-link" data-team-id="${team.id}" ${teamNameStyle}><strong>${esc(team.name)}${team.tiebreakMarker ? '<sup>*</sup>' : ''}</strong></button></td>
                         <td>${team.played}</td>
                         ${showScheduledGamesColumn ? `<td>${team.scoreXY}</td>` : ''}
                         <td>${team.wins}</td>
@@ -3248,9 +3279,13 @@ function renderClassificacao(ronda) {
             </table>
         `;
 
-        if (teams.some(team => team.tiedOnPoints)) {
-            html += `<p style="margin:.65rem .25rem 0; font-size:.8rem; color:var(--txt-light);"><strong>* Desempate (por ordem):</strong> confronto direto, diferença de pontos nesses confrontos, mais vitórias, mais empates, maior diferença geral de pontos ganhos/perdidos e menor média de handicap WHS. Se persistir a igualdade, sorteio.</p>`;
-        }
+        const tiebreakNotes = teams.flatMap(team => team.tiebreakNotes || []);
+        tiebreakNotes.forEach(note => {
+            const details = note.firstValue
+                ? `${esc(note.firstName)} — ${esc(note.firstValue)}; ${esc(note.secondName)} — ${esc(note.secondValue)}`
+                : `${esc(note.firstName)} e ${esc(note.secondName)}`;
+            html += `<p style="margin:.65rem .25rem 0; font-size:.8rem; color:var(--txt-light);"><strong>* Desempate em ${esc(note.boundary)} por ${esc(note.criterion)}:</strong> ${details}.</p>`;
+        });
         
         if (teamsResting.length > 0) {
             html += `<div style="margin-top:0.75rem; padding:0.75rem; background:#fef3c7; border-left:3px solid #f59e0b; font-size:0.9rem; color:#78350f;">
