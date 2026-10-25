@@ -1524,8 +1524,8 @@
       "par": 2,
       "home": "Masters",
       "away": "Piratas",
-      "result": "draw",
-      "score": ""
+      "result": "not_played",
+      "score": null
     },
     {
       "matchId": "R3-2-75",
