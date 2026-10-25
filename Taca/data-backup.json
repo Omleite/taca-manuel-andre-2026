@@ -163,7 +163,7 @@
     {
       "id": "mrpcd3x1qjr3m",
       "name": "Luis Manuel Costa",
-      "handicapWhs": 18.7,
+      "handicapWhs": 18,
       "handicap": 20,
       "genero": "M",
       "numeroFederado": "38865"
@@ -211,7 +211,7 @@
     {
       "id": "mrpcd3x1d4sot",
       "name": "Vasco Costa",
-      "handicapWhs": 13.8,
+      "handicapWhs": 13.6,
       "handicap": 15,
       "genero": "M",
       "numeroFederado": "4657"
@@ -243,7 +243,7 @@
     {
       "id": "mrpcd3x1lbj3x",
       "name": "José Vale",
-      "handicapWhs": 18.5,
+      "handicapWhs": 18.3,
       "handicap": 20,
       "genero": "M",
       "numeroFederado": "26318"
@@ -523,7 +523,7 @@
     {
       "id": "mrpcd3x1l8nep",
       "name": "David Angelis",
-      "handicapWhs": 30.1,
+      "handicapWhs": 29.5,
       "handicap": 33,
       "genero": "M",
       "numeroFederado": "47594"
@@ -555,8 +555,8 @@
     {
       "id": "mrpcd3x1pzxcn",
       "name": "Ruben Santos",
-      "handicapWhs": 26,
-      "handicap": 29,
+      "handicapWhs": 25,
+      "handicap": 28,
       "genero": "M",
       "numeroFederado": "51321"
     },
@@ -612,7 +612,7 @@
       "id": "mvmou03q9pmcb",
       "name": "Fernando da Costa",
       "numeroFederado": "54802",
-      "handicapWhs": 4.4,
+      "handicapWhs": 4.5,
       "handicap": 4,
       "genero": "M"
     },
@@ -1470,7 +1470,7 @@
       "par": 1,
       "home": "EMJC",
       "away": "Red Hot Chilli Putters",
-      "result": null,
+      "result": "away",
       "score": ""
     },
     {
@@ -1479,7 +1479,61 @@
       "par": 2,
       "home": "EMJC",
       "away": "Red Hot Chilli Putters",
-      "result": null,
+      "result": "away",
+      "score": ""
+    },
+    {
+      "matchId": "R5-1-70",
+      "ronda": 5,
+      "par": 1,
+      "home": "Estela Birdies",
+      "away": "CGGG",
+      "result": "home",
+      "score": ""
+    },
+    {
+      "matchId": "R5-2-71",
+      "ronda": 5,
+      "par": 2,
+      "home": "Estela Birdies",
+      "away": "CGGG",
+      "result": "home",
+      "score": ""
+    },
+    {
+      "matchId": "R5-1-72",
+      "ronda": 5,
+      "par": 1,
+      "home": "Os Últimos",
+      "away": "Os 4 no Buraco",
+      "result": "away",
+      "score": ""
+    },
+    {
+      "matchId": "R5-2-73",
+      "ronda": 5,
+      "par": 2,
+      "home": "Os Últimos",
+      "away": "Os 4 no Buraco",
+      "result": "home",
+      "score": ""
+    },
+    {
+      "matchId": "R2-2-74",
+      "ronda": 2,
+      "par": 2,
+      "home": "Masters",
+      "away": "Piratas",
+      "result": "draw",
+      "score": ""
+    },
+    {
+      "matchId": "R3-2-75",
+      "ronda": 3,
+      "par": 2,
+      "home": "Birdies e Boggies",
+      "away": "Piratas",
+      "result": "home",
       "score": ""
     }
   ],
