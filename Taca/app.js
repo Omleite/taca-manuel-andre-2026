@@ -990,6 +990,15 @@ async function loadDataBackup() {
             const existingResults = existingResultsRaw ? JSON.parse(existingResultsRaw) : [];
             const backupResults = data.gameResults || [];
             const resultsToUse = existingResults.length >= backupResults.length ? existingResults : backupResults;
+            // Jogadores dos pares do backup entram nas entradas locais que ainda não os têm
+            resultsToUse.forEach(local => {
+                const remote = backupResults.find(b => b.ronda === local.ronda && b.par === local.par && b.home === local.home && b.away === local.away);
+                if (!remote) return;
+                ['homePlayers', 'awayPlayers'].forEach(k => {
+                    const hasLocal = Array.isArray(local[k]) && local[k].some(Boolean);
+                    if (!hasLocal && Array.isArray(remote[k])) local[k] = remote[k];
+                });
+            });
             // Carregar dados do servidor (sem permitir SI customizado)
             const sanitizedData = {
                 players: data.players,
