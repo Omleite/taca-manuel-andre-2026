@@ -1945,4 +1945,4 @@ select#inputPlayerGenero {
 }
 
 .cal-par-players.par-win { color: #16a34a; font-weight: 700; }
-.cal-par-players.par-draw { color: #2563eb; font-weight: 400; }
+.cal-par-players.cal-draw { color: #2563eb; font-weight: 700; }
