@@ -1932,3 +1932,14 @@ select#inputPlayerGenero {
     .elim-par-card .btn-result,
     .elim-par-card .btn-del { min-height: 44px; }
 }
+
+/* Jogadores dos pares no calendário */
+.cal-par-list { display: flex; flex-direction: column; gap: .35rem; margin-top: .6rem; font-size: .85rem; }
+.cal-par-row { display: grid; grid-template-columns: 3rem 1fr auto 1fr; gap: .5rem; align-items: center; }
+.cal-par-label { font-weight: 700; opacity: .7; }
+.cal-par-players { min-width: 0; overflow-wrap: anywhere; }
+.cal-par-row > :nth-child(2) { text-align: right; }
+@media (max-width: 640px) {
+    .cal-par-row { grid-template-columns: 1fr; gap: .1rem; text-align: center; }
+    .cal-par-row .cal-par-players { text-align: center !important; }
+}

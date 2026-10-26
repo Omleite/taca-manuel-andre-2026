@@ -2430,6 +2430,7 @@ function setParPlayers(ronda, par, home, away, side, idx, playerId) {
     const key = side === 'home' ? 'homePlayers' : 'awayPlayers';
     const list = Array.isArray(entry[key]) ? entry[key].slice(0, 2) : [];
     while (list.length < 2) list.push('');
+    if (playerId && list[1 - idx] === playerId) return false;
     list[idx] = playerId || '';
     entry[key] = list;
     saveGameResults();
@@ -3577,6 +3578,18 @@ function renderGrupos() {
 //  CALENDÁRIO — Interface dinâmica
 // ════════════════════════════════════════════════════════════
 
+function buildCalendarParPlayersHtml(games, home, away) {
+    const names = (ids) => (ids || []).map(id => getPlayer(id)).filter(Boolean).map(p => esc(p.name)).join(' / ');
+    const rows = [...games].sort((a, b) => a.par - b.par).map(g => {
+        const r = getGameResult(g.ronda, g.par, home, away);
+        const a = names(r && r.homePlayers);
+        const b = names(r && r.awayPlayers);
+        if (!a && !b) return '';
+        return `<div class="cal-par-row"><span class="cal-par-label">Par ${g.par}</span><span class="cal-par-players">${a || '—'}</span><span class="par-vs-sep">VS</span><span class="cal-par-players">${b || '—'}</span></div>`;
+    }).join('');
+    return rows ? `<div class="cal-par-list">${rows}</div>` : '';
+}
+
 function renderCalendario() {
     const container = document.getElementById('calendarioContainer');
     if (!container) return;
@@ -3677,6 +3690,7 @@ function renderCalendario() {
                         ${invalid ? '<span class="jogo-warning" title="Uma ou ambas as equipas não existem">⚠️</span>' : ''}
                         ${(can('calendar_manage') && ronda <= 5) ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
                     </div>
+                    ${ronda >= 6 ? buildCalendarParPlayersHtml(games, home, away) : ''}
                 </li>`;
             });
 
