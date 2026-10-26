@@ -1943,3 +1943,6 @@ select#inputPlayerGenero {
     .cal-par-row { grid-template-columns: 1fr; gap: .1rem; text-align: center; }
     .cal-par-row .cal-par-players { text-align: center !important; }
 }
+
+.cal-par-players.par-win { color: #16a34a; font-weight: 700; }
+.cal-par-players.par-draw { color: #2563eb; font-weight: 400; }

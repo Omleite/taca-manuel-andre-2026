@@ -3600,7 +3600,9 @@ function buildCalendarParPlayersHtml(games, home, away) {
         const a = names(r && r.homePlayers);
         const b = names(r && r.awayPlayers);
         if (!a && !b) return '';
-        return `<div class="cal-par-row"><span class="cal-par-label">Par ${g.par}</span><span class="cal-par-players">${a || '—'}</span><span class="par-vs-sep">VS</span><span class="cal-par-players">${b || '—'}</span></div>`;
+        const homeCls = r && r.result === 'home' ? ' par-win' : r && r.result === 'draw' ? ' par-draw' : '';
+        const awayCls = r && r.result === 'away' ? ' par-win' : r && r.result === 'draw' ? ' par-draw' : '';
+        return `<div class="cal-par-row"><span class="cal-par-label">Par ${g.par}</span><span class="cal-par-players${homeCls}">${a || '—'}</span><span class="par-vs-sep">VS</span><span class="cal-par-players${awayCls}">${b || '—'}</span></div>`;
     }).join('');
     return rows ? `<div class="cal-par-list">${rows}</div>` : '';
 }
