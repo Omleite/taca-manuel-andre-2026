@@ -1873,3 +1873,62 @@ select#inputPlayerGenero {
         padding: .18rem .42rem;
     }
 }
+
+/* Pares das fases eliminatórias */
+.elim-par-card {
+    background: var(--bg, #f3f1ea);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: .75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+}
+.elim-par-head {
+    font-weight: 700;
+    font-size: .85rem;
+    opacity: .7;
+}
+.elim-par-sides {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: .75rem;
+    align-items: start;
+}
+.elim-side {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    min-width: 0;
+}
+.elim-side-team { font-weight: 700; }
+.elim-player-name { font-size: .9rem; }
+.elim-par-sides .par-vs-sep { align-self: center; }
+.elim-player-select {
+    width: 100%;
+    min-height: 40px;
+    padding: .3rem .5rem;
+    border: 1px solid var(--border);
+    border-radius: .4rem;
+    background: #fff;
+    font: inherit;
+}
+.elim-par-card .result-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    justify-content: center;
+}
+.elim-par-card .par-result-readonly { align-self: flex-end; }
+
+@media (max-width: 640px) {
+    .elim-par-sides { grid-template-columns: 1fr; gap: .4rem; }
+    .elim-par-sides .par-vs-sep { justify-self: center; }
+    .elim-par-card .result-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .elim-par-card .elim-score-input { grid-column: span 2; min-height: 44px; }
+    .elim-par-card .btn-result,
+    .elim-par-card .btn-del { min-height: 44px; }
+}

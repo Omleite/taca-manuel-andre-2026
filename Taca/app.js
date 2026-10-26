@@ -2419,6 +2419,23 @@ function setParScore(ronda, par, home, away, score) {
     return true;
 }
 
+function setParPlayers(ronda, par, home, away, side, idx, playerId) {
+    if (!can('classification_manage')) return false;
+    let entry = getGameResult(ronda, par, home, away);
+    if (!entry) {
+        const matchId = `R${ronda}-${par}-${state.gameResults.length}`;
+        entry = { matchId, ronda, par, home, away, result: null };
+        state.gameResults.push(entry);
+    }
+    const key = side === 'home' ? 'homePlayers' : 'awayPlayers';
+    const list = Array.isArray(entry[key]) ? entry[key].slice(0, 2) : [];
+    while (list.length < 2) list.push('');
+    list[idx] = playerId || '';
+    entry[key] = list;
+    saveGameResults();
+    return true;
+}
+
 // Guarda todos os scores visíveis antes de qualquer re-render
 function saveAllPendingScores() {
     if (!can('classification_manage')) return;
@@ -2841,6 +2858,41 @@ function bindRoundDatesEditorEvents() {
     });
 }
 
+function buildElimSideHtml(game, matchGames, side, canEdit) {
+    const teamName = side === 'home' ? game.home : game.away;
+    const team = state.teams.find(t => t.name === teamName);
+    const key = side === 'home' ? 'homePlayers' : 'awayPlayers';
+    const res = getGameResult(game.ronda, game.par, game.home, game.away);
+    const selected = (res && res[key]) || [];
+    const teamLbl = team
+        ? `<button type="button" class="class-team-link" data-team-id="${team.id}">${esc(abbreviateGroupLabel(teamName))}</button>`
+        : esc(abbreviateGroupLabel(teamName));
+    const head = `<span class="elim-side-team"><span class="team-ab-label">${side === 'home' ? 'A' : 'B'}:</span>${teamLbl}</span>`;
+
+    if (!canEdit) {
+        const names = [0, 1].map(i => getPlayer(selected[i])).filter(Boolean)
+            .map(p => `<span class="elim-player-name">${esc(p.name)}</span>`).join('');
+        return `<div class="elim-side">${head}${names}</div>`;
+    }
+
+    const usedElsewhere = new Set();
+    matchGames.forEach(g => {
+        if (g.par === game.par) return;
+        const r = getGameResult(g.ronda, g.par, g.home, g.away);
+        ((r && r[key]) || []).forEach(id => id && usedElsewhere.add(id));
+    });
+    const pool = team ? (team.playerIds || []).map(pid => getPlayer(pid)).filter(Boolean) : [];
+    const selects = [0, 1].map(idx => {
+        const other = selected[1 - idx];
+        const opts = pool
+            .filter(p => p.id === selected[idx] || (p.id !== other && !usedElsewhere.has(p.id)))
+            .map(p => `<option value="${p.id}"${p.id === selected[idx] ? ' selected' : ''}>${esc(p.name)}</option>`)
+            .join('');
+        return `<select class="elim-player-select" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${esc(game.home)}" data-away="${esc(game.away)}" data-side="${side}" data-idx="${idx}" aria-label="Jogador ${idx + 1}"${pool.length ? '' : ' disabled'}><option value="">Jogador ${idx + 1}</option>${opts}</select>`;
+    }).join('');
+    return `<div class="elim-side">${head}${selects}</div>`;
+}
+
 function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
     const games = buildPlayoffScheduleEntries(useGenericLabels).filter(g => g.ronda === ronda);
     const grouped = new Map();
@@ -2938,27 +2990,18 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
 
         matchGames.forEach(game => {
             const result = getGameResult(game.ronda, game.par, game.home, game.away);
-            const homeTeamObj = state.teams.find(t => t.name === game.home);
-            const awayTeamObj = state.teams.find(t => t.name === game.away);
-            
-            // Abreviar nomes se forem rótulos genéricos
-            const homeDisplayName = abbreviateGroupLabel(game.home);
-            const awayDisplayName = abbreviateGroupLabel(game.away);
-            
-            const homeLbl = homeTeamObj
-                ? `<button type="button" class="class-team-link" data-team-id="${homeTeamObj.id}">${esc(homeDisplayName)}</button>`
-                : esc(homeDisplayName);
-            const awayLbl = awayTeamObj
-                ? `<button type="button" class="class-team-link" data-team-id="${awayTeamObj.id}">${esc(awayDisplayName)}</button>`
-                : esc(awayDisplayName);
             const winnerName = !result || !result.result ? '' :
                 result.result === 'home' ? abbreviateGroupLabel(game.home) :
                 result.result === 'away' ? abbreviateGroupLabel(game.away) : '';
             html += `
-                <div class="game-result-row${canManageClassification ? '' : ' game-result-row-readonly'}">
-                    <span class="team-name result-par-label">Par ${game.par}</span>
+                <div class="elim-par-card${canManageClassification ? '' : ' elim-par-card-readonly'}">
+                    <div class="elim-par-head">Par ${game.par}</div>
+                    <div class="elim-par-sides">
+                        ${buildElimSideHtml(game, matchGames, 'home', canManageClassification)}
+                        <span class="par-vs-sep">VS</span>
+                        ${buildElimSideHtml(game, matchGames, 'away', canManageClassification)}
+                    </div>
                     ${canManageClassification ? `
-                    <span class="team-name result-team-a"><span class="team-ab-label">A:</span>${homeLbl}</span>
                     <div class="result-buttons">
                         <button class="btn-result ${result && result.result === 'home' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="home">Vence A</button>
                         <button class="btn-result btn-result-draw ${result && result.result === 'draw' ? 'active' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" data-result="draw">A/S</button>
@@ -2966,11 +3009,7 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
                         <input type="text" class="elim-score-input${result && result.result === 'draw' ? ' score-input-na' : (result && result.result) && isValidScore(result && result.score ? result.score : '') ? ' score-input-valid' : (result && result.result) ? ' score-input-error' : ''}" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}" placeholder="${result && result.result === 'draw' ? 'N/A' : '2&1'}" value="${result && result.result === 'draw' ? '' : esc(result && result.score ? result.score : '')}" ${result && result.result === 'draw' ? 'disabled' : ''} maxlength="10">
                         <button class="btn-result-clear btn-del" data-ronda="${game.ronda}" data-par="${game.par}" data-home="${game.home}" data-away="${game.away}">Del</button>
                     </div>
-                    <span class="team-name result-team-b"><span class="team-ab-label">B:</span>${awayLbl}</span>
                     ` : `
-                    <span class="par-teams-vs-label">
-                        <span class="team-ab-label">A:</span>${homeLbl}<span class="par-vs-sep">VS</span><span class="team-ab-label">B:</span>${awayLbl}
-                    </span>
                     <div class="par-result-readonly">
                         ${result && result.result === 'draw' ? `
                             <span class="par-result-badge par-result-badge-draw">A/S</span>
@@ -3128,6 +3167,16 @@ function renderClassificacao(ronda) {
         document.getElementById('classificacaoContainer').innerHTML = buildEliminationClassificationHtml(rondaNum, useGenericLabels);
 
         if (can('classification_manage')) {
+            document.querySelectorAll('.elim-player-select').forEach(sel => {
+                sel.addEventListener('change', (e) => {
+                    const d = e.target.dataset;
+                    saveAllPendingScores();
+                    if (!setParPlayers(parseInt(d.ronda, 10), parseInt(d.par, 10), d.home, d.away, d.side, parseInt(d.idx, 10), e.target.value)) return;
+                    const selView = document.getElementById('selRondaClass').value;
+                    renderClassificacao(selView === 'total' ? 'total' : parseInt(selView, 10));
+                });
+            });
+
             document.querySelectorAll('.btn-result').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const rr = parseInt(e.target.dataset.ronda, 10);
