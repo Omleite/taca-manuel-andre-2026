@@ -3165,6 +3165,19 @@ function calculateStandings(ronda, accumulate) {
     return standings;
 }
 
+function bindElimPlayerSelects() {
+    document.querySelectorAll('.elim-player-select').forEach(sel => {
+        sel.addEventListener('change', (e) => {
+            const d = e.target.dataset;
+            saveAllPendingScores();
+            const ok = setParPlayers(parseInt(d.ronda, 10), parseInt(d.par, 10), d.home, d.away, d.side, parseInt(d.idx, 10), e.target.value);
+            if (!ok) showToast('O mesmo jogador não pode estar duas vezes no par.', 'error');
+            const selView = document.getElementById('selRondaClass').value;
+            renderClassificacao(selView === 'total' ? 'total' : parseInt(selView, 10));
+        });
+    });
+}
+
 function renderClassificacao(ronda) {
     // Recarregar resultados do localStorage
     loadGameResults();
@@ -3177,15 +3190,7 @@ function renderClassificacao(ronda) {
         document.getElementById('classificacaoContainer').innerHTML = buildEliminationClassificationHtml(rondaNum, useGenericLabels);
 
         if (can('classification_manage')) {
-            document.querySelectorAll('.elim-player-select').forEach(sel => {
-                sel.addEventListener('change', (e) => {
-                    const d = e.target.dataset;
-                    saveAllPendingScores();
-                    if (!setParPlayers(parseInt(d.ronda, 10), parseInt(d.par, 10), d.home, d.away, d.side, parseInt(d.idx, 10), e.target.value)) return;
-                    const selView = document.getElementById('selRondaClass').value;
-                    renderClassificacao(selView === 'total' ? 'total' : parseInt(selView, 10));
-                });
-            });
+            bindElimPlayerSelects();
 
             document.querySelectorAll('.btn-result').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -3422,6 +3427,7 @@ function renderClassificacao(ronda) {
     
     // Adicionar listeners aos botões de resultado (apenas se admin)
     if (can('classification_manage')) {
+        bindElimPlayerSelects();
         document.querySelectorAll('.btn-result').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const ronda = parseInt(e.target.dataset.ronda, 10);
