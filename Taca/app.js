@@ -2441,6 +2441,14 @@ function setGameResult(ronda, par, home, away, result) {
     // Segurança: só perfis com permissão podem alterar resultados.
     if (!can('classification_manage')) return false;
 
+    if (ronda >= 6 && par === 3 && result !== null) {
+        const playoff = getGameResult(ronda, par, home, away);
+        const hasBothPairs = ['homePlayers', 'awayPlayers'].every(key =>
+            Array.isArray(playoff?.[key]) && playoff[key].filter(Boolean).length === 2
+        );
+        if (!hasBothPairs || !['home', 'away'].includes(result)) return false;
+    }
+
     const existing = getGameResult(ronda, par, home, away);
     if (existing) {
         existing.result = result;
@@ -2480,7 +2488,12 @@ function setParPlayers(ronda, par, home, away, side, idx, playerId) {
     const list = Array.isArray(entry[key]) ? entry[key].slice(0, 2) : [];
     while (list.length < 2) list.push('');
     if (playerId && list[1 - idx] === playerId) return false;
-    list[idx] = playerId || '';
+    const nextPlayerId = playerId || '';
+    if (ronda >= 6 && par === 3 && list[idx] !== nextPlayerId) {
+        entry.result = null;
+        entry.score = null;
+    }
+    list[idx] = nextPlayerId;
     entry[key] = list;
     saveGameResults();
     return true;
@@ -2771,27 +2784,22 @@ function isGroupStageFullyScored() {
     });
 }
 
-// Get winner of a playoff match by searching game results directly
+// Resolve an elimination tie only after the sudden-death playoff is recorded.
 function getEliminationMatchWinner(ronda, matchNo, home, away) {
     if (!home || !away) return null;
     if (home.startsWith('Vencedor') || away.startsWith('Vencedor')) return null;
-    
-    // Count wins and accumulate X+Y for each team
-    let homeWins = 0, awayWins = 0;
-    let homeXY = 0, awayXY = 0;
-    for (let par = 1; par <= 2; par++) {
-        const result = getGameResult(ronda, par, home, away);
-        if (result && result.result) {
-            if (result.result === 'home') { homeWins++; homeXY += parseScoreXY(result.score); }
-            if (result.result === 'away') { awayWins++; awayXY += parseScoreXY(result.score); }
-        }
-    }
-    
+
+    const pairResults = [1, 2].map(par => getGameResult(ronda, par, home, away));
+    if (!pairResults.every(result => result && ['home', 'away', 'draw'].includes(result.result))) return null;
+
+    const homeWins = pairResults.filter(result => result.result === 'home').length;
+    const awayWins = pairResults.filter(result => result.result === 'away').length;
     if (homeWins > awayWins) return home;
     if (awayWins > homeWins) return away;
-    // 1-1: tiebreaker by X+Y sum
-    if (homeXY > awayXY) return home;
-    if (awayXY > homeXY) return away;
+
+    const playoffResult = getGameResult(ronda, 3, home, away);
+    if (playoffResult?.result === 'home') return home;
+    if (playoffResult?.result === 'away') return away;
     return null;
 }
 
@@ -2908,7 +2916,7 @@ function bindRoundDatesEditorEvents() {
     });
 }
 
-function buildElimSideHtml(game, matchGames, side, canEdit) {
+function buildElimSideHtml(game, matchGames, side, canEdit, allowPreviouslyPlayed = false) {
     const teamName = side === 'home' ? game.home : game.away;
     const team = state.teams.find(t => t.name === teamName);
     const key = side === 'home' ? 'homePlayers' : 'awayPlayers';
@@ -2926,11 +2934,13 @@ function buildElimSideHtml(game, matchGames, side, canEdit) {
     }
 
     const usedElsewhere = new Set();
-    matchGames.forEach(g => {
-        if (g.par === game.par) return;
-        const r = getGameResult(g.ronda, g.par, g.home, g.away);
-        ((r && r[key]) || []).forEach(id => id && usedElsewhere.add(id));
-    });
+    if (!allowPreviouslyPlayed) {
+        matchGames.forEach(g => {
+            if (g.par === game.par) return;
+            const r = getGameResult(g.ronda, g.par, g.home, g.away);
+            ((r && r[key]) || []).forEach(id => id && usedElsewhere.add(id));
+        });
+    }
     const pool = team ? (team.playerIds || []).map(pid => getPlayer(pid)).filter(Boolean) : [];
     const selects = [0, 1].map(idx => {
         const other = selected[1 - idx];
@@ -2968,8 +2978,6 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
 
         let homeWins = 0;
         let awayWins = 0;
-        let homeXY = 0;
-        let awayXY = 0;
         let hasAnyResult = false;
         const canManageClassification = can('classification_manage');
 
@@ -2979,28 +2987,36 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
             hasAnyResult = true;
             if (res.result === 'home') {
                 homeWins++;
-                homeXY += parseScoreXY(res.score);
             }
             if (res.result === 'away') {
                 awayWins++;
-                awayXY += parseScoreXY(res.score);
             }
         });
 
-        const matchComplete = homeWins + awayWins > 0;
+        const regularResultsComplete = matchGames.length === 2 && matchGames.every(game => {
+            const result = getGameResult(game.ronda, game.par, game.home, game.away);
+            return result && ['home', 'away', 'draw'].includes(result.result);
+        });
+        const requiresPlayoff = regularResultsComplete && homeWins === awayWins;
+        const playoffGame = requiresPlayoff ? { ...matchGames[0], par: 3 } : null;
+        const playoffResult = playoffGame
+            ? getGameResult(playoffGame.ronda, playoffGame.par, playoffGame.home, playoffGame.away)
+            : null;
+        const playoffWinner = playoffResult?.result === 'home' ? home
+            : playoffResult?.result === 'away' ? away
+            : null;
         const isDraw = hasAnyResult && homeWins === awayWins;
         
-        // Determine winner: 1) higher wins, 2) tiebreaker by X+Y, 3) none
+        // A tied pair of matches can only advance after the play-off is decided.
         let winner = null;
-        if (homeWins > awayWins) {
+        if (regularResultsComplete && homeWins > awayWins) {
             winner = home;
-        } else if (awayWins > homeWins) {
+        } else if (regularResultsComplete && awayWins > homeWins) {
             winner = away;
-        } else if (homeWins === awayWins && homeWins > 0) {
-            // Tiebreaker by X+Y sum
-            if (homeXY > awayXY) winner = home;
-            else if (awayXY > homeXY) winner = away;
+        } else if (requiresPlayoff) {
+            winner = playoffWinner;
         }
+        const matchComplete = regularResultsComplete && (!requiresPlayoff || !!playoffWinner);
         
         // Score display for elimination matches
         const scoreDisplay = hasAnyResult
@@ -3008,8 +3024,8 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
             : `<span class="jogo-vs">VS</span>`;
         
         // Team styling
-        const homeWinClass = hasAnyResult ? (homeWins > awayWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
-        const awayWinClass = hasAnyResult ? (awayWins > homeWins ? ' team-winner' : isDraw ? '' : ' team-loser') : '';
+        const homeWinClass = winner ? (winner === home ? ' team-winner' : ' team-loser') : '';
+        const awayWinClass = winner ? (winner === away ? ' team-winner' : ' team-loser') : '';
         
         // Abreviar nomes das equipas se forem rótulos genéricos
         const homeDisplayName = abbreviateGroupLabel(home);
@@ -3072,6 +3088,37 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
                 </div>
             `;
         });
+
+        if (requiresPlayoff) {
+            const playoffPlayersSelected = ['homePlayers', 'awayPlayers'].every(key =>
+                Array.isArray(playoffResult?.[key]) && playoffResult[key].filter(Boolean).length === 2
+            );
+            const playoffResultHtml = playoffWinner
+                ? `<span class="par-result-badge par-result-badge-win">Vence ${esc(playoffWinner)}</span>`
+                : '<span class="par-result-badge par-result-badge-pending">Play-off por decidir</span>';
+
+            html += `
+                <div class="elim-playoff-block">
+                    <h5 class="elim-playoff-title">Play-off de desempate</h5>
+                    <p class="elim-playoff-help">Confronto empatado. São escolhidos dois jogadores de cada equipa; a composição pode ser diferente dos pares utilizados nos matches anteriores.</p>
+                    <div class="elim-par-card elim-playoff-par-card">
+                        <div class="elim-par-head">Par de play-off</div>
+                        <div class="elim-par-sides">
+                            ${buildElimSideHtml(playoffGame, matchGames, 'home', canManageClassification, true)}
+                            <span class="par-vs-sep">VS</span>
+                            ${buildElimSideHtml(playoffGame, matchGames, 'away', canManageClassification, true)}
+                        </div>
+                        ${canManageClassification ? `
+                            <div class="result-buttons">
+                                <button class="btn-result ${playoffResult?.result === 'home' ? 'active' : ''}" data-ronda="${playoffGame.ronda}" data-par="3" data-home="${esc(playoffGame.home)}" data-away="${esc(playoffGame.away)}" data-result="home"${playoffPlayersSelected ? '' : ' disabled'}>Vence A</button>
+                                <button class="btn-result ${playoffResult?.result === 'away' ? 'active' : ''}" data-ronda="${playoffGame.ronda}" data-par="3" data-home="${esc(playoffGame.home)}" data-away="${esc(playoffGame.away)}" data-result="away"${playoffPlayersSelected ? '' : ' disabled'}>Vence B</button>
+                                <button class="btn-result-clear btn-del" data-ronda="${playoffGame.ronda}" data-par="3" data-home="${esc(playoffGame.home)}" data-away="${esc(playoffGame.away)}">Del</button>
+                            </div>
+                        ` : `<div class="par-result-readonly">${playoffResultHtml}</div>`}
+                    </div>
+                </div>
+            `;
+        }
 
         // Add winner/progress section
         if (matchComplete && winner) {

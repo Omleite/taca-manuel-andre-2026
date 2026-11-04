@@ -1923,6 +1923,17 @@ select#inputPlayerGenero {
     justify-content: center;
 }
 .elim-par-card .par-result-readonly { align-self: flex-end; }
+.elim-playoff-block {
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
+    margin-top: .9rem;
+    padding-top: .9rem;
+    border-top: 1px solid var(--border);
+}
+.elim-playoff-title { margin: 0; color: var(--txt-head); font-size: 1rem; }
+.elim-playoff-help { margin: 0; color: var(--txt-mid); font-size: .875rem; line-height: 1.5; }
+.elim-playoff-par-card { border-color: var(--accent); }
 
 @media (max-width: 640px) {
     .elim-par-sides { grid-template-columns: 1fr; gap: .4rem; }
