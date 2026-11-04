@@ -1659,10 +1659,25 @@ function updateParTotals() {
     updateOnePar('selB1', 'selB2', 'parBTotal');
 }
 
+function calculateEliminationPairHandicap(handicapOne, handicapTwo) {
+    if (handicapOne === null || handicapOne === undefined || handicapOne === '' ||
+        handicapTwo === null || handicapTwo === undefined || handicapTwo === '') return null;
+    const firstHandicap = Number(handicapOne);
+    const secondHandicap = Number(handicapTwo);
+    if (!Number.isFinite(firstHandicap) || !Number.isFinite(secondHandicap)) return null;
+    const lowerHandicap = Math.min(firstHandicap, secondHandicap);
+    const higherHandicap = Math.max(firstHandicap, secondHandicap);
+    return 0.35 * lowerHandicap + 0.15 * higherHandicap;
+}
+
 function updateOnePar(id1, id2, totalId) {
-    const p1 = getPlayer(document.getElementById(id1).value);
-    const p2 = getPlayer(document.getElementById(id2).value);
-    document.getElementById(totalId).querySelector('strong').textContent = (p1 && p2) ? (p1.handicap + p2.handicap) : '—';
+    const playerOne = getPlayer(document.getElementById(id1).value);
+    const playerTwo = getPlayer(document.getElementById(id2).value);
+    const pairHandicap = playerOne && playerTwo
+        ? calculateEliminationPairHandicap(playerOne.handicap, playerTwo.handicap)
+        : null;
+    const total = pairHandicap === null ? '—' : pairHandicap.toFixed(2);
+    document.getElementById(totalId).querySelector('strong').textContent = total;
 }
 
 function calculate() {
@@ -1774,8 +1789,12 @@ function calculateVFinal() {
     const minB = Math.min(hcpB1, hcpB2);
     const maxB = Math.max(hcpB1, hcpB2);
 
-    const totalA = 0.35 * minA + 0.15 * maxA;
-    const totalB = 0.35 * minB + 0.15 * maxB;
+    const totalA = calculateEliminationPairHandicap(hcpA1, hcpA2);
+    const totalB = calculateEliminationPairHandicap(hcpB1, hcpB2);
+    if (totalA === null || totalB === null) {
+        showToast('Não foi possível calcular: verifique os handicaps dos jogadores.', 'error');
+        return;
+    }
 
     const diff    = Math.abs(totalA - totalB);
     const strokes = Math.round(diff);
@@ -1800,6 +1819,7 @@ function renderResultSummary(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, 
     const wLabel = `Par ${higherPar}`;
     const lLabel = higherPar === 'A' ? 'Par B' : 'Par A';
     const wPlayers = higherPar === 'A' ? `${esc(pA1.name)} &amp; ${esc(pA2.name)}` : `${esc(pB1.name)} &amp; ${esc(pB2.name)}`;
+    const lPlayers = higherPar === 'A' ? `${esc(pB1.name)} &amp; ${esc(pB2.name)}` : `${esc(pA1.name)} &amp; ${esc(pA2.name)}`;
     el.innerHTML = `
         <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} &amp; ${esc(pA2.name)}</span><span class="val" style="color:var(--blue)">Total: <strong>${totalA}</strong></span></div>
         <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} &amp; ${esc(pB2.name)}</span><span class="val" style="color:var(--red)">Total: <strong>${totalB}</strong></span></div>
@@ -1809,7 +1829,7 @@ function renderResultSummary(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, 
             <span>➡️ <span class="winner-name">${wLabel}</span> recebe ${strokes} pancada${strokes !== 1 ? 's' : ''} de abono<br><small style="font-weight:400;color:var(--txt-light)">${wPlayers}</small></span>
             <span class="winner-val">+${strokes}</span>
         </div>
-        <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} joga sem pancadas de abono</span><span>0</span></div>`;
+        <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} — ${lPlayers} joga sem pancadas de abono</span><span>0</span></div>`;
 }
 
 function renderResultSummaryElim(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar, minA, maxA, minB, maxB) {
@@ -1821,6 +1841,7 @@ function renderResultSummaryElim(pA1, pA2, pB1, pB2, totalA, totalB, diff, strok
     const wLabel = `Par ${higherPar}`;
     const lLabel = higherPar === 'A' ? 'Par B' : 'Par A';
     const wPlayers = higherPar === 'A' ? `${esc(pA1.name)} &amp; ${esc(pA2.name)}` : `${esc(pB1.name)} &amp; ${esc(pB2.name)}`;
+    const lPlayers = higherPar === 'A' ? `${esc(pB1.name)} &amp; ${esc(pB2.name)}` : `${esc(pA1.name)} &amp; ${esc(pA2.name)}`;
     const rawA = (0.6 * minA + 0.4 * maxA).toFixed(2);
     const rawB = (0.6 * minB + 0.4 * maxB).toFixed(2);
     
@@ -1835,7 +1856,7 @@ function renderResultSummaryElim(pA1, pA2, pB1, pB2, totalA, totalB, diff, strok
             <span>➡️ <span class="winner-name">${wLabel}</span> recebe ${strokes} pancada${strokes !== 1 ? 's' : ''} de abono<br><small style="font-weight:400;color:var(--txt-light)">${wPlayers}</small></span>
             <span class="winner-val">+${strokes}</span>
         </div>
-        <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} joga sem pancadas de abono</span><span>0</span></div>`;
+        <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} — ${lPlayers} joga sem pancadas de abono</span><span>0</span></div>`;
 }
 
 function renderResultSummaryVFinal(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar, minA, maxA, minB, maxB) {
@@ -1855,6 +1876,7 @@ function renderResultSummaryVFinal(pA1, pA2, pB1, pB2, totalA, totalB, diff, str
     const wLabel = `Par ${higherPar}`;
     const lLabel = higherPar === 'A' ? 'Par B' : 'Par A';
     const wPlayers = higherPar === 'A' ? `${esc(pA1.name)} &amp; ${esc(pA2.name)}` : `${esc(pB1.name)} &amp; ${esc(pB2.name)}`;
+    const lPlayers = higherPar === 'A' ? `${esc(pB1.name)} &amp; ${esc(pB2.name)}` : `${esc(pA1.name)} &amp; ${esc(pA2.name)}`;
     el.innerHTML = `
         <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} &amp; ${esc(pA2.name)}</span><span class="val" style="color:var(--blue)">Total: <strong>${totalAText}</strong></span></div>
         <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minA} + 15% × ${maxA} = ${rawA}</span></div>
@@ -1866,7 +1888,7 @@ function renderResultSummaryVFinal(pA1, pA2, pB1, pB2, totalA, totalB, diff, str
             <span>➡️ <span class="winner-name">${wLabel}</span> recebe ${strokes} pancada${strokes !== 1 ? 's' : ''} de abono<br><small style="font-weight:400;color:var(--txt-light)">${wPlayers}</small></span>
             <span class="winner-val">+${strokes}</span>
         </div>
-        <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} joga sem pancadas de abono</span><span>0</span></div>`;
+        <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} — ${lPlayers} joga sem pancadas de abono</span><span>0</span></div>`;
 }
 
 function renderStrokeTable(strokes, higherPar, teamAName, teamBName) {
