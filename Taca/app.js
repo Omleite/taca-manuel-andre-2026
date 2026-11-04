@@ -1544,22 +1544,34 @@ function refreshCalcSelects() {
     updateTeamSelects();
 }
 
+function getCalculatorTeams() {
+    if (isLoggedIn()) return state.teams;
+    if (!isGroupStageFullyScored()) return [];
+
+    const standings = calculateStandings(5, true);
+    const qualifiedTeamIds = new Set(
+        Object.values(standings).flatMap(group => group.slice(0, 2).map(team => team.id))
+    );
+    return state.teams.filter(team => qualifiedTeamIds.has(team.id));
+}
+
 function updateTeamSelects() {
     // Filtrar equipas para evitar duplicatas
     const teamAId = document.getElementById('selTeamA').value;
     const teamBId = document.getElementById('selTeamB').value;
+    const calculatorTeams = getCalculatorTeams();
     
     // Atualizar selTeamA
     const optsA = `<option value="">-- Seleccionar Equipa A --</option>` +
-        state.teams.map(t => `<option value="${t.id}" ${teamBId && t.id === teamBId ? 'disabled' : ''}>${esc(t.name)}</option>`).join('');
+        calculatorTeams.map(t => `<option value="${t.id}" ${teamBId && t.id === teamBId ? 'disabled' : ''}>${esc(t.name)}</option>`).join('');
     document.getElementById('selTeamA').innerHTML = optsA;
-    if (teamAId && state.teams.some(t => t.id === teamAId)) document.getElementById('selTeamA').value = teamAId;
+    if (teamAId && calculatorTeams.some(t => t.id === teamAId)) document.getElementById('selTeamA').value = teamAId;
     
     // Atualizar selTeamB
     const optsB = `<option value="">-- Seleccionar Equipa B --</option>` +
-        state.teams.map(t => `<option value="${t.id}" ${teamAId && t.id === teamAId ? 'disabled' : ''}>${esc(t.name)}</option>`).join('');
+        calculatorTeams.map(t => `<option value="${t.id}" ${teamAId && t.id === teamAId ? 'disabled' : ''}>${esc(t.name)}</option>`).join('');
     document.getElementById('selTeamB').innerHTML = optsB;
-    if (teamBId && state.teams.some(t => t.id === teamBId)) document.getElementById('selTeamB').value = teamBId;
+    if (teamBId && calculatorTeams.some(t => t.id === teamBId)) document.getElementById('selTeamB').value = teamBId;
 }
 
 function formatCalcPlayerLabel(p) {
