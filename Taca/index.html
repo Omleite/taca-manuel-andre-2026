@@ -314,7 +314,7 @@
         <div class="calc-actions">
             <button class="btn btn-primary btn-lg" id="btnCalculate">⛳ Abono Fase de Grupos</button>
             <button class="btn btn-primary btn-lg admin-only" id="btnCalculateElim">⛳ Abono Fase a Eliminar (60%+40%)×¾</button>
-            <button class="btn btn-primary btn-lg admin-only" id="btnCalculateVFinal">⛳ Abono Fase a Eliminar (35%+15%)</button>
+            <button class="btn btn-primary btn-lg admin-only" id="btnCalculateVFinal">⛳ Abono Fase a Eliminar</button>
         </div>
 
         <div id="calcResult" class="hidden">
@@ -420,21 +420,21 @@
         </div>
 
         <div class="card">
-            <h3>Regulamento – Cálculo de Handicap (Fase de Grupos)</h3>
+            <h3>Regulamento – Cálculo de Handicap (Fase a Eliminar)</h3>
             <div class="regulation">
                 <ol>
-                    <li>Somam-se os <strong>handicaps de jogo</strong> dos dois jogadores de cada par.</li>
-                    <li>Calcula-se a <strong>diferença</strong> entre os handicaps totais dos dois pares.</li>
-                    <li>O par com handicap total mais elevado recebe <strong>¾ (75%) dessa diferença</strong>, arredondada para a unidade mais próxima.</li>
-                    <li>O par com handicap total mais baixo joga com <strong>0 pancadas de vantagem</strong>.</li>
-                    <li>As pancadas são distribuídas pelos buracos com <strong>Stroke Index mais baixo</strong> (buracos mais difíceis).</li>
+                    <li>Cada jogador utiliza o seu <strong>handicap de campo</strong> para a marca de saída do match.</li>
+                    <li>O handicap do par é <strong>35% do handicap mais baixo + 15% do handicap mais alto</strong>, sem arredondamento.</li>
+                    <li>Calcula-se a diferença entre os handicaps dos pares e arredonda-se à unidade mais próxima; <strong>0,5 arredonda por excesso</strong>.</li>
+                    <li>O par com handicap mais elevado recebe as pancadas; o outro par joga com <strong>0</strong>.</li>
+                    <li>As pancadas são atribuídas por ordem crescente de <strong>Stroke Index</strong>. Acima de 18 pancadas, a segunda pancada por buraco começa no SI 1.</li>
                 </ol>
                 <div class="example-box">
                     <strong>Exemplo:</strong><br>
-                    Par A: 8 + 12 = <strong>20</strong> &nbsp;|&nbsp; Par B: 15 + 17 = <strong>32</strong><br>
-                    Diferença: 32 − 20 = <strong>12</strong><br>
-                    ¾ de 12 = <strong>9 pancadas</strong><br>
-                    ➡️ Par B recebe <strong>9 pancadas</strong> nos buracos com SI 1 a 9. Par A joga sem pancadas.
+                    Par A (8 e 12): 0,35 × 8 + 0,15 × 12 = <strong>4,6</strong><br>
+                    Par B (15 e 17): 0,35 × 15 + 0,15 × 17 = <strong>7,8</strong><br>
+                    Diferença: 7,8 − 4,6 = <strong>3,2</strong>, arredondada a <strong>3 pancadas</strong><br>
+                    ➡️ Par B recebe <strong>3 pancadas</strong> nos buracos com SI 1, 2 e 3. Par A joga sem pancadas.
                 </div>
             </div>
         </div>
@@ -677,6 +677,6 @@
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="app.js?v=126"></script>
+<script src="app.js?v=127"></script>
 </body>
 </html>

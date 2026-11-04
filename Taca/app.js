@@ -21,7 +21,7 @@ const DEFAULT_SI = [13, 17, 1, 7, 4, 2, 11, 15, 12, 5, 16, 10, 14, 9, 3, 8, 18, 
 // ════════════════════════════════════════════════════════════
 //  VERIFICAÇÃO DE VERSÃO E LIMPEZA DE CACHE
 // ════════════════════════════════════════════════════════════
-const APP_VERSION = '205'; // Os Últimos: Manuel Rodrigues -> Manuel Teixeira Rodrigues
+const APP_VERSION = '206'; // Limpa dados locais de teste da fase eliminatória
 const STORED_VERSION_KEY = 'tma-2026-app-version';
 const storedVersion = localStorage.getItem(STORED_VERSION_KEY);
 
@@ -452,7 +452,7 @@ function updateAuthUI() {
     const calculateButton = document.getElementById('btnCalculate');
     calculateButton.textContent = logged
         ? '⛳ Abono Fase de Grupos'
-        : '⛳ Abono Fase a Eliminar (35%+15%)';
+        : '⛳ Abono Fase a Eliminar';
 
     // Nav
     document.getElementById('btnOpenLogin').classList.toggle('hidden', logged);
