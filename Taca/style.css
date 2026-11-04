@@ -424,6 +424,8 @@ body {
 /* ── REGULAMENTO ───────────────────────── */
 .config-desc { font-size: .875rem; color: var(--txt-light); margin-bottom: .9rem; line-height: 1.65; }
 .regulation ol { padding-left: 1.5rem; line-height: 1.9; font-size: .9rem; color: var(--txt-mid); }
+.regulation-dates { list-style: none; padding-left: 2.25rem; line-height: 1.9; font-size: .9rem; color: var(--txt-mid); }
+.regulation-dates li::before { content: "-"; display: inline-block; width: 1rem; margin-left: -1rem; }
 .example-box {
     background: #f4faf6; border: 1px solid #c3e6d0; border-left: 4px solid var(--green-ok);
     border-radius: var(--r-sm); padding: 1rem 1.25rem; margin-top: 1rem;
