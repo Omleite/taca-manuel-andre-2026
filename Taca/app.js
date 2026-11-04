@@ -449,6 +449,10 @@ function doLogout() {
 function updateAuthUI() {
     const logged = isLoggedIn();
     const isTournamentAdmin = isAdmin();
+    const calculateButton = document.getElementById('btnCalculate');
+    calculateButton.textContent = logged
+        ? '⛳ Abono Fase de Grupos'
+        : '⛳ Abono Fase a Eliminar (35%+15%)';
 
     // Nav
     document.getElementById('btnOpenLogin').classList.toggle('hidden', logged);
@@ -1741,9 +1745,7 @@ function calculateElimination() {
 }
 
 function calculateVFinal() {
-    // Fórmula VFinal:
-    // Handicap da equipa = Round(35% × HCP_menor + 15% × HCP_maior)
-    // Pancadas = diferença entre os handicaps das duas equipas (100%)
+    // Na fase eliminatória, o handicap do par não é arredondado; arredonda-se apenas a diferença.
     const teamAId = document.getElementById('selTeamA').value;
     const teamBId = document.getElementById('selTeamB').value;
     const teamA = state.teams.find(t => t.id === teamAId);
@@ -1772,16 +1774,15 @@ function calculateVFinal() {
     const minB = Math.min(hcpB1, hcpB2);
     const maxB = Math.max(hcpB1, hcpB2);
 
-    // 35% do menor + 15% do maior, arredondado
-    const totalA = Math.round(0.35 * minA + 0.15 * maxA);
-    const totalB = Math.round(0.35 * minB + 0.15 * maxB);
+    const totalA = 0.35 * minA + 0.15 * maxA;
+    const totalB = 0.35 * minB + 0.15 * maxB;
 
     const diff    = Math.abs(totalA - totalB);
-    const strokes = diff; // 100% da diferença
+    const strokes = Math.round(diff);
     const higherPar = totalA > totalB ? 'A' : (totalB > totalA ? 'B' : null);
 
-    document.getElementById('parATotal').querySelector('strong').textContent = totalA;
-    document.getElementById('parBTotal').querySelector('strong').textContent = totalB;
+    document.getElementById('parATotal').querySelector('strong').textContent = totalA.toFixed(2);
+    document.getElementById('parBTotal').querySelector('strong').textContent = totalB.toFixed(2);
 
     renderResultSummaryVFinal(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar, minA, maxA, minB, maxB);
     renderStrokeTable(strokes, higherPar, teamA?.name, teamB?.name);
@@ -1839,23 +1840,28 @@ function renderResultSummaryElim(pA1, pA2, pB1, pB2, totalA, totalB, diff, strok
 
 function renderResultSummaryVFinal(pA1, pA2, pB1, pB2, totalA, totalB, diff, strokes, higherPar, minA, maxA, minB, maxB) {
     const el = document.getElementById('resultSummary');
-    if (!higherPar) {
-        el.innerHTML = `<div class="result-equal">⚖️ Os dois pares têm o mesmo handicap total (${totalA}).<br>Nenhum par recebe pancadas de abono — jogo a zero.</div>`;
+    const totalAText = totalA.toFixed(2);
+    const totalBText = totalB.toFixed(2);
+    const rawA = totalAText;
+    const rawB = totalBText;
+    if (strokes === 0) {
+        el.innerHTML = `
+            <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} &amp; ${esc(pA2.name)}</span><span class="val" style="color:var(--blue)">Total: <strong>${totalAText}</strong></span></div>
+            <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} &amp; ${esc(pB2.name)}</span><span class="val" style="color:var(--red)">Total: <strong>${totalBText}</strong></span></div>
+            <div class="result-equal">Diferença: ${diff.toFixed(2)}, arredondada a 0. Nenhum par recebe pancadas de abono.</div>`;
         return;
     }
+    if (!higherPar) return;
     const wLabel = `Par ${higherPar}`;
     const lLabel = higherPar === 'A' ? 'Par B' : 'Par A';
     const wPlayers = higherPar === 'A' ? `${esc(pA1.name)} &amp; ${esc(pA2.name)}` : `${esc(pB1.name)} &amp; ${esc(pB2.name)}`;
-    const rawA = (0.35 * minA + 0.15 * maxA).toFixed(2);
-    const rawB = (0.35 * minB + 0.15 * maxB).toFixed(2);
-
     el.innerHTML = `
-        <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} (${minA}) &amp; ${esc(pA2.name)} (${maxA})</span><span class="val" style="color:var(--blue)">Total: <strong>${totalA}</strong></span></div>
-        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minA} + 15% × ${maxA} = ${rawA} → ${totalA}</span></div>
-        <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} (${minB}) &amp; ${esc(pB2.name)} (${maxB})</span><span class="val" style="color:var(--red)">Total: <strong>${totalB}</strong></span></div>
-        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minB} + 15% × ${maxB} = ${rawB} → ${totalB}</span></div>
-        <div class="result-row"><span class="lbl">Diferença de handicap</span><span class="val">${diff}</span></div>
-        <div class="result-row"><span class="lbl">Pancadas (100% da diferença)</span><span class="val">${strokes} pancada${strokes !== 1 ? 's' : ''}</span></div>
+        <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} &amp; ${esc(pA2.name)}</span><span class="val" style="color:var(--blue)">Total: <strong>${totalAText}</strong></span></div>
+        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minA} + 15% × ${maxA} = ${rawA}</span></div>
+        <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} &amp; ${esc(pB2.name)}</span><span class="val" style="color:var(--red)">Total: <strong>${totalBText}</strong></span></div>
+        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minB} + 15% × ${maxB} = ${rawB}</span></div>
+        <div class="result-row"><span class="lbl">Diferença de handicap</span><span class="val">${diff.toFixed(2)}</span></div>
+        <div class="result-row"><span class="lbl">Pancadas (diferença arredondada à unidade)</span><span class="val">${strokes} pancada${strokes !== 1 ? 's' : ''}</span></div>
         <div class="result-winner">
             <span>➡️ <span class="winner-name">${wLabel}</span> recebe ${strokes} pancada${strokes !== 1 ? 's' : ''} de abono<br><small style="font-weight:400;color:var(--txt-light)">${wPlayers}</small></span>
             <span class="winner-val">+${strokes}</span>
@@ -4074,7 +4080,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('selTeamA').addEventListener('change', () => { updateTeamSelects(); updateCalcPlayerSelects(); });
     document.getElementById('selTeamB').addEventListener('change', () => { updateTeamSelects(); updateCalcPlayerSelects(); });
     ['selA1','selA2','selB1','selB2'].forEach(id => document.getElementById(id).addEventListener('change', () => { updateCalcPlayerSelects(); updateParTotals(); }));
-    document.getElementById('btnCalculate').addEventListener('click', calculate);
+    document.getElementById('btnCalculate').addEventListener('click', () => {
+        if (isLoggedIn()) calculate();
+        else calculateVFinal();
+    });
     const btnCalculateElim = document.getElementById('btnCalculateElim');
     if (btnCalculateElim) {
         btnCalculateElim.addEventListener('click', calculateElimination);
