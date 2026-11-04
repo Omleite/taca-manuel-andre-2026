@@ -921,6 +921,7 @@ body {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
 }
+.grupos-edit-container .class-group {
     background: var(--card-bg); border-radius: var(--r-lg); padding: 1.5rem;
     box-shadow: var(--sh-sm); border: 2px solid var(--border);
 }
