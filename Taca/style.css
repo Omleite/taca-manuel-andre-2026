@@ -1493,6 +1493,15 @@ body {
     min-width: 2.5rem; text-align: center; flex-shrink: 0;
 }
 .jogo-score.score-draw { background: #ca8a04; }
+.cal-playoff-result {
+    margin-top: .35rem;
+    padding: .35rem .55rem;
+    border-left: 3px solid var(--accent);
+    background: #fffaf0;
+    color: var(--txt-mid);
+    font-size: .8rem;
+}
+.cal-playoff-result strong { color: var(--txt-dark); }
 .jogo-pars {
     display: grid;
     grid-template-columns: 1fr 1fr;

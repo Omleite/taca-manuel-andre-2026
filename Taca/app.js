@@ -2454,6 +2454,7 @@ function setGameResult(ronda, par, home, away, result) {
         existing.result = result;
         if (result === null || result === 'draw' || result === 'not_played') {
             existing.score = null;
+            if (par === 3) existing.playoffHole = null;
         }
     } else {
         const matchId = `R${ronda}-${par}-${state.gameResults.length}`;
@@ -2476,6 +2477,19 @@ function setParScore(ronda, par, home, away, score) {
     return true;
 }
 
+function setPlayoffHole(ronda, home, away, holeValue) {
+    if (!can('classification_manage')) return false;
+    const entry = getGameResult(ronda, 3, home, away);
+    if (!entry || !['home', 'away'].includes(entry.result)) return false;
+
+    const hole = holeValue === '' ? null : Number(holeValue);
+    if (hole !== null && (!Number.isInteger(hole) || hole < 1)) return false;
+
+    entry.playoffHole = hole;
+    saveGameResults();
+    return true;
+}
+
 function setParPlayers(ronda, par, home, away, side, idx, playerId) {
     if (!can('classification_manage')) return false;
     let entry = getGameResult(ronda, par, home, away);
@@ -2492,6 +2506,7 @@ function setParPlayers(ronda, par, home, away, side, idx, playerId) {
     if (ronda >= 6 && par === 3 && list[idx] !== nextPlayerId) {
         entry.result = null;
         entry.score = null;
+        entry.playoffHole = null;
     }
     list[idx] = nextPlayerId;
     entry[key] = list;
@@ -3093,6 +3108,8 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
             const playoffPlayersSelected = ['homePlayers', 'awayPlayers'].every(key =>
                 Array.isArray(playoffResult?.[key]) && playoffResult[key].filter(Boolean).length === 2
             );
+            const playoffHole = Number(playoffResult?.playoffHole);
+            const hasPlayoffHole = Number.isInteger(playoffHole) && playoffHole >= 1;
             const playoffResultHtml = playoffWinner
                 ? `<span class="par-result-badge par-result-badge-win">Vence ${esc(playoffWinner)}</span>`
                 : '<span class="par-result-badge par-result-badge-pending">Play-off por decidir</span>';
@@ -3114,7 +3131,12 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
                                 <button class="btn-result ${playoffResult?.result === 'away' ? 'active' : ''}" data-ronda="${playoffGame.ronda}" data-par="3" data-home="${esc(playoffGame.home)}" data-away="${esc(playoffGame.away)}" data-result="away"${playoffPlayersSelected ? '' : ' disabled'}>Vence B</button>
                                 <button class="btn-result-clear btn-del" data-ronda="${playoffGame.ronda}" data-par="3" data-home="${esc(playoffGame.home)}" data-away="${esc(playoffGame.away)}">Del</button>
                             </div>
+                            <label class="elim-playoff-hole-field">
+                                <span>Buraco decisivo (contagem contínua)</span>
+                                <input class="elim-playoff-hole-input" type="number" min="1" step="1" inputmode="numeric" placeholder="Ex.: 21" value="${hasPlayoffHole ? playoffHole : ''}" data-ronda="${playoffGame.ronda}" data-home="${esc(playoffGame.home)}" data-away="${esc(playoffGame.away)}"${playoffWinner ? '' : ' disabled'}>
+                            </label>
                         ` : `<div class="par-result-readonly">${playoffResultHtml}</div>`}
+                        ${!canManageClassification && hasPlayoffHole ? `<div class="cal-playoff-hole-readonly">Resolvido no buraco ${playoffHole}</div>` : ''}
                     </div>
                 </div>
             `;
@@ -3347,6 +3369,20 @@ function renderClassificacao(ronda) {
                     setParScore(rr, par, home, away, score);
                     const selView = document.getElementById('selRondaClass').value;
                     renderClassificacao(selView === 'total' ? 'total' : parseInt(selView, 10));
+                });
+            });
+
+            document.querySelectorAll('.elim-playoff-hole-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const target = e.target;
+                    if (target.value && (!Number.isInteger(Number(target.value)) || Number(target.value) < 1)) {
+                        showToast('Indique o número inteiro do buraco decisivo, a partir de 1.', 'error');
+                        target.value = '';
+                        return;
+                    }
+                    if (!setPlayoffHole(parseInt(target.dataset.ronda, 10), target.dataset.home, target.dataset.away, target.value)) return;
+                    const selectedView = document.getElementById('selRondaClass').value;
+                    renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
                 });
             });
         }
@@ -3694,6 +3730,18 @@ function buildCalendarParPlayersHtml(games, home, away) {
     return rows ? `<div class="cal-par-list">${rows}</div>` : '';
 }
 
+function buildCalendarPlayoffResultHtml(ronda, home, away) {
+    const result = getGameResult(ronda, 3, home, away);
+    if (!result || !['home', 'away'].includes(result.result)) return '';
+
+    const winner = result.result === 'home' ? home : away;
+    const hole = Number(result.playoffHole);
+    const holeText = Number.isInteger(hole) && hole >= 1
+        ? `, resolvido no buraco ${hole}`
+        : '';
+    return `<div class="cal-playoff-result"><strong>Play-off:</strong> ${esc(winner)} venceu${holeText}.</div>`;
+}
+
 function renderCalendario() {
     const container = document.getElementById('calendarioContainer');
     if (!container) return;
@@ -3795,6 +3843,7 @@ function renderCalendario() {
                         ${(can('calendar_manage') && ronda <= 5) ? `<button class="btn-del-match" data-ronda="${ronda}" data-home="${esc(home)}" data-away="${esc(away)}">✕</button>` : ''}
                     </div>
                     ${ronda >= 6 ? buildCalendarParPlayersHtml(games, home, away) : ''}
+                    ${ronda >= 6 ? buildCalendarPlayoffResultHtml(ronda, home, away) : ''}
                 </li>`;
             });
 
