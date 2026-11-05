@@ -3117,9 +3117,9 @@ function buildEliminationClassificationHtml(ronda, useGenericLabels = false) {
             html += `
                 <div class="elim-playoff-block">
                     <h5 class="elim-playoff-title">Play-off de desempate</h5>
-                    <p class="elim-playoff-help">Confronto empatado. São escolhidos dois jogadores de cada equipa; a composição pode ser diferente dos pares utilizados nos matches anteriores.</p>
+                    <p class="elim-playoff-help">Confronto empatado. Selecione os jogadores que vão representar cada equipa no play-off.</p>
                     <div class="elim-par-card elim-playoff-par-card">
-                        <div class="elim-par-head">Par de play-off</div>
+                        <div class="elim-par-head">Match Play-off</div>
                         <div class="elim-par-sides">
                             ${buildElimSideHtml(playoffGame, matchGames, 'home', canManageClassification, true)}
                             <span class="par-vs-sep">VS</span>
@@ -3373,6 +3373,12 @@ function renderClassificacao(ronda) {
             });
 
             document.querySelectorAll('.elim-playoff-hole-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const target = e.target;
+                    if (!target.value || (Number.isInteger(Number(target.value)) && Number(target.value) >= 1)) {
+                        setPlayoffHole(parseInt(target.dataset.ronda, 10), target.dataset.home, target.dataset.away, target.value);
+                    }
+                });
                 input.addEventListener('change', (e) => {
                     const target = e.target;
                     if (target.value && (!Number.isInteger(Number(target.value)) || Number(target.value) < 1)) {
@@ -3746,7 +3752,7 @@ function buildCalendarPlayoffResultHtml(ronda, home, away) {
         <div><strong>Play-off:</strong> ${esc(winner)} ${holeText}</div>
         <div class="cal-par-list cal-playoff-par-list">
             <div class="cal-par-row cal-playoff-par-row">
-                <span class="cal-par-label">Par Play-off</span>
+                <span class="cal-par-label">Match Play-off</span>
                 <span class="cal-par-players${homeClass}">${playerNames(result.homePlayers)}</span>
                 <span class="par-vs-sep">VS</span>
                 <span class="cal-par-players${awayClass}">${playerNames(result.awayPlayers)}</span>
@@ -3758,6 +3764,7 @@ function buildCalendarPlayoffResultHtml(ronda, home, away) {
 function renderCalendario() {
     const container = document.getElementById('calendarioContainer');
     if (!container) return;
+    loadGameResults();
 
     const calendarEntries = [...state.calendar.filter(isGroupStageGame), ...buildPlayoffScheduleEntries(!isGroupStageFullyScored())];
     const rondes = [...new Set(calendarEntries.map(g => g.ronda))].sort((a, b) => a - b);
