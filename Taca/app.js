@@ -3387,6 +3387,7 @@ function renderClassificacao(ronda) {
                         return;
                     }
                     if (!setPlayoffHole(parseInt(target.dataset.ronda, 10), target.dataset.home, target.dataset.away, target.value)) return;
+                    showToast(target.value ? 'Buraco decisivo guardado.' : 'Buraco decisivo removido.');
                     const selectedView = document.getElementById('selRondaClass').value;
                     renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
                 });
@@ -3742,9 +3743,10 @@ function buildCalendarPlayoffResultHtml(ronda, home, away) {
 
     const winner = result.result === 'home' ? home : away;
     const hole = Number(result.playoffHole);
+    const winnerVerb = /^(os|as)\s/i.test(winner) ? 'venceram' : 'venceu';
     const holeText = Number.isInteger(hole) && hole >= 1
-        ? `venceu no buraco ${hole} do play-off.`
-        : 'venceu o play-off.';
+        ? `${winnerVerb} o play-off ao fim de ${hole} buracos.`
+        : `${winnerVerb} o play-off.`;
     const playerNames = ids => (ids || []).map(getPlayer).filter(Boolean).map(player => esc(player.name)).join(' / ') || '—';
     const homeClass = result.result === 'home' ? ' par-win' : '';
     const awayClass = result.result === 'away' ? ' par-win' : '';
