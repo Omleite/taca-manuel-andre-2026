@@ -1502,6 +1502,16 @@ body {
     font-size: .8rem;
 }
 .cal-playoff-result strong { color: var(--txt-dark); }
+.cal-playoff-par-list { margin-top: .35rem; }
+.cal-playoff-par-row {
+    grid-template-columns: 7rem 1fr auto 1fr;
+    padding: .45rem .55rem;
+    border: 1px solid #c8d8ce;
+    border-left: 3px solid var(--primary);
+    border-radius: var(--r-xs);
+    background: #e8f0eb;
+}
+.cal-playoff-par-row .cal-par-label { color: var(--primary); opacity: 1; }
 .jogo-pars {
     display: grid;
     grid-template-columns: 1fr 1fr;

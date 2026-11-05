@@ -3737,9 +3737,22 @@ function buildCalendarPlayoffResultHtml(ronda, home, away) {
     const winner = result.result === 'home' ? home : away;
     const hole = Number(result.playoffHole);
     const holeText = Number.isInteger(hole) && hole >= 1
-        ? `, resolvido no buraco ${hole}`
-        : '';
-    return `<div class="cal-playoff-result"><strong>Play-off:</strong> ${esc(winner)} venceu${holeText}.</div>`;
+        ? `venceu no buraco ${hole} do play-off.`
+        : 'venceu o play-off.';
+    const playerNames = ids => (ids || []).map(getPlayer).filter(Boolean).map(player => esc(player.name)).join(' / ') || '—';
+    const homeClass = result.result === 'home' ? ' par-win' : '';
+    const awayClass = result.result === 'away' ? ' par-win' : '';
+    return `<div class="cal-playoff-result">
+        <div><strong>Play-off:</strong> ${esc(winner)} ${holeText}</div>
+        <div class="cal-par-list cal-playoff-par-list">
+            <div class="cal-par-row cal-playoff-par-row">
+                <span class="cal-par-label">Par Play-off</span>
+                <span class="cal-par-players${homeClass}">${playerNames(result.homePlayers)}</span>
+                <span class="par-vs-sep">VS</span>
+                <span class="cal-par-players${awayClass}">${playerNames(result.awayPlayers)}</span>
+            </div>
+        </div>
+    </div>`;
 }
 
 function renderCalendario() {
