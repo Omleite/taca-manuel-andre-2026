@@ -2441,6 +2441,14 @@ function setGameResult(ronda, par, home, away, result) {
     // Segurança: só perfis com permissão podem alterar resultados.
     if (!can('classification_manage')) return false;
 
+    if (ronda >= 6 && par === 3 && result === null) {
+        state.gameResults = state.gameResults.filter(entry =>
+            !(entry.ronda === ronda && entry.par === par && entry.home === home && entry.away === away)
+        );
+        saveGameResults();
+        return true;
+    }
+
     if (ronda >= 6 && par === 3 && result !== null) {
         const playoff = getGameResult(ronda, par, home, away);
         const hasBothPairs = ['homePlayers', 'awayPlayers'].every(key =>
@@ -3328,7 +3336,9 @@ function renderClassificacao(ronda) {
                     if (!setGameResult(rr, par, home, away, null)) return;
                     const selectedView = document.getElementById('selRondaClass').value;
                     renderClassificacao(selectedView === 'total' ? 'total' : parseInt(selectedView, 10));
-                    showToast(`Resultado limpo - Par ${par}: ${home} vs ${away}`);
+                    showToast(par === 3
+                        ? `Play-off removido: ${home} vs ${away}`
+                        : `Resultado limpo - Par ${par}: ${home} vs ${away}`);
                 });
             });
 
