@@ -46,6 +46,32 @@ if (storedVersion !== APP_VERSION) {
     localStorage.setItem(STORED_VERSION_KEY, APP_VERSION);
 }
 
+const PLAYOFF_TEST_CLEANUP_KEY = 'tma-2026-playoff-test-cleanup';
+if (localStorage.getItem(PLAYOFF_TEST_CLEANUP_KEY) !== '1') {
+    const removeEliminationResults = results => Array.isArray(results)
+        ? results.filter(result => !result || !Number.isFinite(Number(result.ronda)) || Number(result.ronda) < 6)
+        : results;
+    try {
+        const resultsKey = `${STORAGE_KEY}-results`;
+        const rawResults = localStorage.getItem(resultsKey);
+        if (rawResults) {
+            localStorage.setItem(resultsKey, JSON.stringify(removeEliminationResults(JSON.parse(rawResults))));
+        }
+
+        const rawState = localStorage.getItem(STORAGE_KEY);
+        if (rawState) {
+            const savedState = JSON.parse(rawState);
+            if (Array.isArray(savedState.gameResults)) {
+                savedState.gameResults = removeEliminationResults(savedState.gameResults);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(savedState));
+            }
+        }
+        localStorage.setItem(PLAYOFF_TEST_CLEANUP_KEY, '1');
+    } catch (error) {
+        console.error('Erro ao limpar resultados locais de teste da fase a eliminar:', error);
+    }
+}
+
 // ════════════════════════════════════════════════════════════
 //  CÁLCULO DE HCP DE JOGO (fórmula WHS oficial)
 // ════════════════════════════════════════════════════════════
