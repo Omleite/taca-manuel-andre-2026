@@ -1906,8 +1906,12 @@ function renderResultSummaryVFinal(pA1, pA2, pB1, pB2, totalA, totalB, diff, str
     if (strokes === 0) {
         el.innerHTML = `
             <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} &amp; ${esc(pA2.name)}</span><span class="val" style="color:var(--blue)">Total: <strong>${totalAText}</strong></span></div>
+            <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minA} + 15% × ${maxA} = ${rawA}</span></div>
             <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} &amp; ${esc(pB2.name)}</span><span class="val" style="color:var(--red)">Total: <strong>${totalBText}</strong></span></div>
-            <div class="result-equal">Diferença: ${diff.toFixed(2)}, arredondada a 0. Nenhum par recebe pancadas de abono.</div>`;
+            <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minB} + 15% × ${maxB} = ${rawB}</span></div>
+            <div class="result-row"><span class="lbl">Diferença de handicap</span><span class="val">|${totalAText} − ${totalBText}| = ${diff.toFixed(2)}</span></div>
+            <div class="result-row"><span class="lbl">Pancadas (diferença arredondada à unidade)</span><span class="val">${diff.toFixed(2)} → ${strokes} pancadas</span></div>
+            <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>Nenhum par recebe pancadas de abono</span><span>0</span></div>`;
         return;
     }
     if (!higherPar) return;
