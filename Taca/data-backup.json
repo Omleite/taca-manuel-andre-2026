@@ -164,7 +164,7 @@
       "id": "mrpcd3x1qjr3m",
       "name": "Luis Manuel Costa",
       "handicapWhs": 18.7,
-      "handicap": 20.0,
+      "handicap": 20,
       "genero": "M",
       "numeroFederado": "38865"
     },
@@ -212,7 +212,7 @@
       "id": "mrpcd3x1d4sot",
       "name": "Vasco Costa",
       "handicapWhs": 13.8,
-      "handicap": 15.0,
+      "handicap": 15,
       "genero": "M",
       "numeroFederado": "4657"
     },
@@ -244,7 +244,7 @@
       "id": "mrpcd3x1lbj3x",
       "name": "José Vale",
       "handicapWhs": 18.5,
-      "handicap": 20.0,
+      "handicap": 20,
       "genero": "M",
       "numeroFederado": "26318"
     },
@@ -524,7 +524,7 @@
       "id": "mrpcd3x1l8nep",
       "name": "David Angelis",
       "handicapWhs": 30.1,
-      "handicap": 33.0,
+      "handicap": 33,
       "genero": "M",
       "numeroFederado": "47594"
     },
@@ -555,8 +555,8 @@
     {
       "id": "mrpcd3x1pzxcn",
       "name": "Ruben Santos",
-      "handicapWhs": 26.0,
-      "handicap": 29.0,
+      "handicapWhs": 26,
+      "handicap": 29,
       "genero": "M",
       "numeroFederado": "51321"
     },
@@ -613,7 +613,7 @@
       "name": "Fernando da Costa",
       "numeroFederado": "54802",
       "handicapWhs": 4.4,
-      "handicap": 4.0,
+      "handicap": 4,
       "genero": "M"
     },
     {
@@ -824,9 +824,9 @@
       "grupo": "B",
       "playerIds": [
         "mrpcd3x1qg7hm",
-        "mrpcd3x1k5alz",
-        "mrpcd3x1gfgn3",
-        "mrpcd3x1bgfio"
+        "mrpcd3x1bgfio",
+        "mvmov0o25dw4i",
+        "mrpcd3x1gfgn3"
       ],
       "captainId": "mrpcd3x1qg7hm"
     },
