@@ -1903,34 +1903,37 @@ function renderResultSummaryVFinal(pA1, pA2, pB1, pB2, totalA, totalB, diff, str
     const totalBText = totalB.toFixed(2);
     const rawA = totalAText;
     const rawB = totalBText;
+    let outcomeSummary;
     if (strokes === 0) {
-        el.innerHTML = `
-            <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} &amp; ${esc(pA2.name)}</span><span class="val" style="color:var(--blue)">Total: <strong>${totalAText}</strong></span></div>
-            <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minA} + 15% × ${maxA} = ${rawA}</span></div>
-            <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} &amp; ${esc(pB2.name)}</span><span class="val" style="color:var(--red)">Total: <strong>${totalBText}</strong></span></div>
-            <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minB} + 15% × ${maxB} = ${rawB}</span></div>
-            <div class="result-row"><span class="lbl">Diferença de handicap</span><span class="val">|${totalAText} − ${totalBText}| = ${diff.toFixed(2)}</span></div>
-            <div class="result-row"><span class="lbl">Pancadas (diferença arredondada à unidade)</span><span class="val">${diff.toFixed(2)} → ${strokes} pancadas</span></div>
-            <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>Nenhum par recebe pancadas de abono</span><span>0</span></div>`;
-        return;
+        outcomeSummary = `
+            <div class="result-winner">
+                <span class="winner-name">Nenhum par recebe pancadas de abono</span>
+                <span class="winner-val">0</span>
+            </div>`;
+    } else {
+        if (!higherPar) return;
+        const wLabel = `Par ${higherPar}`;
+        const lLabel = higherPar === 'A' ? 'Par B' : 'Par A';
+        const wPlayers = higherPar === 'A' ? `${esc(pA1.name)} &amp; ${esc(pA2.name)}` : `${esc(pB1.name)} &amp; ${esc(pB2.name)}`;
+        const lPlayers = higherPar === 'A' ? `${esc(pB1.name)} &amp; ${esc(pB2.name)}` : `${esc(pA1.name)} &amp; ${esc(pA2.name)}`;
+        outcomeSummary = `
+            <div class="result-winner">
+                <span>➡️ <span class="winner-name">${wLabel}</span> recebe ${strokes} pancada${strokes !== 1 ? 's' : ''} de abono<br><small style="font-weight:400;color:var(--txt-light)">${wPlayers}</small></span>
+                <span class="winner-val">+${strokes}</span>
+            </div>
+            <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} — ${lPlayers} joga sem pancadas de abono</span><span>0</span></div>`;
     }
-    if (!higherPar) return;
-    const wLabel = `Par ${higherPar}`;
-    const lLabel = higherPar === 'A' ? 'Par B' : 'Par A';
-    const wPlayers = higherPar === 'A' ? `${esc(pA1.name)} &amp; ${esc(pA2.name)}` : `${esc(pB1.name)} &amp; ${esc(pB2.name)}`;
-    const lPlayers = higherPar === 'A' ? `${esc(pB1.name)} &amp; ${esc(pB2.name)}` : `${esc(pA1.name)} &amp; ${esc(pA2.name)}`;
+
     el.innerHTML = `
         <div class="result-row"><span class="lbl">Par A — ${esc(pA1.name)} &amp; ${esc(pA2.name)}</span><span class="val" style="color:var(--blue)">Total: <strong>${totalAText}</strong></span></div>
         <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minA} + 15% × ${maxA} = ${rawA}</span></div>
         <div class="result-row"><span class="lbl">Par B — ${esc(pB1.name)} &amp; ${esc(pB2.name)}</span><span class="val" style="color:var(--red)">Total: <strong>${totalBText}</strong></span></div>
         <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: 35% × ${minB} + 15% × ${maxB} = ${rawB}</span></div>
         <div class="result-row"><span class="lbl">Diferença de handicap</span><span class="val">${diff.toFixed(2)}</span></div>
+        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Cálculo: |${totalAText} − ${totalBText}| = ${diff.toFixed(2)}</span></div>
         <div class="result-row"><span class="lbl">Pancadas (diferença arredondada à unidade)</span><span class="val">${strokes} pancada${strokes !== 1 ? 's' : ''}</span></div>
-        <div class="result-winner">
-            <span>➡️ <span class="winner-name">${wLabel}</span> recebe ${strokes} pancada${strokes !== 1 ? 's' : ''} de abono<br><small style="font-weight:400;color:var(--txt-light)">${wPlayers}</small></span>
-            <span class="winner-val">+${strokes}</span>
-        </div>
-        <div class="result-row" style="color:var(--txt-light);font-size:.85rem"><span>${lLabel} — ${lPlayers} joga sem pancadas de abono</span><span>0</span></div>`;
+        <div class="result-row" style="font-size:.85rem;color:var(--txt-light);"><span>Arredondamento: ${diff.toFixed(2)} → ${strokes}</span></div>
+        ${outcomeSummary}`;
 }
 
 function renderStrokeTable(strokes, higherPar, teamAName, teamBName) {
