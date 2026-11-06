@@ -163,8 +163,8 @@
     {
       "id": "mrpcd3x1qjr3m",
       "name": "Luis Manuel Costa",
-      "handicapWhs": 18,
-      "handicap": 20,
+      "handicapWhs": 18.7,
+      "handicap": 20.0,
       "genero": "M",
       "numeroFederado": "38865"
     },
@@ -211,8 +211,8 @@
     {
       "id": "mrpcd3x1d4sot",
       "name": "Vasco Costa",
-      "handicapWhs": 13.6,
-      "handicap": 15,
+      "handicapWhs": 13.8,
+      "handicap": 15.0,
       "genero": "M",
       "numeroFederado": "4657"
     },
@@ -243,8 +243,8 @@
     {
       "id": "mrpcd3x1lbj3x",
       "name": "José Vale",
-      "handicapWhs": 18.3,
-      "handicap": 20,
+      "handicapWhs": 18.5,
+      "handicap": 20.0,
       "genero": "M",
       "numeroFederado": "26318"
     },
@@ -523,8 +523,8 @@
     {
       "id": "mrpcd3x1l8nep",
       "name": "David Angelis",
-      "handicapWhs": 29.5,
-      "handicap": 33,
+      "handicapWhs": 30.1,
+      "handicap": 33.0,
       "genero": "M",
       "numeroFederado": "47594"
     },
@@ -555,8 +555,8 @@
     {
       "id": "mrpcd3x1pzxcn",
       "name": "Ruben Santos",
-      "handicapWhs": 25,
-      "handicap": 28,
+      "handicapWhs": 26.0,
+      "handicap": 29.0,
       "genero": "M",
       "numeroFederado": "51321"
     },
@@ -612,8 +612,8 @@
       "id": "mvmou03q9pmcb",
       "name": "Fernando da Costa",
       "numeroFederado": "54802",
-      "handicapWhs": 4.5,
-      "handicap": 4,
+      "handicapWhs": 4.4,
+      "handicap": 4.0,
       "genero": "M"
     },
     {
