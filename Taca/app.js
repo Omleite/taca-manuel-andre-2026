@@ -1572,6 +1572,7 @@ function refreshCalcSelects() {
 }
 
 function getCalculatorTeams() {
+    if (can('handicaps_global_manage')) return state.teams;
     if (!isGroupStageFullyScored()) return isLoggedIn() ? state.teams : [];
 
     const standings = calculateStandings(5, true);
