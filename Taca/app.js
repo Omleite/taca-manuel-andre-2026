@@ -1568,17 +1568,34 @@ function deleteTeam(id) {
 function refreshCalcSelects() {
     // Preencher e filtrar os selects de equipa
     updateTeamSelects();
+    updateCalcPlayerSelects();
 }
 
 function getCalculatorTeams() {
-    if (isLoggedIn()) return state.teams;
-    if (!isGroupStageFullyScored()) return [];
+    if (!isGroupStageFullyScored()) return isLoggedIn() ? state.teams : [];
 
     const standings = calculateStandings(5, true);
     const qualifiedTeamIds = new Set(
         Object.values(standings).flatMap(group => group.slice(0, 2).map(team => team.id))
     );
-    return state.teams.filter(team => qualifiedTeamIds.has(team.id));
+    const eliminatedTeamNames = new Set();
+    const eliminationMatches = new Map();
+
+    buildPlayoffScheduleEntries().forEach(match => {
+        if (match.ronda !== 6 && match.ronda !== 7) return;
+        const key = `${match.ronda}-${match.matchNo}`;
+        if (!eliminationMatches.has(key)) eliminationMatches.set(key, match);
+    });
+
+    eliminationMatches.forEach(match => {
+        const winner = getEliminationMatchWinner(match.ronda, match.matchNo, match.home, match.away);
+        if (!winner) return;
+        eliminatedTeamNames.add(winner === match.home ? match.away : match.home);
+    });
+
+    return state.teams.filter(team =>
+        qualifiedTeamIds.has(team.id) && !eliminatedTeamNames.has(team.name)
+    );
 }
 
 function updateTeamSelects() {
@@ -2479,6 +2496,7 @@ function setGameResult(ronda, par, home, away, result) {
             !(entry.ronda === ronda && entry.par === par && entry.home === home && entry.away === away)
         );
         saveGameResults();
+        refreshCalcSelects();
         return true;
     }
 
@@ -2502,6 +2520,7 @@ function setGameResult(ronda, par, home, away, result) {
         state.gameResults.push({ matchId, ronda, par, home, away, result });
     }
     saveGameResults();
+    refreshCalcSelects();
     return true;
 }
 
