@@ -555,8 +555,8 @@
     {
       "id": "mrpcd3x1pzxcn",
       "name": "Ruben Santos",
-      "handicapWhs": 25,
-      "handicap": 28,
+      "handicapWhs": 23.8,
+      "handicap": 26,
       "genero": "M",
       "numeroFederado": "51321"
     },
@@ -630,6 +630,22 @@
       "numeroFederado": "47571",
       "handicapWhs": 20.3,
       "handicap": 22,
+      "genero": "M"
+    },
+    {
+      "id": "mwzefm9tk4bh1",
+      "name": "Daniel Mendes",
+      "numeroFederado": "33141",
+      "handicapWhs": 12.9,
+      "handicap": 14,
+      "genero": "M"
+    },
+    {
+      "id": "mwzeh7a38iyda",
+      "name": "Pedro Aires",
+      "numeroFederado": "4939",
+      "handicapWhs": 10.1,
+      "handicap": 11,
       "genero": "M"
     }
   ],
@@ -735,7 +751,7 @@
       "name": "Masters",
       "grupo": "C",
       "playerIds": [
-        "mvmou03q9pmcb",
+        "mwzefm9tk4bh1",
         "mrpcd3x1n5jzv",
         "mrpcd3x1lbj3x",
         "mrpcd3x1jbuvx"
@@ -796,9 +812,9 @@
       "grupo": "C",
       "playerIds": [
         "mrpcd3x180cuf",
+        "mrpcd3x1eky1j",
         "mrpcd3x180mbt",
-        "mrpcd3x1m7cke",
-        "mwnz7f7fyzk0y"
+        "mrpcd3x1m7cke"
       ],
       "captainId": "mrpcd3x180mbt"
     },
@@ -855,9 +871,9 @@
       "name": "V.T.F.",
       "grupo": "B",
       "playerIds": [
-        "mrpcd3x1qvhya",
         "mrpcd3x1jo4yf",
-        "mrpcd3x1fcbvj",
+        "mrpcd3x1qvhya",
+        "mwzeh7a38iyda",
         "mrpcd3x1pzxcn"
       ],
       "captainId": "mrpcd3x1qvhya"
