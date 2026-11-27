@@ -996,10 +996,10 @@ function loadState() {
     } catch (e) { console.error('Erro ao carregar dados:', e); }
 }
 
-async function loadDataBackup() {
+async function loadDataBackup(force = false) {
     // Sempre tenta carregar o backup mais recente do servidor
-    if (localStorage.getItem(PENDING_SYNC_KEY) === 'true') return false;
-    if (Date.now() - Number(localStorage.getItem(LAST_SYNC_KEY) || 0) < BACKUP_REFRESH_GRACE_MS) return false;
+    if (!force && localStorage.getItem(PENDING_SYNC_KEY) === 'true') return false;
+    if (!force && Date.now() - Number(localStorage.getItem(LAST_SYNC_KEY) || 0) < BACKUP_REFRESH_GRACE_MS) return false;
     try {
         const response = await fetch('data-backup.json?t=' + Date.now()); // Cache busting
         if (!response.ok) return false;
@@ -1015,20 +1015,7 @@ async function loadDataBackup() {
                 : (Array.isArray(data.users) ? data.users : []);
             const importedUsers = hydrateUsersFromBackup(importedUsersRaw);
 
-            // Preserve local results if they are more up-to-date (more entries) than backup
-            const existingResultsRaw = localStorage.getItem(STORAGE_KEY + '-results');
-            const existingResults = existingResultsRaw ? JSON.parse(existingResultsRaw) : [];
-            const backupResults = data.gameResults || [];
-            const resultsToUse = existingResults.length >= backupResults.length ? existingResults : backupResults;
-            // Jogadores dos pares do backup entram nas entradas locais que ainda não os têm
-            resultsToUse.forEach(local => {
-                const remote = backupResults.find(b => b.ronda === local.ronda && b.par === local.par && b.home === local.home && b.away === local.away);
-                if (!remote) return;
-                ['homePlayers', 'awayPlayers'].forEach(k => {
-                    const hasLocal = Array.isArray(local[k]) && local[k].some(Boolean);
-                    if (!hasLocal && Array.isArray(remote[k])) local[k] = remote[k];
-                });
-            });
+            const resultsToUse = Array.isArray(data.gameResults) ? data.gameResults : [];
             // Carregar dados do servidor (sem permitir SI customizado)
             const sanitizedData = {
                 players: data.players,
@@ -1050,6 +1037,8 @@ async function loadDataBackup() {
                 };
                 localStorage.setItem(AUTH_KEY, JSON.stringify(authPayload));
             }
+
+            if (force) localStorage.removeItem(PENDING_SYNC_KEY);
 
             state.players = data.players;
             state.teams = data.teams;
@@ -2160,7 +2149,7 @@ function exportData() {
     if (!can('data_manage')) return;
     // Sincroniza o state com localStorage antes de exportar
     saveState(false);
-    saveGameResults();
+    saveGameResults(false);
     saveCalendar();
     saveRoundDates();
     saveAuth();
@@ -2461,8 +2450,9 @@ function initializeRoundDates() {
     });
 }
 
-function saveGameResults() {
+function saveGameResults(markPending = true) {
     localStorage.setItem(STORAGE_KEY + '-results', JSON.stringify(state.gameResults));
+    if (markPending) localStorage.setItem(PENDING_SYNC_KEY, 'true');
 }
 
 function loadGameResults() {
@@ -2476,7 +2466,7 @@ function loadGameResults() {
                 r.matchId = `R${r.ronda}-${r.par}-${idx}`;
             }
         });
-        saveGameResults();
+        saveGameResults(false);
     } catch (e) { console.error('loadGameResults:', e); }
 }
 
@@ -2520,7 +2510,7 @@ function setGameResult(ronda, par, home, away, result) {
         const matchId = `R${ronda}-${par}-${state.gameResults.length}`;
         state.gameResults.push({ matchId, ronda, par, home, away, result });
     }
-    saveGameResults();
+    saveGameResults(false);
     refreshCalcSelects();
     return true;
 }
@@ -4214,16 +4204,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Botão refresh manual
     document.getElementById('btnRefresh').addEventListener('click', async () => {
-        if (localStorage.getItem(PENDING_SYNC_KEY) === 'true') {
-            showToast('Há alterações locais por sincronizar. Sincronize com o GitHub antes de atualizar.', 'warn');
+        const hasPendingChanges = localStorage.getItem(PENDING_SYNC_KEY) === 'true';
+        if (hasPendingChanges && !confirm('Há alterações locais por sincronizar. Atualizar vai substituí-las pelos dados do servidor. Continuar?')) {
             return;
         }
         const btn = document.getElementById('btnRefresh');
         btn.classList.add('spinning');
-        await loadDataBackup();
+        const refreshed = await loadDataBackup(true);
         const activeBtn = document.querySelector('.tab-btn.active');
         if (activeBtn) activeBtn.click();
         btn.classList.remove('spinning');
+        showToast(refreshed ? 'Dados atualizados do servidor.' : 'Não foi possível atualizar. Verifique a ligação e tente novamente.', refreshed ? 'success' : 'error');
     });
 
     // Auto-refresh quando a página volta ao foco (mobile background)
