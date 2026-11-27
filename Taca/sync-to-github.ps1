@@ -50,6 +50,10 @@ Write-Host '=======================================' -ForegroundColor Green
 Write-Host ''
 
 # 1) Encontrar ultimo ficheiro exportado
+Write-Info "Pasta onde o script procura o ficheiro exportado: $downloadsPath"
+Write-Info 'O ficheiro deve chamar-se taca-manuel-andre-2026*.json.'
+Write-Host ''
+
 $downloadedFile = Get-ChildItem "$downloadsPath\taca-manuel-andre-2026*.json" -ErrorAction SilentlyContinue |
     Sort-Object LastWriteTime -Descending |
     Select-Object -First 1
@@ -57,14 +61,16 @@ $downloadedFile = Get-ChildItem "$downloadsPath\taca-manuel-andre-2026*.json" -E
 if ($downloadedFile) {
     $fileAge = (Get-Date) - $downloadedFile.LastWriteTime
     Write-Info "Ficheiro encontrado: $($downloadedFile.Name)"
+    Write-Info "Localizacao: $($downloadedFile.FullName)"
     Write-Info "Exportado ha $([int]$fileAge.TotalMinutes) minutos"
     Write-Host ''
 
     if ($fileAge.TotalMinutes -ge 30) {
         Write-WarnMsg 'Ficheiro com mais de 30 minutos.'
-        Write-WarnMsg 'Sugestao: exportar novamente antes do sync.'
+        Write-WarnMsg 'Para sincronizar dados atuais, exporte novamente em Configuracoes > Exportar Dados.'
+        Write-WarnMsg "Confirme que o novo ficheiro fica em: $downloadsPath"
         Write-Host ''
-        Write-Host 'Pressione qualquer tecla para continuar, ou Ctrl+C para cancelar...'
+        Write-Host 'Pressione qualquer tecla para continuar com o ficheiro antigo, ou Ctrl+C para cancelar...'
         $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
     }
 
@@ -73,6 +79,8 @@ if ($downloadedFile) {
 }
 else {
     Write-WarnMsg 'Nenhum ficheiro exportado encontrado em Downloads.'
+    Write-WarnMsg "Exporte em Configuracoes > Exportar Dados e coloque o ficheiro em: $downloadsPath"
+    Write-WarnMsg 'O nome esperado e taca-manuel-andre-2026*.json.'
     Write-WarnMsg 'Vou usar data-backup.json existente no projeto.'
 }
 
@@ -95,7 +103,7 @@ Push-Location $repoPath
 try {
     $git = Get-GitCommand
 
-    & $git add Taca/data-backup.json
+    & $git add Taca/data-backup.json Taca/index.html Taca/app.js Taca/style.css Taca/sync-to-github.ps1
     if ($LASTEXITCODE -ne 0) { throw 'git add falhou.' }
 
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
