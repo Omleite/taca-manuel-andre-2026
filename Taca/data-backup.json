@@ -1601,7 +1601,7 @@
       "par": 2,
       "home": "Red Hot Chilli Putters",
       "away": "Os Últimos",
-      "result": null,
+      "result": "draw",
       "homePlayers": [
         "mrpcd3x1bgfio",
         "mrpcd3x1gfgn3"
@@ -1678,6 +1678,92 @@
       "awayPlayers": [
         "mrpcd3x1qjr3m",
         "mrpcd3x1e9c8y"
+      ]
+    },
+    {
+      "matchId": "R7-1-84",
+      "ronda": 7,
+      "par": 1,
+      "home": "V.T.F.",
+      "away": "Os Golfinhos",
+      "result": "away",
+      "homePlayers": [
+        "mrpcd3x1jo4yf",
+        "mrpcd3x1qvhya"
+      ],
+      "score": "",
+      "awayPlayers": [
+        "mrpcd3x180cuf",
+        "mrpcd3x1eky1j"
+      ]
+    },
+    {
+      "matchId": "R7-2-85",
+      "ronda": 7,
+      "par": 2,
+      "home": "V.T.F.",
+      "away": "Os Golfinhos",
+      "result": "home",
+      "homePlayers": [
+        "mwzeh7a38iyda",
+        "mrpcd3x1pzxcn"
+      ],
+      "score": "",
+      "awayPlayers": [
+        "mrpcd3x180mbt",
+        "mrpcd3x1m7cke"
+      ]
+    },
+    {
+      "matchId": "R7-3-86",
+      "ronda": 7,
+      "par": 3,
+      "home": "V.T.F.",
+      "away": "Os Golfinhos",
+      "result": "away",
+      "score": null,
+      "playoffHole": null,
+      "homePlayers": [
+        "mrpcd3x1jo4yf",
+        "mrpcd3x1qvhya"
+      ],
+      "awayPlayers": [
+        "mrpcd3x180cuf",
+        "mrpcd3x180mbt"
+      ]
+    },
+    {
+      "matchId": "R7-1-87",
+      "ronda": 7,
+      "par": 1,
+      "home": "Red Hot Chilli Putters",
+      "away": "Masters",
+      "result": "away",
+      "homePlayers": [
+        "mrpcd3x1qg7hm",
+        "mvmov0o25dw4i"
+      ],
+      "score": "",
+      "awayPlayers": [
+        "mrpcd3x1n5jzv",
+        "mrpcd3x1lbj3x"
+      ]
+    },
+    {
+      "matchId": "R7-2-88",
+      "ronda": 7,
+      "par": 2,
+      "home": "Red Hot Chilli Putters",
+      "away": "Masters",
+      "result": "away",
+      "homePlayers": [
+        "mrpcd3x1bgfio",
+        "mrpcd3x1gfgn3"
+      ],
+      "score": "",
+      "awayPlayers": [
+        "mwzefm9tk4bh1",
+        "mrpcd3x1jbuvx"
       ]
     }
   ],
